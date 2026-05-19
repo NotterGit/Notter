@@ -1,6 +1,7 @@
 export const apiRoutes = {
 	FILES: {
 		UPLOAD: "/files/upload",
+		BY_USER: (userid: string) => `/files/user/${userid}`,
 		DELETE: "/files/delete",
 	},
 	USERS: {
@@ -9,8 +10,7 @@ export const apiRoutes = {
 		BY_ID: (_id: string) => `/users/by_id/${_id}`,
 		UPDATE: (_id: string) => `/users/update/${_id}`,
 		UPDATE_BADGE: (_id: string) => `/users/update_badge/${_id}`,
-		CHANGE_VERIFIED_ORGS: (_id: string, change: number) =>
-			`/users/change_verified_orgs/${_id}?change=${change}`,
+		CHANGE_VERIFIED_ORGS: (_id: string) => `/users/change_verified_orgs/${_id}`,
 	},
 	ORGS: {
 		ADD: (_id: string) => `/orgs/add/${_id}`,
@@ -21,6 +21,7 @@ export const apiRoutes = {
 	},
 	ORDER: {
 		CREATE: "/order/create",
+		CALLBACK: "/order/callback",
 		CHECK: (_id: string) => `/order/check/${_id}`,
 		SUCCESS: (_id: string) => `/order/success/${_id}`,
 	},

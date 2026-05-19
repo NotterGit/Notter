@@ -9,6 +9,8 @@ export type MessageResponse = {
   message: string
 }
 
+export type ApiEntityResponse = Record<string, unknown>
+
 export type ApiRequestFunction = <T>(
   method: HttpMethod,
   url: string,
@@ -59,17 +61,28 @@ export interface Order {
   amount: number
 }
 
+export type CreateOrderResponse = string | Order | ApiEntityResponse
+
 export type CreateOrderFunction = (
-  _id: string,
-  userid?: string | null,
+  userid: string,
   premium?: number | null,
   status?: string | null,
   amount?: number | null
-) => Promise<Order | null>
+) => Promise<CreateOrderResponse | null>
 
 export type CheckOrderFunction = (_id: string) => Promise<Order | null>
 
 export type SuccessOrderFunction = (_id: string) => Promise<Order | null>
+
+export type OrderCallbackPayload = {
+  MerchantOrderId: number
+  InvId: number
+  Sum: number
+  Currency: string
+  SignatureValue: string
+}
+
+export type OrderCallbackFunction = (payload: OrderCallbackPayload) => Promise<ApiEntityResponse | null>
 
 export type UploadFileResponse = {
   url: string
@@ -78,6 +91,15 @@ export type UploadFileResponse = {
 export type DeleteFileResponse = {
   success: boolean
 }
+
+export type UserFile = {
+  fileid?: string
+  userid?: string
+  url?: string
+  avatar?: string
+  username?: string
+  documentid?: string
+} & ApiEntityResponse
 
 export type UploadFileFunction = (
   userid: string,
@@ -88,6 +110,8 @@ export type UploadFileFunction = (
 ) => Promise<string | null>
 
 export type DeleteFileFunction = (userid: string, fileid: string) => Promise<boolean>
+
+export type GetFilesByUserFunction = (userid: string) => Promise<UserFile[] | null>
 
 export type OrgBadge = {
   verified: boolean;

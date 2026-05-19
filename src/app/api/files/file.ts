@@ -1,10 +1,12 @@
-import { apiDelete, apiPost, withApiBaseUrl } from "../client"
+import { apiDelete, apiGet, apiPost, withApiBaseUrl } from "../client"
 import { apiRoutes } from "@/config/routing/api.route"
 import type {
   DeleteFileFunction,
   DeleteFileResponse,
+  GetFilesByUserFunction,
   UploadFileFunction,
   UploadFileResponse,
+  UserFile,
 } from "@/config/types/api.types"
 
 export const uploadFile: UploadFileFunction = async (userid, documentid, avatar, username, file) => {
@@ -25,4 +27,8 @@ export const uploadFile: UploadFileFunction = async (userid, documentid, avatar,
 export const deleteFile: DeleteFileFunction = async (userid, fileid) => {
   const response = await apiDelete<DeleteFileResponse>(apiRoutes.FILES.DELETE, { userid, fileid })
   return response?.success ?? false
+}
+
+export const getFilesByUser: GetFilesByUserFunction = (userid) => {
+  return apiGet<UserFile[]>(apiRoutes.FILES.BY_USER(userid))
 }

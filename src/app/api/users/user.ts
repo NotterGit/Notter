@@ -78,5 +78,5 @@ export const updateUser: UpdateUserFunction = (
 export const updateUserBadge: UpdateBadgeFunction = usersApi.updateBadge
 
 export const changeVerifiedOrgs: ChangeVerifiedOrgsFunction = (_id, change) => {
-  return apiPut<MessageResponse>(apiRoutes.USERS.CHANGE_VERIFIED_ORGS(_id, change))
+  return apiPut<MessageResponse>(apiRoutes.USERS.CHANGE_VERIFIED_ORGS(_id), { change })
 }

@@ -7,8 +7,8 @@ import { createOrder } from "../../api/order/order";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { useConvexAuth } from "convex/react";
-import { getById as getUser } from "../../api/orgs/org";
-import { getById as getOrg } from "../../api/users/user";
+import { getById as getOrg } from "../../api/orgs/org";
+import { getById as getUser } from "../../api/users/user";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { pages } from "@/config/routing/pages.route";
@@ -68,11 +68,11 @@ export default function BuyPremium() {
         const fetchProfile = async () => {
             if (id) {
                 if (isOrg) {
-                    const userProfile = await getUser(id);
-                    setProfile(userProfile);
-                } else {
                     const orgProfile = await getOrg(id);
                     setProfile(orgProfile);
+                } else {
+                    const userProfile = await getUser(id);
+                    setProfile(userProfile);
                 }
             }
         };
@@ -93,8 +93,8 @@ export default function BuyPremium() {
         setLoading(true);
         const { price, oldPrice } = calculatePrice();
 
-        const orderResponse: any = await createOrder(organization?.id ?? "", id ?? null, parseInt(selectedPlan), "pending", price);
-        if (orderResponse) {
+        const orderResponse = id ? await createOrder(id, parseInt(selectedPlan), "pending", price) : null;
+        if (typeof orderResponse === "string") {
             window.location.href = orderResponse;
         } else {
             toast.error("Произошла ошибка при создании заказа");
