@@ -1,7 +1,32 @@
 import { v } from "convex/values"
-import { mutation, query } from "./_generated/server"
+import { mutation, query, type MutationCtx } from "./_generated/server"
 import { Doc, Id } from "./_generated/dataModel"
 import { generateRandomId } from "./genId"
+
+const getDocumentLimit = (premiumLevel?: number, isOrg?: boolean) => {
+    if (premiumLevel === 1) {
+        return isOrg ? 500 : 200
+    }
+
+    if (premiumLevel === 2) {
+        return 1000
+    }
+
+    return 75
+}
+
+async function assertCanCreateDocument(ctx: MutationCtx, userId: string, premiumLevel?: number, isOrg?: boolean) {
+    const documents = await ctx.db
+        .query("documents")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect()
+
+    const documentLimit = getDocumentLimit(premiumLevel, isOrg)
+
+    if (documents.length >= documentLimit) {
+        throw new Error(`Rate limited note:${documentLimit}`)
+    }
+}
 
 export const archive = mutation({
     args: {
@@ -93,7 +118,9 @@ export const create = mutation({
         userId: v.string(),
         lastEditor: v.string(),
         lastEditTime: v.optional(v.string()),
-        creatorName: v.string()
+        creatorName: v.string(),
+        premiumLevel: v.optional(v.number()),
+        isOrg: v.optional(v.boolean())
     },
     handler: async(ctx, args) => {
         const identify = await ctx.auth.getUserIdentity()
@@ -101,6 +128,8 @@ export const create = mutation({
         if (!identify){
             throw new Error("Not authenticated")
         }
+
+        await assertCanCreateDocument(ctx, args.userId, args.premiumLevel, args.isOrg)
 
         const document = await ctx.db.insert("documents", {
             title: args.title,

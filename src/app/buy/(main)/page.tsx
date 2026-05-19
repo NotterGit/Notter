@@ -16,6 +16,7 @@ import { images } from "@/config/routing/image.route";
 import type { PriceCalculation } from "@/config/types/components.types";
 import type { Org, User } from "@/config/types/api.types";
 import BackButton from "@/components/back-button";
+import { getPlanLimits } from "@/lib/plan-limits";
 
 export default function BuyPremium() {
     const router = useRouter();
@@ -135,6 +136,7 @@ export default function BuyPremium() {
                             title="Amber"
                             price={isOrg ? 149 : 29}
                             icon={images.BADGE.AMBER}
+                            isOrg={isOrg}
                             selected={selectedPlan === "1"}
                             onSelect={() => setSelectedPlan("1")}
                         />
@@ -144,6 +146,7 @@ export default function BuyPremium() {
                             title="Diamond"
                             price={isOrg ? 299 : 99}
                             icon={images.BADGE.DIAMOND}
+                            isOrg={isOrg}
                             selected={selectedPlan === "2"}
                             onSelect={() => setSelectedPlan("2")}
                         />
@@ -193,7 +196,9 @@ export default function BuyPremium() {
     );
 }
 
-function PlanCard({ id, title, price, icon, selected, onSelect }: { id: string; title: string; price: number; icon?: string; selected: boolean; onSelect: () => void }) {
+function PlanCard({ id, title, price, icon, isOrg, selected, onSelect }: { id: string; title: string; price: number; icon?: string; isOrg: boolean; selected: boolean; onSelect: () => void }) {
+    const limits = getPlanLimits(Number(id), isOrg);
+
     return (
         <div onClick={onSelect} className={`cursor-pointer p-4 rounded-xl border transition ${selected ? "border-white shadow-lg" : "border-border/50 hover:shadow-md"} bg-card/70 dark:bg-zinc-900/60`}> 
             <div className="flex items-center gap-3">
@@ -208,9 +213,9 @@ function PlanCard({ id, title, price, icon, selected, onSelect }: { id: string; 
                     <>
                         <li>Сокращенные ссылки</li>
                         <li>Значок в профиле</li>
-                        <li>До 200 заметок</li>
-                        <li>До 100 публичных заметок</li>
-                        <li>Лимит на загрузку до 3 МБ</li>
+                        <li>До {limits.documents} заметок</li>
+                        <li>До {limits.publicDocuments} публичных заметок</li>
+                        <li>Лимит на загрузку до {limits.uploadMb} МБ</li>
                     </>
                 ) : (
                     <>
@@ -218,9 +223,9 @@ function PlanCard({ id, title, price, icon, selected, onSelect }: { id: string; 
                         <li>Кастомные ссылки</li>
                         <li>Отключение упоминаний Notter</li>
                         <li>Ззаметки в JSON</li>
-                        <li>До 1000 заметок</li>
-                        <li>До 1000 публичных заметок</li>
-                        <li>Лимит на загрузку до 10 МБ</li>
+                        <li>До {limits.documents} заметок</li>
+                        <li>До {limits.publicDocuments} публичных заметок</li>
+                        <li>Лимит на загрузку до {limits.uploadMb} МБ</li>
                     </>
                 )}
             </ul>

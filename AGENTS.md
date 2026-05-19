@@ -2,7 +2,7 @@
 Russian-first note-taking app on Next.js App Router.
 
 ## Stack
-- Next.js 13.5.7, React, TypeScript
+- Next.js 15.x App Router, React 18.3, TypeScript 5.9
 - Clerk for auth
 - Convex for documents
 - qual.su REST API for user/org profiles
@@ -19,10 +19,8 @@ Russian-first note-taking app on Next.js App Router.
 - `not-found.tsx` is used inline, not only as a route.
 - UI text is Russian-first; keep edits narrow and avoid broad re-encoding.
 - Don't run `npm run build` or `npm start` yourself!
-- Write the Russian language according to the UTF-8 encoding so that you don’t end up with any gibberis
 
 ## Commands
 - `npm run dev`
-- `npm run build`
 - `npm run lint`
 - `npm run knip`

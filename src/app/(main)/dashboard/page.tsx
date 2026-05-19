@@ -11,6 +11,7 @@ import { useOrganization, useUser } from "@clerk/nextjs"
 import { pages } from "@/config/routing/pages.route"
 import { images } from "@/config/routing/image.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
+import { createDocumentWithFallback, getCreateDocumentErrorMessage, getCreateDocumentLimitOptions } from "../../api/document-limit"
 
 export default function Dashboard() {
     const create = useMutation(api.document.create)
@@ -21,32 +22,24 @@ export default function Dashboard() {
     const orgId = isOrg ? organization?.id as string : user?.id as string
     
     const onCreate = () => {
-        const promise = create({ 
-            title: "Новая заметка",
-            userId: orgId,
-            creatorName: isOrg ? organization?.slug as string : user?.username as string,
-            lastEditor: user?.username as string,
-            lastEditTime: getCurrentEditTime()
-        })
+        const promise = getCreateDocumentLimitOptions(orgId, isOrg)
+            .then((limitOptions) => createDocumentWithFallback(create, { 
+                title: "Новая заметка",
+                userId: orgId,
+                creatorName: isOrg ? organization?.slug as string : user?.username as string,
+                lastEditor: user?.username as string,
+                lastEditTime: getCurrentEditTime(),
+                ...limitOptions,
+            }))
             .then((documentId) => {
                 router.push(pages.DASHBOARD(documentId));
                 return documentId
-            })
-            .catch((error) => {
-                if (error.message.includes("Rate limit exceeded")) {
-                    toast.error("Вы превысили лимит на создание документов. Попробуйте позже")
-                } else if (error.message.includes("Rate limited note")){
-                    toast.error("Вы достигли лимита в 75 заметок")
-                } else {
-                    toast.error("Не удалось создать заметку")
-                }
-                throw error
             })
         
         toast.promise(promise, {
             loading: "Создание заметки...",
             success: "Заметка успешно создана!",
-            error: "Не удалось создать заметку"
+            error: getCreateDocumentErrorMessage
         })
     }
     

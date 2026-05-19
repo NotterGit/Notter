@@ -16,6 +16,7 @@ import Link from "next/link"
 import { IframeModal } from "./iframe-modal"
 import { pages } from "@/config/routing/pages.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
+import { getPublicDocumentLimit } from "@/lib/plan-limits"
 
 export function Publish({ initialData }: PublishProps) {
   const origin = useOrigin()
@@ -28,7 +29,7 @@ export function Publish({ initialData }: PublishProps) {
 
   const [copied, setCopied] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [publicDocumentLimit, setPublicDocumentLimit] = useState<number>(10)
+  const [publicDocumentLimit, setPublicDocumentLimit] = useState<number>(getPublicDocumentLimit(0, isOrg))
   const [userData, setUserData] = useState<User | Org | null>(null)
 
   const [isShortUrl, setIsShortUrl] = useState<boolean>(Boolean(initialData.isShort))
@@ -49,7 +50,7 @@ export function Publish({ initialData }: PublishProps) {
     const u = isOrg ? await getOrgByID(orgId) : await getUserByID(orgId)
     if (u) {
       setUserData(u)
-      setPublicDocumentLimit(u.premium === 1 ? 100 : u.premium === 2 ? 1000 : 10)
+      setPublicDocumentLimit(getPublicDocumentLimit(u.premium, isOrg))
     }
   }
 

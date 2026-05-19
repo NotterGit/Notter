@@ -11,7 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { useUser } from "@clerk/clerk-react";
 import { sendMail } from "../../api/mail/mail";
 import type { UserProps } from "@/config/types/profile.types";
-import type { Org, User } from "@/config/types/api.types";
+import type { User } from "@/config/types/api.types";
+import { getPlanLimits } from "@/lib/plan-limits";
 
 export function ModeratorPanel({ user }: UserProps) {
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -44,16 +45,7 @@ export function ModeratorPanel({ user }: UserProps) {
     return null
   }
 
-  let documentLimit: number = 75;
-  let publicDocumentLimit: number = 10;
-
-  if (user?.premium === 1) {
-    documentLimit = isOrg ? 500 : 200;
-    publicDocumentLimit = isOrg ? 250 : 100;
-  } else if (user?.premium === 2) {
-    documentLimit = 1000;
-    publicDocumentLimit = 1000;
-  }
+  const { documents: documentLimit, publicDocuments: publicDocumentLimit } = getPlanLimits(user?.premium, isOrg);
 
   const handleBadgeToggle = async (badgeName: string) => {
     if (!user) return;
