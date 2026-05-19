@@ -35,7 +35,7 @@ export function Badges({profile}: BadgesProps){
                 </div>
             )}
 
-            {profile?.verifiedOrgs > 0 && (
+            {(profile?.badges.org_verifed || profile?.verifiedOrgs > 0) && (
                 <div className="relative group select-none mx-0.5">
                     <Image
                         src={images.BADGE.ORG_VERIFIED}
