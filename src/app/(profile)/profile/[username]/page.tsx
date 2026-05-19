@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: UsernameProps): Promise<Metad
   const profileName = fullName || profile.username
 
   return {
-    title: `${profileName} - profile`,
+    title: `${profileName} - profile | Notter`,
   }
 }
 

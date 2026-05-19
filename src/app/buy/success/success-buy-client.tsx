@@ -6,7 +6,6 @@ import { useCallback, useEffect, useState } from "react"
 import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { sendMail } from "../../api/mail/mail"
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { pages } from "@/config/routing/pages.route"
 
@@ -19,7 +18,6 @@ export function SuccessBuyClient() {
   const [isLoading, setIsLoading] = useState(true)
   const { user } = useUser()
   const { organization } = useOrganization()
-  const email = user?.emailAddresses?.[0]?.emailAddress
 
   const handleSuccess = useCallback(async () => {
     if (merchantOrderId === null || !user?.id) return
@@ -63,15 +61,6 @@ export function SuccessBuyClient() {
           setIsSuccess(true)
           flag = true
           toast.success("Заказ успешно оплачен")
-
-          if (email) {
-            await sendMail({
-              to: email,
-              subject: "Подписка Notter Gem оформлена",
-              message: `${user.username}, заказ №${merchantOrderId} успешно оплачен! Спасибо за покупку, теперь вам доступны все преимущества Notter Gem!`,
-            })
-          }
-
           setIsLoading(false)
         }
       } else if (!flag) {
@@ -88,7 +77,7 @@ export function SuccessBuyClient() {
         setIsLoading(false)
       }
     }
-  }, [email, merchantOrderId, organization, user])
+  }, [merchantOrderId, organization, user])
 
   useEffect(() => {
     handleSuccess()

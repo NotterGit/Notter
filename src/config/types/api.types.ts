@@ -1,9 +1,3 @@
-export interface Mail {
-  to: string
-  subject: string
-  message: string
-}
-
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE"
 
 export type ApiRequestOptions = {
@@ -76,8 +70,6 @@ export type CreateOrderFunction = (
 export type CheckOrderFunction = (_id: string) => Promise<Order | null>
 
 export type SuccessOrderFunction = (_id: string) => Promise<Order | null>
-
-export type SendMailFunction = (mail: Mail) => Promise<MessageResponse | null>
 
 export type UploadFileResponse = {
   url: string

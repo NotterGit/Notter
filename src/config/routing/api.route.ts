@@ -24,7 +24,4 @@ export const apiRoutes = {
 		CHECK: (_id: string) => `/order/check/${_id}`,
 		SUCCESS: (_id: string) => `/order/success/${_id}`,
 	},
-	MAIL: {
-		SEND: "/mail/send",
-	},
 };
