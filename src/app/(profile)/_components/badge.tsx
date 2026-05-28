@@ -35,7 +35,7 @@ export function Badges({profile}: BadgesProps){
                 </div>
             )}
 
-            {profile?.verifiedOrgs > 0 && (
+            {(profile?.badges.org_verifed || profile?.verifiedOrgs > 0) && (
                 <div className="relative group select-none mx-0.5">
                     <Image
                         src={images.BADGE.ORG_VERIFIED}
@@ -105,12 +105,12 @@ export function Badges({profile}: BadgesProps){
                         className="transform transition-transform duration-200 hover:scale-110"
                     />
                     <span className="absolute -top-10 left-1/2 -translate-x-1/2 rounded-lg border border-white/20 bg-zinc-950/95 px-2 py-1 text-center text-xs whitespace-nowrap opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
-                    Notter Gem: <span className="text-cyan-300">Diamond</span>
+                        Notter Gem: <span className="text-cyan-300">Diamond</span>
                     </span>
                 </div>
             )}
 
-            <div className="relative group ml-1.5">
+            <div className="relative group">
                 <Image
                     src={images.BADGE.ID}
                     alt="ID Icon"

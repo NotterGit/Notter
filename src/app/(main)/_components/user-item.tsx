@@ -52,7 +52,7 @@ export function UserItem(){
     }, [isOrg, organization?.id, user?.id])
 
     return (
-        <div>
+        <div className="mr-6">
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                     <button className="flex w-full items-center gap-2 rounded-xl border border-transparent p-2 transition hover:border-black/10 hover:bg-white/70 dark:hover:border-white/10 dark:hover:bg-zinc-900/70">
@@ -64,7 +64,7 @@ export function UserItem(){
                             )}
                         </Avatar>
                         <div className="flex items-center gap-1.5">
-                                <span className={`text-sm font-medium truncate max-w-[8rem] ${profile?.premium === 1 ? 'text-amber-300' : profile?.premium === 2 ? 'text-cyan-300' : 'text-muted-foreground'}`}>{user?.username ?? user?.fullName ?? "Пользователь"}</span>
+                                <span className={`text-sm font-medium truncate max-w-[8rem] ${profile?.premium === 1 ? 'bg-gradient-to-b from-[#FFEB9C] to-[#FFDB4A] bg-clip-text text-transparent' : profile?.premium === 2 ? 'bg-gradient-to-b from-[#2BD8FF] to-[#94AAF3] bg-clip-text text-transparent' : 'text-muted-foreground'}`}>{user?.username ?? user?.fullName ?? "Пользователь"}</span>
 
                                 {profile?.premium === 1 && (
                                     <Image src={images.BADGE.AMBER} alt="Amber" width={14} height={14} className="object-contain relative right-0.5" />
@@ -77,7 +77,7 @@ export function UserItem(){
                     </button>
                 </DropdownMenuTrigger>
 
-                <DropdownMenuContent className="ml-1 flex w-56 flex-col items-start rounded-xl border-white/60 bg-white/95 p-3 shadow-xl dark:border-white/10 dark:bg-zinc-950/95" align="start">
+                <DropdownMenuContent className="ml-1 flex w-56 flex-col items-start rounded-xl border-white/60 bg-white p-3 shadow-xl dark:border-white/10 dark:bg-zinc-950" align="start">
                     <div
                         onClick={stopMenuEvent}
                         onPointerDown={stopMenuEvent}

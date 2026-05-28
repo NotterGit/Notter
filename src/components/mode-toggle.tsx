@@ -11,9 +11,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import toast from "react-hot-toast"
 
 export function ModeToggle() {
   const { setTheme } = useTheme()
+
+  const handleSwitchTheme = (theme: string) => {
+    setTheme(theme)
+    toast("Для полного изменения, перезагрузите страницу")
+  }
 
   return (
     <DropdownMenu>
@@ -25,10 +31,10 @@ export function ModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
+        <DropdownMenuItem onClick={() => handleSwitchTheme("light")}>
           Светлая
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
+        <DropdownMenuItem onClick={() => handleSwitchTheme("dark")}>
           Темная
         </DropdownMenuItem>
         {/* <DropdownMenuItem onClick={() => setTheme("system")}>

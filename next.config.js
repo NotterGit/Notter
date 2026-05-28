@@ -1,21 +1,30 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    images: {
-        domains: [
-            "files.edgestore.dev",
-            "img.clerk.com",
-            "localhost",
-            "db.api.qual.su"
-        ],
-        remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: 'db.api.qual.su',
-                port: '8000', 
-                pathname: '/**',
-            },
-        ]
-    }
-}
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "files.edgestore.dev",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "img.clerk.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "db.api.qual.su",
+        port: "8000",
+        pathname: "/**",
+      },
+    ],
+  },
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

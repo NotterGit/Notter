@@ -11,7 +11,9 @@ import { api } from "../../../../convex/_generated/api"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Protect, useOrganization, useUser } from "@clerk/nextjs"
 import { pages } from "@/config/routing/pages.route"
+import { formatLastEditTime, getCurrentEditTime } from "@/lib/last-edit-time"
 import type { ItemProps } from "@/config/types/main.types";
+import { createDocumentWithFallback, getCreateDocumentErrorMessage, getCreateDocumentLimitOptions } from "../../api/document-limit"
 
 export function Item({
     label, 
@@ -25,6 +27,7 @@ export function Item({
     onExpand,
     expanded,
     lastEditor,
+    lastEditTime,
     shortcut
 }: ItemProps){
     const router = useRouter()
@@ -45,7 +48,8 @@ export function Item({
             id: id,
             isPublished: false,
             userId: orgId,
-            lastEditor: user?.username as string
+            lastEditor: user?.username as string,
+            lastEditTime: getCurrentEditTime()
         })
         const promise = archive({
             id, 
@@ -71,33 +75,27 @@ export function Item({
         event.stopPropagation();
         if (!id) return;
     
-        const promise = create({
-            title: "Новая заметка",
-            parentDocument: id,
-            userId: orgId,
-            lastEditor: user?.username as string,
-            creatorName: isOrg ? organization?.slug ?? "" : user?.username ?? ""
-        }).then((documentId) => {
+        const promise = getCreateDocumentLimitOptions(orgId, isOrg)
+            .then((limitOptions) => createDocumentWithFallback(create, {
+                title: "Новая заметка",
+                parentDocument: id,
+                userId: orgId,
+                lastEditor: user?.username as string,
+                creatorName: isOrg ? organization?.slug ?? "" : user?.username ?? "",
+                lastEditTime: getCurrentEditTime(),
+                ...limitOptions,
+            })).then((documentId) => {
             if (!expanded) {
                 onExpand?.()
             }
             router.push(pages.DASHBOARD(documentId))
             return documentId
-        }).catch((error) => {
-            if (error.message.includes("Rate limit exceeded")) {
-                toast.error("Вы превысили лимит на создание документов. Попробуйте позже")
-            } else if (error.message.includes("Rate limited note")){
-                toast.error("Вы достигли лимита в 75 заметок")
-            } else {
-                toast.error("Не удалось создать заметку")
-            }
-            throw error
         })
 
         toast.promise(promise, {
             loading: "Создание заметки...",
             success: "Заметка успешно создана!",
-            error: "Не удалось создать заметку"
+            error: getCreateDocumentErrorMessage
         })
     }    
 
@@ -119,7 +117,8 @@ export function Item({
                 id: draggedId as Id<"documents">, 
                 parentDocument: id as Id<"documents">,
                 userId: orgId,
-                lastEditor: user?.username as string
+                lastEditor: user?.username as string,
+                lastEditTime: getCurrentEditTime()
             })
             
             toast.promise(promise, {
@@ -182,7 +181,7 @@ export function Item({
                 <div className="ml-auto flex items-center gap-x-2">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <div role="button" className="ml-auto rounded-md p-1 opacity-0 transition group-hover:opacity-100 hover:bg-background/70">
+                            <div role="button" className="ml-auto rounded-md p-1 transition hover:bg-background/70">
                                 <MoreHorizontal className="h-4 w-4 text-muted-foreground"/>
                             </div>
                         </DropdownMenuTrigger>
@@ -204,12 +203,15 @@ export function Item({
                                 <div className="text-xs text-muted-foreground p-2">
                                     Последнее изменение от: {lastEditor}
                                 </div>
+                                <div className="text-xs text-muted-foreground px-2 pb-2">
+                                    Последние изменение в: {formatLastEditTime(lastEditTime)}
+                                </div>
                         </DropdownMenuContent>
                     </DropdownMenu>
                     <div 
                         role="button" 
                         onClick={onCreate} 
-                        className="ml-auto rounded-md p-1 opacity-0 transition group-hover:opacity-100 hover:bg-background/70"
+                        className="ml-auto rounded-md p-1 transition hover:bg-background/70"
                     >
                         <Plus className="h-4 w-4 text-muted-foreground"/>
                     </div>
@@ -224,12 +226,17 @@ Item.Skeleton = function ItemSkeleton({level}: {level?: number}){
     return (
         <div
             style={{
-                paddingLeft: level ? `${(level * 12) + 25}px` : "12px"
+                paddingLeft: level ? `${(level * 12) + 12}px` : "12px"
             }}
-            className="flex gap-x-2 py-[3px]"
+            className="my-1"
         >
-            <Skeleton className="h-4 w-4"/>
-            <Skeleton className="h-4 w-[30%]"/>
+            <div className="flex min-h-[34px] items-center gap-x-2 rounded-xl px-2 py-1.5">
+                <Skeleton className="h-4 w-4 rounded-md bg-primary/8" />
+                <div className="flex flex-1 items-center gap-x-2">
+                    <Skeleton className="h-4 w-[58%] rounded-full bg-primary/8" />
+                    <Skeleton className="ml-auto h-5 w-9 rounded-md bg-primary/8" />
+                </div>
+            </div>
         </div>
     )
 }

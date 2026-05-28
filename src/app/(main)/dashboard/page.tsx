@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation"
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { pages } from "@/config/routing/pages.route"
 import { images } from "@/config/routing/image.route"
+import { getCurrentEditTime } from "@/lib/last-edit-time"
+import { createDocumentWithFallback, getCreateDocumentErrorMessage, getCreateDocumentLimitOptions } from "../../api/document-limit"
 
 export default function Dashboard() {
     const create = useMutation(api.document.create)
@@ -20,31 +22,24 @@ export default function Dashboard() {
     const orgId = isOrg ? organization?.id as string : user?.id as string
     
     const onCreate = () => {
-        const promise = create({ 
-            title: "Новая заметка",
-            userId: orgId,
-            creatorName: isOrg ? organization?.slug as string : user?.username as string,
-            lastEditor: user?.username as string
-        })
+        const promise = getCreateDocumentLimitOptions(orgId, isOrg)
+            .then((limitOptions) => createDocumentWithFallback(create, { 
+                title: "Новая заметка",
+                userId: orgId,
+                creatorName: isOrg ? organization?.slug as string : user?.username as string,
+                lastEditor: user?.username as string,
+                lastEditTime: getCurrentEditTime(),
+                ...limitOptions,
+            }))
             .then((documentId) => {
                 router.push(pages.DASHBOARD(documentId));
                 return documentId
-            })
-            .catch((error) => {
-                if (error.message.includes("Rate limit exceeded")) {
-                    toast.error("Вы превысили лимит на создание документов. Попробуйте позже")
-                } else if (error.message.includes("Rate limited note")){
-                    toast.error("Вы достигли лимита в 75 заметок")
-                } else {
-                    toast.error("Не удалось создать заметку")
-                }
-                throw error
             })
         
         toast.promise(promise, {
             loading: "Создание заметки...",
             success: "Заметка успешно создана!",
-            error: "Не удалось создать заметку"
+            error: getCreateDocumentErrorMessage
         })
     }
     
@@ -55,7 +50,7 @@ export default function Dashboard() {
             <div className="pointer-events-none absolute -right-12 bottom-12 h-72 w-72 rounded-full bg-logo-cyan/15 blur-3xl" />
             <section className="relative z-10 w-full max-w-3xl rounded-3xl border border-white/40 bg-white/70 p-6 text-center shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/70 sm:p-10">
                 <div className="mx-auto mb-4 inline-flex rounded-2xl border border-logo-yellow/30 bg-logo-yellow/10 px-3 py-1 text-xs font-semibold tracking-wide text-foreground/80">
-                    Welcome to Notter Dashboard
+                    Welcome to Notter
                 </div>
                 <Image 
                     src={images.IMAGE.EMPTY}

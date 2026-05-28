@@ -4,6 +4,7 @@ export interface PublicDocumentComponentProps {
   params: {
     documentId: string
   }
+  iframe?: boolean
 }
 
 export interface UserInterface {
@@ -22,12 +23,13 @@ export interface ModeratorPanelDocumentProps {
   isAcrhived?: boolean;
   creatorName?: string;
   lastEditor?: string;
+  lastEditTime?: string;
   verifed?: boolean;
   content?: string;
 }
 
 export interface DocumentIdPageProps {
-  params: {
-    documentId: Id<"documents">
-  }
+  params: Promise<{
+    documentId: string
+  }>
 }

@@ -1,19 +1,15 @@
-"use client"
+import type { Metadata } from "next"
 
-import { Navbar } from "../(landing)/_components/navbar"
+import { BuyLayoutClient } from "@/components/layouts/buy-layout-client"
+
+export const metadata: Metadata = {
+  title: "Notter Gem",
+}
 
 export default function MainLayout({
-    children,
-  }: {
-    children: React.ReactNode
-  }) {
-    return (
-      <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-logo-yellow/10 dark:to-logo-cyan/10 overflow-hidden">
-        <title>Notter Gem</title>
-        <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-logo-light-yellow/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 right-10 h-72 w-72 rounded-full bg-logo-cyan/15 blur-3xl" />
-        <Navbar />
-        {children}
-      </div>
-    )
-  }
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return <BuyLayoutClient>{children}</BuyLayoutClient>
+}

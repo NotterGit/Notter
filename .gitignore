@@ -34,6 +34,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-public/*.js
 public/*.map
 certificates
+
+openapi.json

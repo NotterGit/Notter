@@ -27,13 +27,18 @@ export interface DocumentListProps {
 }
 
 export interface OrgProps {
-  params: {
+  params: Promise<{
     orgname: string;
-  };
+  }>;
 }
 
 export interface UsernameProps {
-  params: {
+  params: Promise<{
     username: string;
-  };
+  }>;
+}
+
+export interface ProfilePageComponentProps {
+  kind: "user" | "org";
+  slug: string;
 }

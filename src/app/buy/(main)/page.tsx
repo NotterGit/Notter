@@ -7,14 +7,16 @@ import { createOrder } from "../../api/order/order";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { useConvexAuth } from "convex/react";
-import { getById as getUser } from "../../api/orgs/org";
-import { getById as getOrg } from "../../api/users/user";
+import { getById as getOrg } from "../../api/orgs/org";
+import { getById as getUser } from "../../api/users/user";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { pages } from "@/config/routing/pages.route";
 import { images } from "@/config/routing/image.route";
 import type { PriceCalculation } from "@/config/types/components.types";
 import type { Org, User } from "@/config/types/api.types";
+import BackButton from "@/components/back-button";
+import { getPlanLimits } from "@/lib/plan-limits";
 
 export default function BuyPremium() {
     const router = useRouter();
@@ -66,11 +68,11 @@ export default function BuyPremium() {
         const fetchProfile = async () => {
             if (id) {
                 if (isOrg) {
-                    const userProfile = await getUser(id);
-                    setProfile(userProfile);
-                } else {
                     const orgProfile = await getOrg(id);
                     setProfile(orgProfile);
+                } else {
+                    const userProfile = await getUser(id);
+                    setProfile(userProfile);
                 }
             }
         };
@@ -89,11 +91,14 @@ export default function BuyPremium() {
         }
 
         setLoading(true);
-        const { price, oldPrice } = calculatePrice();
+        const { price } = calculatePrice();
 
-        const orderResponse: any = await createOrder(organization?.id ?? "", id ?? null, parseInt(selectedPlan), "pending", price);
-        if (orderResponse) {
-            window.location.href = orderResponse;
+        const orderResponse = id ? await createOrder(id, parseInt(selectedPlan), "pending", price) : null;
+        const paymentUrl = typeof orderResponse === "string" ? orderResponse : orderResponse?.payment_url;
+
+        if (typeof paymentUrl === "string" && paymentUrl.length > 0) {
+            window.location.href = paymentUrl;
+            return;
         } else {
             toast.error("Произошла ошибка при создании заказа");
         }
@@ -114,12 +119,13 @@ export default function BuyPremium() {
 
     return (
         <main className="relative z-10 min-h-screen flex items-center justify-center p-6">
-            <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-8 rounded-3xl border border-white/40 bg-white/70 dark:border-white/10 dark:bg-zinc-950/70 p-8 shadow-lg mt-10">
+            <div className="relative mt-10 w-full max-w-6xl">
+                <BackButton className="mb-4 xl:absolute xl:-left-14 xl:top-0 xl:mb-0 lg:-left-16" />
+                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8 rounded-3xl border border-white/40 bg-white/70 dark:border-white/10 dark:bg-zinc-950/70 p-8 shadow-lg">
                 <section className="space-y-4">
                     <div className="flex items-center gap-3">
                         <h1 className="text-3xl font-extrabold">
-                            <span className="text-logo-yellow">N</span>
-                            <span className="text-logo-light-yellow">otter</span>
+                            <span className="bg-gradient-to-r from-logo-yellow to-logo-light-yellow bg-clip-text text-transparent">Notter </span>
                             <span className="text-logo-cyan"> Gem</span>
                         </h1>
                         <Image src={images.BADGE.DIAMOND} alt="Notter Gem" width={36} height={36} />
@@ -133,6 +139,7 @@ export default function BuyPremium() {
                             title="Amber"
                             price={isOrg ? 149 : 29}
                             icon={images.BADGE.AMBER}
+                            isOrg={isOrg}
                             selected={selectedPlan === "1"}
                             onSelect={() => setSelectedPlan("1")}
                         />
@@ -142,6 +149,7 @@ export default function BuyPremium() {
                             title="Diamond"
                             price={isOrg ? 299 : 99}
                             icon={images.BADGE.DIAMOND}
+                            isOrg={isOrg}
                             selected={selectedPlan === "2"}
                             onSelect={() => setSelectedPlan("2")}
                         />
@@ -170,11 +178,11 @@ export default function BuyPremium() {
                     </div>
 
                     <div className="mb-4">
-                        <div className="flex items-baseline gap-3">
+                        <div className="flex items-baseline gap-1">
+                            <div className="text-2xl font-bold">{calculatePrice().price}₽</div>
                             {calculatePrice().oldPrice > 0 && (
                                 <div className="text-sm line-through text-primary/70">{calculatePrice().oldPrice}₽</div>
                             )}
-                            <div className="text-2xl font-bold">{calculatePrice().price}₽</div>
                         </div>
                         <div className="text-xs text-muted-foreground">Единоразово</div>
                     </div>
@@ -185,14 +193,17 @@ export default function BuyPremium() {
                         </Button>
                     </div>
                 </aside>
+                </div>
             </div>
         </main>
     );
 }
 
-function PlanCard({ id, title, price, icon, selected, onSelect }: { id: string; title: string; price: number; icon?: string; selected: boolean; onSelect: () => void }) {
+function PlanCard({ id, title, price, icon, isOrg, selected, onSelect }: { id: string; title: string; price: number; icon?: string; isOrg: boolean; selected: boolean; onSelect: () => void }) {
+    const limits = getPlanLimits(Number(id), isOrg);
+
     return (
-        <div onClick={onSelect} className={`cursor-pointer p-4 rounded-xl border transition ${selected ? "border-logo-yellow shadow-lg" : "border-border/50 hover:shadow-md"} bg-card/70 dark:bg-zinc-900/60`}> 
+        <div onClick={onSelect} className={`cursor-pointer p-4 rounded-xl border transition ${selected ? "border-white shadow-lg" : "border-border/50 hover:shadow-md"} bg-card/70 dark:bg-zinc-900/60`}> 
             <div className="flex items-center gap-3">
                 {icon && <Image src={icon} alt={title} width={40} height={40} />}
                 <div>
@@ -205,11 +216,19 @@ function PlanCard({ id, title, price, icon, selected, onSelect }: { id: string; 
                     <>
                         <li>Сокращенные ссылки</li>
                         <li>Значок в профиле</li>
+                        <li>До {limits.documents} заметок</li>
+                        <li>До {limits.publicDocuments} публичных заметок</li>
+                        <li>Лимит на загрузку до {limits.uploadMb} МБ</li>
                     </>
                 ) : (
                     <>
                         <li>Все преимущества Amber</li>
                         <li>Кастомные ссылки</li>
+                        <li>Отключение упоминаний Notter</li>
+                        <li>Ззаметки в JSON</li>
+                        <li>До {limits.documents} заметок</li>
+                        <li>До {limits.publicDocuments} публичных заметок</li>
+                        <li>Лимит на загрузку до {limits.uploadMb} МБ</li>
                     </>
                 )}
             </ul>

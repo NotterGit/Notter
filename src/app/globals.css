@@ -1,6 +1,7 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@config "../../tailwind.config.ts";
+@import "tailwindcss";
+@import "tw-animate-css";
+@custom-variant dark (&:where(.dark, .dark *));
 
 html,
 body,
@@ -91,7 +92,7 @@ body,
   display: inline-block;
   width: 100px;
   height: 50px;
-  background-image: url("https://id.qual.su/_next/static/media/QualID.6000d61a.svg");
+  background-image: url("https://id.qual.su/image/logo.svg");
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;

@@ -5,8 +5,8 @@ import { Pin } from "lucide-react";
 import { api } from "../../../../convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useState } from "react";
-import Twemoji from 'react-twemoji';
 import { Skeleton } from "@/components/ui/skeleton";
+import Twemoji from "react-twemoji";
 import { Id } from "../../../../convex/_generated/dataModel";
 import toast from "react-hot-toast";
 import { updateUser } from "../../api/users/user";
@@ -127,7 +127,7 @@ export function DocumentList({
                       <Link
                         href={pages.VIEW(doc._id)}
                         onClick={(e) => e.stopPropagation()}
-                        className="text-lg text-primary/80 transition-all duration-300 hover:text-primary hover:underline"
+                        className="text-lg text-primary/80 transition-all duration-300 hover:text-primary"
                       >
                         {doc.title}
                       </Link>

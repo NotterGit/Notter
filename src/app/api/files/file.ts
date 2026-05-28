@@ -1,23 +1,34 @@
-import { API } from "@/config/const/api.const";
-import { apiRoutes } from "@/config/routing/api.route";
+import { apiDelete, apiGet, apiPost, withApiBaseUrl } from "../client"
+import { apiRoutes } from "@/config/routing/api.route"
+import type {
+  DeleteFileFunction,
+  DeleteFileResponse,
+  GetFilesByUserFunction,
+  UploadFileFunction,
+  UploadFileResponse,
+  UserFile,
+} from "@/config/types/api.types"
 
-export async function uploadFile(userid: string, documentid: string, avatar: string, username: string, file: File) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("userid", userid);
-  formData.append("documentid", documentid);
-  formData.append("username", username);
-  formData.append("avatar", avatar);
+export const uploadFile: UploadFileFunction = async (userid, documentid, avatar, username, file) => {
+  const formData = new FormData()
+  formData.append("file", file)
+  formData.append("userid", userid)
+  formData.append("documentid", documentid)
+  formData.append("username", username)
+  formData.append("avatar", avatar)
 
-  const response = await API.post(apiRoutes.FILES.UPLOAD, formData, {
+  const response = await apiPost<UploadFileResponse>(apiRoutes.FILES.UPLOAD, formData, {
     headers: { "Content-Type": "multipart/form-data" },
-  });
+  })
 
-  return `${API.defaults.baseURL ?? ""}${response.data.url}`;
+  return response ? withApiBaseUrl(response.url) : null
 }
 
-export async function deleteFile(userid: string, fileid: string) {
-  const response = await API.delete(apiRoutes.FILES.DELETE, { data: { userid, fileid } });
+export const deleteFile: DeleteFileFunction = async (userid, fileid) => {
+  const response = await apiDelete<DeleteFileResponse>(apiRoutes.FILES.DELETE, { userid, fileid })
+  return response?.success ?? false
+}
 
-  return response.data.success;
+export const getFilesByUser: GetFilesByUserFunction = (userid) => {
+  return apiGet<UserFile[]>(apiRoutes.FILES.BY_USER(userid))
 }

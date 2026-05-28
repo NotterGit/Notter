@@ -1,9 +1,8 @@
 "use client"
 
-import { useQuery } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 import { useParams } from "next/navigation";
 import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
 import { MenuIcon } from "lucide-react";
 import { Title } from "./title";
 import { Banner } from "./banner";
@@ -11,15 +10,28 @@ import { Menu } from "./menu";
 import { Publish } from "./publish";
 import { useOrganization, useUser } from "@clerk/nextjs";
 import type { NavbarProps } from "@/config/types/main.types";
+import { isValidConvexId } from "@/lib/convex-id";
 
 export function Navbar({ isCollapsed, onResetWidth }: NavbarProps){
     const params = useParams()
     const { user } = useUser()
     const { organization } = useOrganization()
-    const document = useQuery(api.document.getById, {
-        documentId: params.documentId as Id<"documents">,
-        userId: organization?.id !== undefined ? organization?.id as string : user?.id as string
-    })
+    const { isAuthenticated } = useConvexAuth()
+    const ownerId = organization?.id ?? user?.id
+    const documentId = typeof params.documentId === "string" && isValidConvexId(params.documentId)
+      ? params.documentId
+      : null
+    const document = useQuery(
+      api.document.getById,
+      isAuthenticated && documentId && ownerId
+        ? {
+            documentId,
+            userId: ownerId
+          }
+        : "skip"
+    )
+
+    if (documentId === null) return null
 
     if(document === undefined){
         return (
@@ -36,7 +48,7 @@ export function Navbar({ isCollapsed, onResetWidth }: NavbarProps){
     
     return (
         <>
-            <nav className="mx-2 mt-2 flex w-[calc(100%-1rem)] items-center gap-x-2 rounded-2xl border border-white/60 bg-white/80 px-4 py-2 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/80">
+            <nav className="mx-2 mt-2 flex w-[calc(100%-1rem)] items-center gap-x-2 rounded-2xl border border-white/60 bg-white/80 px-4 py-2 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/80 z-0">
                 {isCollapsed && (
                     <button aria-label="Menu">
                         <MenuIcon

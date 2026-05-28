@@ -22,6 +22,7 @@ import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/ui/s
 import { getById as getOrg } from "../../api/orgs/org";
 import { getById as getUser } from "../../api/users/user";
 import { pages } from "@/config/routing/pages.route";
+import { formatLastEditTime, getCurrentEditTime } from "@/lib/last-edit-time";
 import type { MenuProps } from "@/config/types/main.types";
 import type { Org, User } from "@/config/types/api.types";
 
@@ -57,6 +58,14 @@ export function Menu({ documentId }: MenuProps) {
   }, [orgId, isOrg]);
 
   const onArchive = () => {
+    update({
+      id: documentId,
+      userId: orgId,
+      isPublished: false,
+      lastEditor: user?.username as string,
+      lastEditTime: getCurrentEditTime()
+    })
+
     const promise = archive({
       id: documentId,
       userId: orgId,
@@ -72,6 +81,13 @@ export function Menu({ documentId }: MenuProps) {
   };
 
   const onRestore = () => {
+    update({
+      id: documentId,
+      userId: orgId,
+      lastEditor: user?.username as string,
+      lastEditTime: getCurrentEditTime()
+    })
+
     const promise = restore({
       id: documentId,
       userId: orgId,
@@ -110,7 +126,9 @@ export function Menu({ documentId }: MenuProps) {
           const promise = update({
             id: documentId,
             userId: orgId,
-            content: content
+            content: content,
+            lastEditor: user?.username as string,
+            lastEditTime: getCurrentEditTime()
           })
           toast.promise(promise, {
             success: "Заметка обновлена!",
@@ -182,7 +200,9 @@ export function Menu({ documentId }: MenuProps) {
         <div className="p-1 text-xs text-muted-foreground">
           Последнее изменение от: {doc?.lastEditor}
         </div>
-
+        <div className="p-1 text-xs text-muted-foreground">
+          Последние изменение в: {formatLastEditTime(doc?.lastEditTime)}
+        </div>
       </DropdownMenuContent>
       {openModal && profile?.premium == 2 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">

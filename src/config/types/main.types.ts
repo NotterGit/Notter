@@ -27,6 +27,7 @@ export interface ItemProps {
   onClick?: () => void
   icon: LucideIcon
   lastEditor?: string
+  lastEditTime?: string
   verified?: boolean
 }
 
@@ -45,7 +46,7 @@ export interface PublishProps {
 }
 
 export interface DashboardDocumentIdPageProps {
-  params: {
-    documentId: Id<"documents">
-  }
+  params: Promise<{
+    documentId: string
+  }>
 }

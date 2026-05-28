@@ -1,45 +1,50 @@
-import { API } from "@/config/const/api.const";
-import { apiRoutes } from "@/config/routing/api.route";
-import type { Order } from "@/config/types/api.types";
+import { apiGet, apiPost, apiPut, removeNullish } from "../client"
+import { apiRoutes } from "@/config/routing/api.route"
+import type {
+  ApiEntityResponse,
+  CheckOrderFunction,
+  CreateOrderResponse,
+  CreateOrderFunction,
+  Order,
+  OrderCallbackFunction,
+  SuccessOrderFunction,
+} from "@/config/types/api.types"
 
-export async function createOrder(
-  _id: string,
-  userid: string | null = null,
-  premium: number | null = null,
-  status: string | null = null,
-  amount: number | null = null
-): Promise<Order | null>{
-  try {
-    const response = await API.post(apiRoutes.ORDER.CREATE, {
+export const createOrder: CreateOrderFunction = (
+  userid,
+  premium = null,
+  status = null,
+  amount = null
+) => {
+  return apiPost<CreateOrderResponse>(
+    apiRoutes.ORDER.CREATE,
+    removeNullish({
       userid,
       premium,
       status,
-      amount
-    });
-    return response.data;
-  } catch (error) {
-    return null;
-  }
-};
-
-export async function checkOrder(
-  _id: string
-): Promise<Order | null>{
-  try {
-    const response = await API.get(apiRoutes.ORDER.CHECK(_id));
-    return response.data;
-  } catch (error) {
-    return null;
-  }
+      amount,
+    })
+  )
 }
 
-export async function success(
-  _id: string
-): Promise<Order | null>{
-  try {
-    const response = await API.put(apiRoutes.ORDER.SUCCESS(_id));
-    return response.data;
-  } catch (error) {
-    return null;
-  }
-};
+export const checkOrder: CheckOrderFunction = (_id) => {
+  return apiGet<Order>(apiRoutes.ORDER.CHECK(_id))
+}
+
+export const successOrder: SuccessOrderFunction = (_id) => {
+  return apiPut<Order>(apiRoutes.ORDER.SUCCESS(_id))
+}
+
+export const success = successOrder
+
+export const orderCallback: OrderCallbackFunction = (payload) => {
+  const searchParams = new URLSearchParams({
+    MerchantOrderId: String(payload.MerchantOrderId),
+    InvId: String(payload.InvId),
+    Sum: String(payload.Sum),
+    Currency: payload.Currency,
+    SignatureValue: payload.SignatureValue,
+  })
+
+  return apiPost<ApiEntityResponse>(`${apiRoutes.ORDER.CALLBACK}?${searchParams.toString()}`)
+}

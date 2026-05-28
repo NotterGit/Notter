@@ -1,72 +1,54 @@
-import { useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
-import { createUser, updateUser } from "./user";
-import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { useEffect } from "react"
+import { useUser } from "@clerk/nextjs"
 
-export function useRequestUser() {
-  const { user, isLoaded, isSignedIn } = useUser();
+import { createUser, getById, updateUser } from "./user"
+import { useDocumentStats } from "../use-document-stats"
+import type { UseRequestUserFunction } from "@/config/types/api.types"
 
-  const documentCount = useQuery(api.document.getDocumentCount, {
-    userId: user ? user.id : "",
-  });
-
-  const documentPublicCount = useQuery(api.document.getPublicDocumentCount, {
-    userId: user ? user.id : "",
-  });
-
-  const documentVerifiedCount = useQuery(api.document.getVerifiedDocumentCount, {
-    userId: user ? user.id : "",
-  });
+export const useRequestUser: UseRequestUserFunction = () => {
+  const { user, isLoaded, isSignedIn } = useUser()
+  const { documentCount, documentPublicCount, documentVerifiedCount, isReady } = useDocumentStats(user?.id)
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn || !user) return;
+    if (!isLoaded || !isSignedIn || !user?.username || !isReady) return
 
-    const createOrUpdateUser = async () => {
-      const {
-        id,
-        firstName,
-        lastName,
-        username,
-        imageUrl,
-        createdAt,
-        emailAddresses,
-      } = user;
+    const syncUser = async () => {
+      const existingUser = await getById(user.id)
 
-      if (!username) return;
-
-        const createdUser = await createUser(
-          id,
-          username,
-          createdAt,
-          firstName,
-          lastName,
-          imageUrl || null,
+      if (existingUser) {
+        await updateUser(
+          user.id,
+          user.username,
+          user.firstName,
+          user.lastName,
+          user.imageUrl || null,
+          null,
+          null,
           documentCount,
           documentPublicCount,
           documentVerifiedCount,
-          emailAddresses[0].emailAddress
-        );
-        if (!createdUser) {
-          const updatedUser = await updateUser(
-            id,
-            username,
-            firstName,
-            lastName,
-            imageUrl || null,
-            null,
-            null,
-            documentCount,
-            documentPublicCount,
-            documentVerifiedCount,
-            null,
-            emailAddresses[0].emailAddress
-          );
-        }
-    };
+          null,
+          user.emailAddresses[0]?.emailAddress ?? null
+        )
+        return
+      }
 
-    createOrUpdateUser();
-  }, [isLoaded, isSignedIn, user, documentCount, documentPublicCount]);
+      await createUser(
+        user.id,
+        user.username as string,
+        user.createdAt,
+        user.firstName,
+        user.lastName,
+        user.imageUrl || null,
+        documentCount,
+        documentPublicCount,
+        documentVerifiedCount,
+        user.emailAddresses[0]?.emailAddress ?? null
+      )
+    }
 
-  return null;
+    syncUser()
+  }, [isLoaded, isSignedIn, user, documentCount, documentPublicCount, documentVerifiedCount, isReady])
+
+  return null
 }

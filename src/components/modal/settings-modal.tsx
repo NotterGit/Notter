@@ -15,6 +15,21 @@ import { pages } from "@/config/routing/pages.route"
 import { Button } from "../ui/button"
 import { useRef } from "react"
 import { LogOut, Settings, User } from "lucide-react"
+import { isDesktopApp } from "@/lib/desktop-app"
+
+const readRedirectPreference = () => {
+  if (typeof window === "undefined") return false
+
+  const localValue = localStorage.getItem("redirect")
+  if (localValue !== null) {
+    return localValue === "true"
+  }
+
+  return document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("redirect="))
+    ?.split("=")[1] === "true"
+}
 
 export function SettingsModal() {
   const settings = useSettings()
@@ -25,6 +40,7 @@ export function SettingsModal() {
   const [isPrivated, setIsPrivated] = useState<boolean>(false)
   const [watermark, setWatermark] = useState<boolean>(false)
   const [redirect, setRedirect] = useState<boolean>(false)
+  const [isDesktop, setIsDesktop] = useState<boolean>(false)
   const [userData, setUserData] = useState<any>(null)
   const isOrg = organization?.id !== undefined
   const id = isOrg ? organization?.id : user?.id as string
@@ -43,8 +59,8 @@ export function SettingsModal() {
 
     fetchData()
 
-    const redirectValue = localStorage.getItem("redirect")
-    setRedirect(redirectValue === "true")
+    setIsDesktop(isDesktopApp())
+    setRedirect(readRedirectPreference())
   }, [user, id, isOrg])
 
   const handlePrivacyToggle = async (value: boolean) => {
@@ -77,6 +93,7 @@ export function SettingsModal() {
     setRedirect(value)
 
     localStorage.setItem("redirect", value ? "true" : "false")
+    document.cookie = `redirect=${value ? "true" : "false"}; Path=/; Max-Age=31536000; SameSite=Lax`
   }
 
   // backdrop modal (simplified)
@@ -174,7 +191,7 @@ export function SettingsModal() {
           <ModeToggle />
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className={isDesktop ? "hidden" : "flex items-center justify-between"}>
           <div className="flex flex-col gap-y-1">
             <Label>Редирект</Label>
             <span className="text-[0.8rem] text-muted-foreground w-full max-w-[350px]">
@@ -208,7 +225,7 @@ export function SettingsModal() {
             <div className="flex flex-col gap-y-1">
               <Label>Логотип Notter</Label>
               <span className="text-[0.8rem] text-muted-foreground">
-                Убрать логотип с публичных заметок
+                Показывать логотип на публичных заметках
               </span>
             </div>
             <Switch

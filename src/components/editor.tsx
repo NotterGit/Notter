@@ -1,5 +1,7 @@
 "use client" 
 
+import "@blocknote/core/style.css" 
+import "@blocknote/mantine/style.css"
 import { BlockNoteEditor, PartialBlock } from "@blocknote/core" 
 import { useCreateBlockNote } from "@blocknote/react" 
 import { BlockNoteView } from "@blocknote/mantine"
@@ -10,6 +12,15 @@ import { getById as getOrgById } from "../app/api/orgs/org"
 import toast from "react-hot-toast"
 import { uploadFile as uploadFileOnServer } from "../app/api/files/file"
 import type { EditorProps } from "@/config/types/components.types";
+import type { ClipboardEvent } from "react";
+
+const normalizePastedText = (text: string) =>
+  text
+    .replace(/\r\n?/g, "\n")
+    .replace(/\u00a0/g, " ")
+    .split("\n")
+    .map((line) => line.replace(/[ \t]+$/g, ""))
+    .join("\n");
 
 export default function Editor({ onChange, initialContent, editable, documentId }: EditorProps){
   const { resolvedTheme } = useTheme()
@@ -37,6 +48,10 @@ export default function Editor({ onChange, initialContent, editable, documentId 
     }
 
     const url = await uploadFileOnServer(orgId, documentId as string, avatar, username, file);
+    if (!url) {
+      toast.error("Не удалось загрузить файл")
+      throw new Error("Upload failed")
+    }
     return url;
   };
   
@@ -51,15 +66,35 @@ export default function Editor({ onChange, initialContent, editable, documentId 
     onChange(JSON.stringify(editor.document, null, 2))
   }
 
+  const handlePaste = (event: ClipboardEvent<HTMLDivElement>) => {
+    if (!editable || !event.clipboardData || event.clipboardData.files.length > 0) {
+      return
+    }
+
+    const pastedText = event.clipboardData.getData("text/plain")
+    if (!pastedText) {
+      return
+    }
+
+    const view = editor.prosemirrorView
+    if (!view) {
+      return
+    }
+
+    event.preventDefault()
+    view.focus()
+    view.pasteText(normalizePastedText(pastedText), event.nativeEvent)
+  }
+
   return (
-    <div>
+    <div onPasteCapture={handlePaste}>
       <BlockNoteView
         editable={editable}
         editor={editor}
         theme={resolvedTheme === "dark" ? "dark" : "light"}
         onChange={handleEditorChange}
         data-theming-css-variables-demo
-        className="z-0"
+        className="z-10"
       />
     </div>
   ) 

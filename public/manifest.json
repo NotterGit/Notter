@@ -2,31 +2,24 @@
   "name": "Notter",
   "short_name": "Notter",
   "description": "Новый уровень построения задач. Встречайте Notter",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "scope": "/",
+  "id": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "/image/NotterIcon.png",
+      "src": "/image/pwa-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/image/NotterIcon.png",
-      "sizes": "256x256",
-      "type": "image/png"
-    },
-    {
-      "src": "/image/NotterIcon.png",
-      "sizes": "384x384",
-      "type": "image/png"
-    },
-    {
-      "src": "/image/NotterIcon.png",
+      "src": "/image/pwa-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

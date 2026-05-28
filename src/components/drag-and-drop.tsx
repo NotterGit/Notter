@@ -125,10 +125,12 @@ const DragAndDrop = React.forwardRef<HTMLInputElement, InputProps>(
           <input ref={ref} {...getInputProps()} />
 
           {imageUrl ? (
-            <img
-              className="h-full w-full rounded-md object-cover"
+            <Image
+              className="rounded-md object-cover"
               src={imageUrl}
-              alt={acceptedFiles[0]?.name}
+              alt={acceptedFiles[0]?.name || "Предпросмотр"}
+              fill
+              unoptimized
             />
           ) : (
             <div className="flex flex-col items-center justify-center text-xs text-gray-400">

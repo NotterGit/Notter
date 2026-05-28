@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Archive, ChevronsLeft, MenuIcon, Plus, PlusCircle, Search, Settings2 } from "lucide-react"
+import { Archive, Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, Plus, PlusCircle, Search, Settings2 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { ElementRef, useEffect, useRef, useState } from "react"
 import { useMediaQuery } from 'usehooks-ts'
@@ -10,8 +10,10 @@ import { api } from "../../../../convex/_generated/api"
 import { getById as getUserById } from "../../api/users/user"
 import { getById as getOrgById } from "../../api/orgs/org"
 import { Progress } from "@/components/ui/progress"
+import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "react-hot-toast"
 import { useOrganization, useUser } from "@clerk/clerk-react"
+import { InstallModal } from "@/components/modal/install-modal"
 import { UserItem } from "./user-item"
 import { Item } from "./item"
 import { DocumentList } from "./document-list"
@@ -21,8 +23,18 @@ import { useSearch } from "../../../components/hooks/use-search"
 import { useSettings } from "../../../components/hooks/use-settings"
 import { Navbar } from "./navbar"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { pages } from "@/config/routing/pages.route"
+import { getCurrentEditTime } from "@/lib/last-edit-time"
+import { createDocumentWithFallback, getCreateDocumentErrorMessage } from "../../api/document-limit"
+import { getPlanLimits } from "@/lib/plan-limits"
+import { isDesktopApp } from "@/lib/desktop-app"
+import type {
+    BeforeInstallPromptEvent,
+    NavigatorWithStandalone,
+} from "@/config/types/components.types"
+
+const isIosStandalone = () =>
+    Boolean((navigator as NavigatorWithStandalone).standalone)
 
 export function Navigation() {
     const router = useRouter()
@@ -65,44 +77,84 @@ export function Navigation() {
     const [documentCount, setDocumentCount] = useState<number>(0)
     const [documentPublicCount, setDocumentPublicCount] = useState<number>(0)
     const [premiumLevel, setPremiumLevel] = useState<number>(0)
-    const [isPromoHidden, setIsPromoHidden] = useState<boolean>(() => {
-        try {
-            return typeof window !== "undefined" && localStorage.getItem("gem_banner") === "true"
-        } catch {
-            return false
-        }
-    })
-
-    const hidePromo = () => {
-        try {
-            localStorage.setItem("gem_banner", "true")
-        } catch { }
-        setIsPromoHidden(true)
-    }
+    const [isLimitsLoading, setIsLimitsLoading] = useState<boolean>(true)
+    const [promptInstall, setPromptInstall] = useState<BeforeInstallPromptEvent | null>(null)
+    const [isInstalled, setIsInstalled] = useState(false)
+    const [isInstallModalOpen, setIsInstallModalOpen] = useState(false)
 
     useEffect(() => {
-        const fetchData = async () => {
-            if (isOrg && organization?.id) {
-                const orgData = await getOrgById(organization.id)
-                if (orgData) {
-                    setDocumentCount(orgData.documents || 0)
-                    setDocumentPublicCount(orgData.publicDocuments || 0)
-                    setPremiumLevel(orgData.premium || 0)
-                }
-                return
-            }
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("/sw.js").catch(() => null)
+        }
 
-            if (!isOrg && user?.id) {
-                const userData = await getUserById(user.id)
-                if (userData) {
-                    setDocumentCount(userData.documents || 0)
-                    setDocumentPublicCount(userData.publicDocuments || 0)
-                    setPremiumLevel(userData.premium || 0)
+        const standaloneQuery = window.matchMedia("(display-mode: standalone)")
+        const updateInstalledState = () => {
+            setIsInstalled(standaloneQuery.matches || isIosStandalone() || isDesktopApp())
+        }
+
+        const beforeInstallPromptHandler = (event: Event) => {
+            event.preventDefault()
+            setPromptInstall(event as BeforeInstallPromptEvent)
+        }
+
+        const appInstalledHandler = () => {
+            setPromptInstall(null)
+            setIsInstallModalOpen(false)
+            setIsInstalled(true)
+            toast.success("Notter установлен")
+        }
+
+        updateInstalledState()
+        window.addEventListener("beforeinstallprompt", beforeInstallPromptHandler)
+        window.addEventListener("appinstalled", appInstalledHandler)
+        standaloneQuery.addEventListener("change", updateInstalledState)
+
+        return () => {
+            window.removeEventListener("beforeinstallprompt", beforeInstallPromptHandler)
+            window.removeEventListener("appinstalled", appInstalledHandler)
+            standaloneQuery.removeEventListener("change", updateInstalledState)
+        }
+    }, [])
+
+    useEffect(() => {
+        let isMounted = true
+
+        const fetchData = async () => {
+            setIsLimitsLoading(true)
+
+            try {
+                if (isOrg && organization?.id) {
+                    const orgData = await getOrgById(organization.id)
+                    if (orgData && isMounted) {
+                        setDocumentCount(orgData.documents || 0)
+                        setDocumentPublicCount(orgData.publicDocuments || 0)
+                        setPremiumLevel(orgData.premium || 0)
+                    }
+                    return
+                }
+
+                if (!isOrg && user?.id) {
+                    const userData = await getUserById(user.id)
+                    if (userData && isMounted) {
+                        setDocumentCount(userData.documents || 0)
+                        setDocumentPublicCount(userData.publicDocuments || 0)
+                        setPremiumLevel(userData.premium || 0)
+                    }
+                }
+            } catch {
+                // src/app/api/client.ts returns null on request errors, but keep this guarded
+            } finally {
+                if (isMounted) {
+                    setIsLimitsLoading((isOrg && !organization?.id) || (!isOrg && !user?.id))
                 }
             }
         }
 
         fetchData()
+
+        return () => {
+            isMounted = false
+        }
     }, [isOrg, organization?.id, user?.id])
 
     useEffect(() => {
@@ -111,16 +163,10 @@ export function Navigation() {
         }
     }, [isMobile, params.documentId])
 
-    let documentLimit: number = 75
-    let publicDocumentLimit: number = 10
-
-    if (premiumLevel === 1) {
-        documentLimit = isOrg ? 500 : 200
-        publicDocumentLimit = isOrg ? 250 : 100
-    } else if (premiumLevel === 2) {
-        documentLimit = 1000
-        publicDocumentLimit = 1000
-    }
+    const { 
+        documents: documentLimit, 
+        publicDocuments: publicDocumentLimit 
+    } = getPlanLimits(premiumLevel, isOrg)
 
     const documentProgress = (documentCount / documentLimit) * 100
     const publicDocumentProgress = (documentPublicCount / publicDocumentLimit) * 100
@@ -132,30 +178,46 @@ export function Navigation() {
     }
 
     const handleCreate = () => {
-        if (documentCount >= documentLimit) {
-            toast.error(`Вы достигли лимита на создание в ${documentLimit} заметок`);
-            return;
-        }
-
-        const promise = create({
+        const promise = createDocumentWithFallback(create, {
             title: "Новая заметка",
             userId: orgId,
             lastEditor: user?.username as string,
             creatorName: isOrg ? organization?.slug as string : user?.username as string,
+            lastEditTime: getCurrentEditTime(),
+            premiumLevel,
+            isOrg,
         })
             .then((documentId) => {
                 router.push(pages.DASHBOARD(documentId))
                 return documentId
             })
-            .catch((error) => {
-                toast.error("Не удалось создать заметку")
-            })
 
         toast.promise(promise, {
             loading: "Создание заметки...",
             success: "Заметка успешно создана!",
-            error: "Не удалось создать заметку"
+            error: getCreateDocumentErrorMessage
         })
+    }
+
+    const installPwa = async () => {
+        if (!promptInstall) {
+            toast(
+                "Если окно установки не появилось, откройте сайт в Chrome или Edge через HTTPS/localhost и нажмите значок установки в адресной строке."
+            )
+            return
+        }
+
+        try {
+            await promptInstall.prompt()
+            const choice = await promptInstall.userChoice?.catch(() => null)
+
+            if (choice?.outcome === "accepted") {
+                toast.success("Установка запущена")
+                setIsInstallModalOpen(false)
+            }
+        } finally {
+            setPromptInstall(null)
+        }
     }
 
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -214,78 +276,97 @@ export function Navigation() {
     return (
         <>
             <aside ref={sidebarRef} className={cn(
-                "group/sidebar relative z-50 flex h-full w-60 flex-col overflow-y-auto border-r border-white/50 bg-white/65 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/70 custom-scrollbar",
+                "group/sidebar relative z-50 flex h-full w-60 flex-col overflow-hidden border-r border-white/50 bg-white/65 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/70",
                 isResetting && "transition-all ease-in-out duration-300",
                 isMobile && "w-0"
             )}>
-                <div onClick={collapse} role="button" className={cn(
-                    "absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg border border-transparent text-muted-foreground opacity-0 transition hover:border-border hover:bg-background/70 group-hover/sidebar:opacity-100",
-                    isMobile && "opacity-100"
-                )}>
-                    <ChevronsLeft className="h-4 w-4" />
-                </div>
-
-                <div className="border-b border-black/5 px-2 pb-3 pt-2 dark:border-white/10">
-                    <UserItem />
-                    <Item label="Поиск" icon={Search} isSearch onClick={seacrh.onOpen} />
-                    <Item label="Настройки" icon={Settings2} onClick={settings.onOpen} shortcut="k" />
-                    <Item onClick={handleCreate} label="Новая заметка" icon={PlusCircle} />
-                </div>
-
-                <div className="mt-2 px-2">
-                    <DocumentList />
-                    <Item onClick={handleCreate} icon={Plus} label="Добавить заметку" />
-                    <Popover>
-                        <PopoverTrigger className="mt-2 w-full">
-                            <Item label="Архив" icon={Archive} />
-                        </PopoverTrigger>
-                        <PopoverContent className="z-[99999] w-80 rounded-2xl border-white/60 bg-white/90 p-0 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90" side={isMobile ? "bottom" : "right"}>
-                            <TrashBox />
-                        </PopoverContent>
-                    </Popover>
-                </div>
-
-                <div className="mx-3 mt-4 rounded-2xl border border-black/5 bg-background/60 p-3 dark:border-white/10 dark:bg-zinc-900/60">
-                    <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                        Лимиты пространства
+                <div className="h-full overflow-y-auto custom-scrollbar">
+                    <div onClick={collapse} role="button" className={cn(
+                        "absolute right-0.5 top-3 flex h-7 w-7 items-center justify-center rounded-lg border border-transparent text-muted-foreground opacity-0 transition hover:border-border hover:bg-background/70 group-hover/sidebar:opacity-100",
+                        isMobile && "opacity-100"
+                    )}>
+                        <ChevronsLeft className="h-4 w-4" />
                     </div>
-                    <div className="mt-3 text-sm text-muted-foreground">
-                        <span className="font-semibold text-foreground">Заметки:</span> {documentCount}/{documentLimit}
-                    </div>
-                    <Progress value={documentProgress} max={100} className={`mt-2 h-2 ${getProgressColor(documentProgress)}`} />
 
-                    <div className="mt-4 text-sm text-muted-foreground">
-                        <span className="font-semibold text-foreground">Публичные:</span> {documentPublicCount}/{publicDocumentLimit}
+                    <div className="border-b border-black/5 px-2 pb-3 pt-2 dark:border-white/10">
+                        <UserItem />
+                        <Item label="Поиск" icon={Search} isSearch onClick={seacrh.onOpen} />
+                        <Item label="Настройки" icon={Settings2} onClick={settings.onOpen} shortcut="k" />
+                        {!isInstalled ? (
+                            <Item label="Скачать приложение" icon={Download} onClick={() => setIsInstallModalOpen(true)} />
+                        ) : null}
+                        {/* <Item label="Notter ToDo" icon={Check} onClick={() => {router.push(links.TODO)}} /> */}
+                        <Item onClick={handleCreate} label="Новая заметка" icon={PlusCircle} />
                     </div>
-                    <Progress value={publicDocumentProgress} max={100} className={`mt-2 h-2 ${getProgressColor(publicDocumentProgress)}`} />
 
-                    {(documentCount >= documentLimit || documentPublicCount >= publicDocumentLimit) && (
-                        <div className="mt-3 rounded-xl border border-red-300/50 bg-red-50/70 p-2 text-xs text-red-700 dark:border-red-400/20 dark:bg-red-950/40 dark:text-red-200">
-                            {(documentCount >= documentLimit || documentPublicCount >= publicDocumentLimit) && (
-                                <div>
-                                    Достигнут лимит по заметкам. Оформите{" "}
-                                    <Link href={pages.BUY} className="group inline-flex transition-all duration-300">
-                                        <span className="group-hover:text-logo-yellow group-hover:underline transition-colors duration-300">N</span>
-                                        <span className="group-hover:text-logo-light-yellow group-hover:underline transition-colors duration-300 mr-1">otter</span>
-                                        <span className="group-hover:text-logo-cyan group-hover:underline transition-colors duration-300">Gem</span>
-                                    </Link>
-                                </div>
-                            )}
+                    <div className="mt-2 px-2">
+                        <DocumentList />
+                        <Item onClick={handleCreate} icon={Plus} label="Добавить заметку" />
+                        <Popover>
+                            <PopoverTrigger className="mt-2 w-full">
+                                <Item label="Архив" icon={Archive} />
+                            </PopoverTrigger>
+                            <PopoverContent className="z-[99999] w-80 rounded-2xl border-white/60 bg-white/90 p-0 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90" side={isMobile ? "bottom" : "right"}>
+                                <TrashBox />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+
+                    <div className="mx-3 mt-4 rounded-2xl border border-black/5 bg-background/60 p-3 dark:border-white/10 dark:bg-zinc-900/60">
+                        <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                            Лимиты пространства
                         </div>
-                    )}
-                </div>
+                        {isLimitsLoading ? (
+                            <div className="mt-3 space-y-2">
+                                <div>
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <span className="font-semibold text-foreground text-sm">Заметки:</span>
+                                        <Skeleton className="h-4 w-14 rounded-full bg-primary/8" />
+                                    </div>
+                                    <Skeleton className="mt-2 h-3 w-full rounded-2xl bg-primary/8" />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-semibold text-foreground text-sm">Публичные:</span>
+                                        <Skeleton className="h-4 w-14 rounded-full bg-primary/8" />
+                                    </div>
+                                    <Skeleton className="mt-2 h-3 w-full rounded-2xl bg-primary/8" />
+                                </div>
+                                <Link className="text-sm text-primary/50 hover:text-primary transition-colors duration-200" href={pages.BUY}>
+                                    Увеличить лимиты
+                                </Link>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="mt-3 text-sm text-muted-foreground">
+                                    <span className="font-semibold text-foreground">Заметки:</span> {documentCount}/{documentLimit}
+                                </div>
+                                <Progress value={documentProgress} max={100} className={`mt-2 h-2 ${getProgressColor(documentProgress)}`} />
 
-                {premiumLevel === 0 && !isPromoHidden && (
-                    <div className="relative mx-3 mb-4 mt-auto overflow-hidden rounded-2xl border border-logo-cyan/20 bg-gradient-to-br from-logo-yellow/20 via-background to-logo-cyan/20 p-3 shadow-lg">
-                        <button onClick={hidePromo} aria-label="Закрыть" className="absolute right-2 top-2 text-sm text-muted-foreground hover:text-foreground">✕</button>
-                        <div className="text-sm font-semibold">Попробуйте <span className="text-logo-yellow">N</span><span className="text-logo-light-yellow">otter</span><span className="text-logo-cyan"> Gem</span></div>
-                        <div className="mt-1 text-xs text-muted-foreground">Расширьте лимиты и получите дополнительные функции.</div>
-                        <Link href={pages.BUY} className="block mt-3">
-                            <Button className="h-9 w-full rounded-xl">Купить Notter Gem</Button>
-                        </Link>
+                                <div className="mt-4 text-sm text-muted-foreground">
+                                    <span className="font-semibold text-foreground">Публичные:</span> {documentPublicCount}/{publicDocumentLimit}
+                                </div>
+                                <Progress value={publicDocumentProgress} max={100} className={`mt-2 h-2 ${getProgressColor(publicDocumentProgress)}`} />
+
+                                {(documentCount >= documentLimit || documentPublicCount >= publicDocumentLimit) ? (
+                                    <div className="mt-3 rounded-xl border border-red-300/50 bg-red-50/70 p-2 text-xs text-red-700 dark:border-red-400/20 dark:bg-red-950/40 dark:text-red-200">
+                                        <span>Достигнут лимит по заметкам. Оформите{" "}</span>
+                                        <Link href={pages.BUY} className="group inline-flex transition-all duration-300">
+                                            <span className="group-hover:text-logo-yellow transition-colors duration-300 mr-0.5">Notter</span>
+                                            <span className="group-hover:text-logo-cyan transition-colors duration-300">Gem</span>
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div className="mt-2">
+                                        <Link className="text-sm text-primary/50 hover:text-primary transition-colors duration-200" href={pages.BUY}>
+                                            Увеличить лимиты
+                                        </Link>
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
-                )}
-
+                </div>
                 <div onMouseDown={handleMouseDown} onClick={resetWidth} className="absolute right-0 top-0 h-full w-1 cursor-ew-resize bg-transparent opacity-0 transition group-hover/sidebar:opacity-100 resize-handle" />
             </aside>
 
@@ -302,6 +383,13 @@ export function Navigation() {
                     </nav>
                 )}
             </div>
+
+            <InstallModal
+                open={isInstallModalOpen}
+                onOpenChange={setIsInstallModalOpen}
+                onInstallPwa={installPwa}
+                canInstallPwa={Boolean(promptInstall)}
+            />
         </>
     )
 }

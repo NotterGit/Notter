@@ -9,22 +9,29 @@ import { useParams } from "next/navigation"
 import { Skeleton } from "./ui/skeleton" 
 import { api } from "../../convex/_generated/api" 
 import { useCoverImage } from "./hooks/use-cover-image" 
-import { Id } from "../../convex/_generated/dataModel" 
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { deleteFile } from "../app/api/files/file"
 import type { CoverImageProps } from "@/config/types/components.types";
 import toast from "react-hot-toast"
+import { isValidConvexId } from "@/lib/convex-id"
 
 export function Cover({ url, preview }: CoverImageProps){
   const { user } = useUser()
   const { organization } = useOrganization()
 
-  const orgId = organization?.id !== undefined ? organization?.id as string : user?.id as string
+  const orgId = organization?.id ?? user?.id
   const params = useParams() 
+  const documentId = typeof params.documentId === "string" && isValidConvexId(params.documentId)
+    ? params.documentId
+    : null
   const coverImage = useCoverImage() 
   const removeCoverImage = useMutation(api.document.removeCoverImage) 
   
   const onRemove = async () => {
+    if (!documentId || !orgId) {
+      return
+    }
+
     if (url) {
       const fileId = url.split("/").pop()?.split("?")[0];
       console.log(fileId);
@@ -33,7 +40,7 @@ export function Cover({ url, preview }: CoverImageProps){
     }
 
     const promise = removeCoverImage({
-      id: params.documentId as Id<"documents">,
+      id: documentId,
       userId: orgId
     });
 
@@ -56,7 +63,7 @@ export function Cover({ url, preview }: CoverImageProps){
         <Image src={url} fill alt="cover" className="object-cover" priority />
       )}
       {url && !preview && (
-        <div className="absolute bottom-5 right-5 flex items-center gap-x-2 opacity-0 group-hover:opacity-100">
+        <div className="absolute bottom-5 right-5 flex items-center gap-x-2">
           <Button
             onClick={() => coverImage.onReplace(url)}
             className="text-xs text-muted-foreground"
@@ -82,5 +89,5 @@ export function Cover({ url, preview }: CoverImageProps){
 } 
 
 Cover.Skeleton = function CoverSkeleton() {
-  return <Skeleton className="h-[12vh] w-full" /> 
+  return <Skeleton className="h-70 w-full" /> 
 }

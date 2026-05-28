@@ -1,78 +1,63 @@
-import { useEffect } from "react";
-import { useOrganization, useUser } from "@clerk/nextjs";
-import { createOrg, updateOrg, getById } from "./org";
-import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { useEffect } from "react"
+import { useOrganization, useUser } from "@clerk/nextjs"
 
-export function useRequestOrg() {
-  const { organization, isLoaded } = useOrganization();
-  const { isSignedIn } = useUser();
-  const orgId = organization?.id;
+import { createOrg, getById, updateOrg } from "./org"
+import { useDocumentStats } from "../use-document-stats"
+import type { UseRequestOrgFunction } from "@/config/types/api.types"
 
-  const documentCount = useQuery(api.document.getDocumentCount, {
-    userId: orgId ? orgId : "",
-  });
-  const documentPublicCount = useQuery(api.document.getPublicDocumentCount, {
-    userId: orgId ? orgId : "",
-  });
-
-  const documentVerifiedCount = useQuery(api.document.getVerifiedDocumentCount, {
-    userId: orgId ? orgId : "",
-  });
+export const useRequestOrg: UseRequestOrgFunction = () => {
+  const { organization, isLoaded } = useOrganization()
+  const { isSignedIn } = useUser()
+  const { documentCount, documentPublicCount, documentVerifiedCount, isReady } = useDocumentStats(organization?.id)
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn || !organization) return;
-    const createOrUpdateOrg = async () => {
-      const { id, name, createdAt, imageUrl, slug } = organization;
-      let adminId = null;
-      const membersList: string[] = [];
-      const memberships = await organization.getMemberships();
+    if (!isLoaded || !isSignedIn || !organization || !isReady) return
 
-      memberships.data.forEach((member) => {
-        if (member.role === "org:admin") {
-          adminId = member.publicUserData.userId;
-        }
-        membersList.push(member.publicUserData.userId as string);
-      });
+    const syncOrg = async () => {
+      const memberships = await organization.getMemberships()
+      const members = memberships.data.flatMap((member) => {
+        const userId = member.publicUserData?.userId
+        return userId ? [userId] : []
+      })
+      const admin = memberships.data.find((member) => member.role === "org:admin")
+      const adminId = admin?.publicUserData?.userId ?? null
 
-      if (id === undefined) return null;
-
-      const existingOrg = await getById(id);
+      const existingOrg = await getById(organization.id)
       if (!existingOrg) {
-        const createdOrg = await createOrg(
-          id,
-          slug,
+        await createOrg(
+          organization.id,
+          organization.slug,
           adminId,
-          createdAt,
-          name,
-          membersList,
-          imageUrl || null,
+          organization.createdAt,
+          organization.name,
+          members,
+          organization.imageUrl || null,
           documentCount,
           documentPublicCount,
           documentVerifiedCount
-        );
+        )
+        return
+      }
 
-      } else {
-        const updatedOrg = await updateOrg(
-          id,
-          slug,
-          adminId,
-          name,
-          imageUrl || null,
-          null,
-          null,
-          documentCount,
-          documentPublicCount,
-          membersList,
-          null,
-          null,
-          documentVerifiedCount
-        );
-        }
-    };
+      await updateOrg(
+        organization.id,
+        organization.slug,
+        adminId,
+        organization.name,
+        organization.imageUrl || null,
+        null,
+        null,
+        documentCount,
+        documentPublicCount,
+        members,
+        null,
+        null,
+        documentVerifiedCount
+      )
+    }
 
-    createOrUpdateOrg();
-  }, [isLoaded, isSignedIn, organization, orgId]);
+    syncOrg()
+  }, [isLoaded, isSignedIn, organization, documentCount, documentPublicCount, documentVerifiedCount, isReady])
 
-  return null;
+  return null
 }
