@@ -76,12 +76,6 @@ export const InstallModal = ({
                 Установить через браузер
                 <Download className="h-4 w-4" />
               </Button>
-
-              {!canInstallPwa ? (
-                <p className="text-xs text-muted-foreground">
-                  Недоступно в вашем браузере
-                </p>
-              ) : null}
             </div>
           </section>
 

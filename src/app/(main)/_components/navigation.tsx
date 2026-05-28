@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Archive, Check, ChevronsLeft, MenuIcon, MonitorSmartphoneIcon, Plus, PlusCircle, Search, Settings2 } from "lucide-react"
+import { Archive, Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, Plus, PlusCircle, Search, Settings2 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { ElementRef, useEffect, useRef, useState } from "react"
 import { useMediaQuery } from 'usehooks-ts'
@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "react-hot-toast"
 import { useOrganization, useUser } from "@clerk/clerk-react"
+import { InstallModal } from "@/components/modal/install-modal"
 import { UserItem } from "./user-item"
 import { Item } from "./item"
 import { DocumentList } from "./document-list"
@@ -26,6 +27,14 @@ import { pages } from "@/config/routing/pages.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
 import { createDocumentWithFallback, getCreateDocumentErrorMessage } from "../../api/document-limit"
 import { getPlanLimits } from "@/lib/plan-limits"
+import { isDesktopApp } from "@/lib/desktop-app"
+import type {
+    BeforeInstallPromptEvent,
+    NavigatorWithStandalone,
+} from "@/config/types/components.types"
+
+const isIosStandalone = () =>
+    Boolean((navigator as NavigatorWithStandalone).standalone)
 
 export function Navigation() {
     const router = useRouter()
@@ -69,6 +78,43 @@ export function Navigation() {
     const [documentPublicCount, setDocumentPublicCount] = useState<number>(0)
     const [premiumLevel, setPremiumLevel] = useState<number>(0)
     const [isLimitsLoading, setIsLimitsLoading] = useState<boolean>(true)
+    const [promptInstall, setPromptInstall] = useState<BeforeInstallPromptEvent | null>(null)
+    const [isInstalled, setIsInstalled] = useState(false)
+    const [isInstallModalOpen, setIsInstallModalOpen] = useState(false)
+
+    useEffect(() => {
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("/sw.js").catch(() => null)
+        }
+
+        const standaloneQuery = window.matchMedia("(display-mode: standalone)")
+        const updateInstalledState = () => {
+            setIsInstalled(standaloneQuery.matches || isIosStandalone() || isDesktopApp())
+        }
+
+        const beforeInstallPromptHandler = (event: Event) => {
+            event.preventDefault()
+            setPromptInstall(event as BeforeInstallPromptEvent)
+        }
+
+        const appInstalledHandler = () => {
+            setPromptInstall(null)
+            setIsInstallModalOpen(false)
+            setIsInstalled(true)
+            toast.success("Notter установлен")
+        }
+
+        updateInstalledState()
+        window.addEventListener("beforeinstallprompt", beforeInstallPromptHandler)
+        window.addEventListener("appinstalled", appInstalledHandler)
+        standaloneQuery.addEventListener("change", updateInstalledState)
+
+        return () => {
+            window.removeEventListener("beforeinstallprompt", beforeInstallPromptHandler)
+            window.removeEventListener("appinstalled", appInstalledHandler)
+            standaloneQuery.removeEventListener("change", updateInstalledState)
+        }
+    }, [])
 
     useEffect(() => {
         let isMounted = true
@@ -153,6 +199,27 @@ export function Navigation() {
         })
     }
 
+    const installPwa = async () => {
+        if (!promptInstall) {
+            toast(
+                "Если окно установки не появилось, откройте сайт в Chrome или Edge через HTTPS/localhost и нажмите значок установки в адресной строке."
+            )
+            return
+        }
+
+        try {
+            await promptInstall.prompt()
+            const choice = await promptInstall.userChoice?.catch(() => null)
+
+            if (choice?.outcome === "accepted") {
+                toast.success("Установка запущена")
+                setIsInstallModalOpen(false)
+            }
+        } finally {
+            setPromptInstall(null)
+        }
+    }
+
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.preventDefault()
         event.stopPropagation()
@@ -225,7 +292,9 @@ export function Navigation() {
                         <UserItem />
                         <Item label="Поиск" icon={Search} isSearch onClick={seacrh.onOpen} />
                         <Item label="Настройки" icon={Settings2} onClick={settings.onOpen} shortcut="k" />
-                        <Item label="Скачать приложение" icon={MonitorSmartphoneIcon} onClick={settings.onOpen} />
+                        {!isInstalled ? (
+                            <Item label="Скачать приложение" icon={Download} onClick={() => setIsInstallModalOpen(true)} />
+                        ) : null}
                         {/* <Item label="Notter ToDo" icon={Check} onClick={() => {router.push(links.TODO)}} /> */}
                         <Item onClick={handleCreate} label="Новая заметка" icon={PlusCircle} />
                     </div>
@@ -314,6 +383,13 @@ export function Navigation() {
                     </nav>
                 )}
             </div>
+
+            <InstallModal
+                open={isInstallModalOpen}
+                onOpenChange={setIsInstallModalOpen}
+                onInstallPwa={installPwa}
+                canInstallPwa={Boolean(promptInstall)}
+            />
         </>
     )
 }
