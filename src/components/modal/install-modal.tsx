@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { Download, Globe, Laptop, MonitorDown } from "lucide-react";
-import { toast } from "react-hot-toast";
 
 import {
   Dialog,
@@ -13,16 +12,14 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { images } from "@/config/routing/image.route";
+import { links } from "@/config/routing/links.route";
+import Link from "next/link";
 
 type InstallModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onInstallPwa: () => void | Promise<void>;
   canInstallPwa: boolean;
-};
-
-const showPlaceholderToast = () => {
-  toast("Скачивание десктопной версии скоро будет доступно.");
 };
 
 export const InstallModal = ({
@@ -86,39 +83,54 @@ export const InstallModal = ({
             </div>
 
             <p className="text-sm text-muted-foreground">
-              Отдельные сборки для Windows и Linux появятся позже. Сейчас это
-              заглушки под будущие файлы загрузки.
+              Отдельные сборки для Windows и Linux
             </p>
 
             <div className="mt-2 grid gap-3">
               <Button
+                asChild
                 variant="outline"
                 className="h-auto justify-start gap-3 p-4"
-                onClick={showPlaceholderToast}
               >
-                <Laptop className="h-5 w-5" />
-                <span className="flex flex-col items-start text-left">
-                  <span>Скачать для Windows</span>
-                  <span className="text-xs font-normal text-muted-foreground">
-                    Скоро
+                <Link href={links.DOWNLOAD.WINDOWS} download="Notter.msi">
+                  <Laptop className="h-5 w-5" />
+                  <span className="flex flex-col items-start text-left">
+                    <span>Скачать для Windows</span>
+                    <span className="text-xs font-normal text-muted-foreground">
+                      Windows Installer (.msi)
+                    </span>
                   </span>
-                </span>
+                </Link>
               </Button>
 
               <Button
+                asChild
                 variant="outline"
                 className="h-auto justify-start gap-3 p-4"
-                onClick={showPlaceholderToast}
               >
-                <Laptop className="h-5 w-5" />
-                <span className="flex flex-col items-start text-left">
-                  <span>Скачать для Linux</span>
-                  <span className="text-xs font-normal text-muted-foreground">
-                    Скоро
+                <Link href={links.DOWNLOAD.LINUX} download="Notter.deb">
+                  <Laptop className="h-5 w-5" />
+                  <span className="flex flex-col items-start text-left">
+                    <span>Скачать для Linux</span>
+                    <span className="text-xs font-normal text-muted-foreground">
+                      dpkg (.deb)
+                    </span>
                   </span>
-                </span>
+                </Link>
               </Button>
             </div>
+
+            <p className="text-sm text-primary/50">
+              Или напрямую с{" "}
+              <Link
+                href={links.DOWNLOAD.GITHUB}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors duration-200 hover:text-primary/75"
+              >
+                GitHub
+              </Link>
+            </p>
           </section>
         </div>
       </DialogContent>

@@ -9,6 +9,7 @@ import { images } from "@/config/routing/image.route"
 import { pages } from "@/config/routing/pages.route"
 
 import InstallPWA from "./install"
+import { ChevronRight } from "lucide-react"
 
 export function Heading() {
   const { isAuthenticated } = useConvexAuth()
@@ -29,7 +30,7 @@ export function Heading() {
 
         <span className="space-x-2">
           <Link href={isAuthenticated ? pages.DASHBOARD() : pages.AUTH}>
-            <Button className="mt-2">Перейти в Notter</Button>
+            <Button className="mt-2">Перейти в Notter <ChevronRight/> </Button>
           </Link>
           <InstallPWA />
         </span>
