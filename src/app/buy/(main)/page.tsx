@@ -91,11 +91,14 @@ export default function BuyPremium() {
         }
 
         setLoading(true);
-        const { price, oldPrice } = calculatePrice();
+        const { price } = calculatePrice();
 
         const orderResponse = id ? await createOrder(id, parseInt(selectedPlan), "pending", price) : null;
-        if (typeof orderResponse === "string") {
-            window.location.href = orderResponse;
+        const paymentUrl = typeof orderResponse === "string" ? orderResponse : orderResponse?.payment_url;
+
+        if (typeof paymentUrl === "string" && paymentUrl.length > 0) {
+            window.location.href = paymentUrl;
+            return;
         } else {
             toast.error("Произошла ошибка при создании заказа");
         }
@@ -175,11 +178,11 @@ export default function BuyPremium() {
                     </div>
 
                     <div className="mb-4">
-                        <div className="flex items-baseline gap-3">
+                        <div className="flex items-baseline gap-1">
+                            <div className="text-2xl font-bold">{calculatePrice().price}₽</div>
                             {calculatePrice().oldPrice > 0 && (
                                 <div className="text-sm line-through text-primary/70">{calculatePrice().oldPrice}₽</div>
                             )}
-                            <div className="text-2xl font-bold">{calculatePrice().price}₽</div>
                         </div>
                         <div className="text-xs text-muted-foreground">Единоразово</div>
                     </div>

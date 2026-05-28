@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Archive, Check, ChevronsLeft, MenuIcon, Plus, PlusCircle, Search, Settings2 } from "lucide-react"
+import { Archive, Check, ChevronsLeft, MenuIcon, MonitorSmartphoneIcon, Plus, PlusCircle, Search, Settings2 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { ElementRef, useEffect, useRef, useState } from "react"
 import { useMediaQuery } from 'usehooks-ts'
@@ -225,6 +225,7 @@ export function Navigation() {
                         <UserItem />
                         <Item label="Поиск" icon={Search} isSearch onClick={seacrh.onOpen} />
                         <Item label="Настройки" icon={Settings2} onClick={settings.onOpen} shortcut="k" />
+                        <Item label="Скачать приложение" icon={MonitorSmartphoneIcon} onClick={settings.onOpen} />
                         {/* <Item label="Notter ToDo" icon={Check} onClick={() => {router.push(links.TODO)}} /> */}
                         <Item onClick={handleCreate} label="Новая заметка" icon={PlusCircle} />
                     </div>
@@ -282,7 +283,7 @@ export function Navigation() {
                                     <div className="mt-3 rounded-xl border border-red-300/50 bg-red-50/70 p-2 text-xs text-red-700 dark:border-red-400/20 dark:bg-red-950/40 dark:text-red-200">
                                         <span>Достигнут лимит по заметкам. Оформите{" "}</span>
                                         <Link href={pages.BUY} className="group inline-flex transition-all duration-300">
-                                            <span className="group-hover:bg-gradient-to-r group-hover:from-[#facd00] group-hover:to-[#f4db7a] bg-clip-text text-transparent transition-colors duration-300">Notter</span>
+                                            <span className="group-hover:text-logo-yellow transition-colors duration-300 mr-0.5">Notter</span>
                                             <span className="group-hover:text-logo-cyan transition-colors duration-300">Gem</span>
                                         </Link>
                                     </div>

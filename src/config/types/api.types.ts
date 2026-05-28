@@ -59,9 +59,11 @@ export interface Order {
   premium: number
   status: string
   amount: number
+  payment_id: string
+  payment_url: string
 }
 
-export type CreateOrderResponse = string | Order | ApiEntityResponse
+export type CreateOrderResponse = string | (ApiEntityResponse & Partial<Order>)
 
 export type CreateOrderFunction = (
   userid: string,

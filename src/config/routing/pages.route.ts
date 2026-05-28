@@ -5,6 +5,7 @@ export const pages = {
   URL: (origin: string) => origin.replace(/\/$/, ""),
   AUTH: "/auth/sign-in",
   BUY: "/buy",
+  BUY_CHECK: "/buy/check",
   DASHBOARD: (id?: string) => (id ? `/dashboard/${id}` : "/dashboard"),
   VIEW: (id: string) => `/view/${id}`,
   VIEW_URL: (origin: string, id: string) => getAbsoluteUrl(origin, pages.VIEW(id)),
