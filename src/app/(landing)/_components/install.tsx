@@ -1,22 +1,24 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { toast } from "react-hot-toast";
 import { Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { InstallModal } from "@/components/modal/install-modal";
 import type {
   BeforeInstallPromptEvent,
-  NavigatorWithStandalone,
   NavigatorWithUserAgentData,
 } from "@/config/types/components.types";
+import {
+  getIsPwaInstalled,
+  getPwaPromptInstall,
+  installPwaFromBrowser,
+  subscribePwaInstalled,
+  subscribePwaPromptInstall,
+} from "@/lib/pwa-install";
 
 const PHONE_USER_AGENT_REGEXP =
   /Android.+Mobile|iPhone|iPod|Windows Phone|IEMobile|Opera Mini|BlackBerry|BB10/i;
-
-const isIosStandalone = () =>
-  Boolean((navigator as NavigatorWithStandalone).standalone);
 
 const isPhoneDevice = () => {
   if (typeof window === "undefined") return false;
@@ -37,57 +39,28 @@ const InstallPWA = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => null);
-    }
+    setPromptInstall(getPwaPromptInstall());
+    setIsInstalled(getIsPwaInstalled());
 
-    const standaloneQuery = window.matchMedia("(display-mode: standalone)");
-    const updateInstalledState = () => {
-      setIsInstalled(standaloneQuery.matches || isIosStandalone());
-    };
-
-    const beforeInstallPromptHandler = (event: Event) => {
-      event.preventDefault();
-      setPromptInstall(event as BeforeInstallPromptEvent);
-    };
-
-    const appInstalledHandler = () => {
-      setPromptInstall(null);
-      setIsModalOpen(false);
-      setIsInstalled(true);
-      toast.success("Notter установлен");
-    };
-
-    updateInstalledState();
-    window.addEventListener("beforeinstallprompt", beforeInstallPromptHandler);
-    window.addEventListener("appinstalled", appInstalledHandler);
-    standaloneQuery.addEventListener("change", updateInstalledState);
+    const unsubscribePrompt = subscribePwaPromptInstall(setPromptInstall);
+    const unsubscribeInstalled = subscribePwaInstalled((installed) => {
+      setIsInstalled(installed);
+      if (installed) {
+        setIsModalOpen(false);
+      }
+    });
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", beforeInstallPromptHandler);
-      window.removeEventListener("appinstalled", appInstalledHandler);
-      standaloneQuery.removeEventListener("change", updateInstalledState);
+      unsubscribePrompt();
+      unsubscribeInstalled();
     };
   }, []);
 
   const installPwa = async () => {
-    if (!promptInstall) {
-      toast(
-        "Если окно установки не появилось, откройте сайт в Chrome или Edge через HTTPS/localhost и нажмите значок установки в адресной строке."
-      );
-      return;
-    }
+    const accepted = await installPwaFromBrowser();
 
-    try {
-      await promptInstall.prompt();
-      const choice = await promptInstall.userChoice?.catch(() => null);
-
-      if (choice?.outcome === "accepted") {
-        toast.success("Установка запущена");
-        setIsModalOpen(false);
-      }
-    } finally {
-      setPromptInstall(null);
+    if (accepted) {
+      setIsModalOpen(false);
     }
   };
 

@@ -7,6 +7,7 @@ import ConvexClientProvider from "@/components/providers/convex-provider"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { ThemeIcons } from "@/components/theme-icons"
 import { images } from "@/config/routing/image.route"
+import { PwaProvider } from "@/components/providers/pwa-provider"
 
 const font = Inter({ subsets: ["latin"] })
 
@@ -84,6 +85,7 @@ export default function RootLayout({
                 },
               }}
             />
+            <PwaProvider />
             <ThemeIcons />
             {children}
           </ThemeProvider>
