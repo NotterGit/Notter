@@ -27,14 +27,14 @@ import { pages } from "@/config/routing/pages.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
 import { createDocumentWithFallback, getCreateDocumentErrorMessage } from "../../api/document-limit"
 import { getPlanLimits } from "@/lib/plan-limits"
-import { isDesktopApp } from "@/lib/desktop-app"
-import type {
-    BeforeInstallPromptEvent,
-    NavigatorWithStandalone,
-} from "@/config/types/components.types"
-
-const isIosStandalone = () =>
-    Boolean((navigator as NavigatorWithStandalone).standalone)
+import type { BeforeInstallPromptEvent } from "@/config/types/components.types"
+import {
+    getIsPwaInstalled,
+    getPwaPromptInstall,
+    installPwaFromBrowser,
+    subscribePwaInstalled,
+    subscribePwaPromptInstall,
+} from "@/lib/pwa-install"
 
 export function Navigation() {
     const router = useRouter()
@@ -83,36 +83,20 @@ export function Navigation() {
     const [isInstallModalOpen, setIsInstallModalOpen] = useState(false)
 
     useEffect(() => {
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("/sw.js").catch(() => null)
-        }
+        setPromptInstall(getPwaPromptInstall())
+        setIsInstalled(getIsPwaInstalled())
 
-        const standaloneQuery = window.matchMedia("(display-mode: standalone)")
-        const updateInstalledState = () => {
-            setIsInstalled(standaloneQuery.matches || isIosStandalone() || isDesktopApp())
-        }
-
-        const beforeInstallPromptHandler = (event: Event) => {
-            event.preventDefault()
-            setPromptInstall(event as BeforeInstallPromptEvent)
-        }
-
-        const appInstalledHandler = () => {
-            setPromptInstall(null)
-            setIsInstallModalOpen(false)
-            setIsInstalled(true)
-            toast.success("Notter установлен")
-        }
-
-        updateInstalledState()
-        window.addEventListener("beforeinstallprompt", beforeInstallPromptHandler)
-        window.addEventListener("appinstalled", appInstalledHandler)
-        standaloneQuery.addEventListener("change", updateInstalledState)
+        const unsubscribePrompt = subscribePwaPromptInstall(setPromptInstall)
+        const unsubscribeInstalled = subscribePwaInstalled((installed) => {
+            setIsInstalled(installed)
+            if (installed) {
+                setIsInstallModalOpen(false)
+            }
+        })
 
         return () => {
-            window.removeEventListener("beforeinstallprompt", beforeInstallPromptHandler)
-            window.removeEventListener("appinstalled", appInstalledHandler)
-            standaloneQuery.removeEventListener("change", updateInstalledState)
+            unsubscribePrompt()
+            unsubscribeInstalled()
         }
     }, [])
 
@@ -200,23 +184,10 @@ export function Navigation() {
     }
 
     const installPwa = async () => {
-        if (!promptInstall) {
-            toast(
-                "Если окно установки не появилось, откройте сайт в Chrome или Edge через HTTPS/localhost и нажмите значок установки в адресной строке."
-            )
-            return
-        }
+        const accepted = await installPwaFromBrowser()
 
-        try {
-            await promptInstall.prompt()
-            const choice = await promptInstall.userChoice?.catch(() => null)
-
-            if (choice?.outcome === "accepted") {
-                toast.success("Установка запущена")
-                setIsInstallModalOpen(false)
-            }
-        } finally {
-            setPromptInstall(null)
+        if (accepted) {
+            setIsInstallModalOpen(false)
         }
     }
 
@@ -293,7 +264,14 @@ export function Navigation() {
                         <Item label="Поиск" icon={Search} isSearch onClick={seacrh.onOpen} />
                         <Item label="Настройки" icon={Settings2} onClick={settings.onOpen} shortcut="k" />
                         {!isInstalled ? (
-                            <Item label="Скачать приложение" icon={Download} onClick={() => setIsInstallModalOpen(true)} />
+                            <Item label="Скачать приложение" icon={Download} onClick={() => {
+                                if (isMobile) {
+                                    void installPwa()
+                                    return
+                                }
+
+                                setIsInstallModalOpen(true)
+                            }} />
                         ) : null}
                         {/* <Item label="Notter ToDo" icon={Check} onClick={() => {router.push(links.TODO)}} /> */}
                         <Item onClick={handleCreate} label="Новая заметка" icon={PlusCircle} />
