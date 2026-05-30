@@ -61,7 +61,7 @@ export const InstallModal = ({
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Установите Notter через Chrome или Edge. Приложение откроется
-                  в отдельном окне и будет доступно рядом с обычными программами.
+                  в отдельном окне и будет доступно рядом с обычными программами
                 </p>
               </div>
 
