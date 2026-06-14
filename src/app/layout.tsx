@@ -60,13 +60,13 @@ export default function RootLayout({
   return (
     <html lang="ru" suppressHydrationWarning>
       <body className={font.className}>
-        <ConvexClientProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-          >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ConvexClientProvider>
             <Toaster
               position="bottom-center"
               containerStyle={{
@@ -88,8 +88,8 @@ export default function RootLayout({
             <PwaProvider />
             <ThemeIcons />
             {children}
-          </ThemeProvider>
-        </ConvexClientProvider>
+          </ConvexClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

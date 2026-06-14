@@ -38,3 +38,4 @@ public/*.map
 certificates
 
 openapi.json
+convex/_generated
