@@ -1,34 +1,29 @@
-import { apiDelete, apiGet, apiPost, withApiBaseUrl } from "../client"
-import { apiRoutes } from "@/config/routing/api.route"
+import { s3Delete, s3Post } from "../client"
 import type {
   DeleteFileFunction,
-  DeleteFileResponse,
-  GetFilesByUserFunction,
+  MessageResponse,
+  S3UploadResponse,
   UploadFileFunction,
-  UploadFileResponse,
-  UserFile,
 } from "@/config/types/api.types"
 
-export const uploadFile: UploadFileFunction = async (userid, documentid, avatar, username, file) => {
+export const uploadFile: UploadFileFunction = async (_userid, _documentid, _avatar, _username, file) => {
   const formData = new FormData()
   formData.append("file", file)
-  formData.append("userid", userid)
-  formData.append("documentid", documentid)
-  formData.append("username", username)
-  formData.append("avatar", avatar)
 
-  const response = await apiPost<UploadFileResponse>(apiRoutes.FILES.UPLOAD, formData, {
+  const response = await s3Post<S3UploadResponse>("/upload", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   })
 
-  return response ? withApiBaseUrl(response.url) : null
+  return response ? response.url : null
 }
 
-export const deleteFile: DeleteFileFunction = async (userid, fileid) => {
-  const response = await apiDelete<DeleteFileResponse>(apiRoutes.FILES.DELETE, { userid, fileid })
-  return response?.success ?? false
-}
+export const deleteFile: DeleteFileFunction = async (url) => {
+  const rawKey = url.split("/").pop()?.split("?")[0]
+  if (!rawKey) {
+    return false
+  }
 
-export const getFilesByUser: GetFilesByUserFunction = (userid) => {
-  return apiGet<UserFile[]>(apiRoutes.FILES.BY_USER(userid))
+  const key = decodeURIComponent(rawKey)
+  const response = await s3Delete<MessageResponse>("/delete", { key })
+  return response !== null
 }

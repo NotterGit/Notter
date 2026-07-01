@@ -86,22 +86,11 @@ export type OrderCallbackPayload = {
 
 export type OrderCallbackFunction = (payload: OrderCallbackPayload) => Promise<ApiEntityResponse | null>
 
-export type UploadFileResponse = {
+export type S3UploadResponse = {
+  filename: string
+  key: string
   url: string
 }
-
-export type DeleteFileResponse = {
-  success: boolean
-}
-
-export type UserFile = {
-  fileid?: string
-  userid?: string
-  url?: string
-  avatar?: string
-  username?: string
-  documentid?: string
-} & ApiEntityResponse
 
 export type UploadFileFunction = (
   userid: string,
@@ -111,9 +100,7 @@ export type UploadFileFunction = (
   file: File
 ) => Promise<string | null>
 
-export type DeleteFileFunction = (userid: string, fileid: string) => Promise<boolean>
-
-export type GetFilesByUserFunction = (userid: string) => Promise<UserFile[] | null>
+export type DeleteFileFunction = (url: string) => Promise<boolean>
 
 export type OrgBadge = {
   verified: boolean;
