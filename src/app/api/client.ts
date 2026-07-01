@@ -53,5 +53,8 @@ export const apiDelete: ApiDeleteFunction = <T>(url: string, data?: unknown) => 
 }
 
 export const withApiBaseUrl: WithApiBaseUrlFunction = (path) => {
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path
+  }
   return `${API.defaults.baseURL ?? ""}${path}`
 }
