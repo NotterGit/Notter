@@ -23,6 +23,16 @@ const nextConfig = {
         port: "8000",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "storage.yandexcloud.net",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "qualcloud.storage.yandexcloud.net",
+        pathname: "/**",
+      },
     ],
   },
 };
