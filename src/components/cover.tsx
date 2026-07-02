@@ -32,7 +32,7 @@ export function Cover({ url, preview }: CoverImageProps){
       return
     }
 
-    await deleteFile(url)
+    await deleteFile(orgId, url)
 
     const promise = removeCoverImage({
       id: documentId,

@@ -100,7 +100,7 @@ export type UploadFileFunction = (
   file: File
 ) => Promise<string | null>
 
-export type DeleteFileFunction = (url: string) => Promise<boolean>
+export type DeleteFileFunction = (userid: string, url: string) => Promise<boolean>
 
 export type OrgBadge = {
   verified: boolean;
