@@ -18,7 +18,6 @@ export function ModeToggle() {
 
   const handleSwitchTheme = (theme: string) => {
     setTheme(theme)
-    toast("Для полного изменения, перезагрузите страницу")
   }
 
   return (

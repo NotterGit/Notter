@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { links } from "@/config/routing/links.route"
 
-const STORAGE_KEY = "notter-go-backend-banner-hidden"
+const STORAGE_KEY = "notter-cpp-backend-banner-hidden"
 
 export function GoBackendBanner() {
   const [shouldRender, setShouldRender] = useState(false)
@@ -56,22 +56,22 @@ export function GoBackendBanner() {
           }`}
         >
           <div className="flex min-w-0 items-center gap-3 pr-10 sm:pr-0">
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#00ADD8]/10">
+            <div className="mt-0.5">
               <Image
-                src="/image/Golang-logo.png"
-                alt="Go"
-                width={40}
-                height={15}
-                className="h-auto w-6"
+                src="/image/InAPI-logo.png"
+                alt="InAPI"
+                width={50}
+                height={50}
+                className="h-auto w-6.5"
                 unoptimized
               />
             </div>
             <div className="min-w-0">
               <h2 className="text-sm font-semibold text-foreground">
-                Теперь мы на Go!
+                Не Go, так C++
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Новая, экспериментальная версия Бекенда
+              <p className="text-sm text-muted-foreground">
+                Второй экспереиментальный Бекенд
               </p>
             </div>
           </div>
@@ -104,8 +104,8 @@ export function GoBackendBanner() {
         <DialogContent className="overflow-hidden p-0 sm:max-w-md">
           <div className="relative flex h-64 items-center justify-center overflow-hidden border-b px-6">
             <Image
-              src="/image/Golang.png"
-              alt="Golang"
+              src="/image/InAPI.png"
+              alt="InAPI"
               width={480}
               height={360}
               className="h-full w-auto object-contain"
@@ -116,9 +116,9 @@ export function GoBackendBanner() {
 
           <div className="space-y-5 p-6 pt-5">
             <DialogHeader>
-              <DialogTitle className="text-left">Теперь мы на Go!</DialogTitle>
+              <DialogTitle className="text-left">Может на плюсах?</DialogTitle>
               <DialogDescription className="text-sm leading-6 text-foreground/80 text-left">
-                В качестве эксперимента мы переписали серверную часть приложения на язык Go. Этот шаг должен повысить производительность и скорость работы Notter. Но, опять же, это только тест: в случае возникновения или обнаружения багов заполните форму по ссылке
+                Бекенд на Go не показал себя с лучшей стороны, поэтому мы решили попробовать другой язык. Сейчас тестируем второй экспериментальный Бекенд на C++ на нашей собственной библиотеке InAPI. Если хотите помочь нам в тестировании, пожалуйста, оставьте отзыв заполнив форму
               </DialogDescription>
             </DialogHeader>
 
