@@ -1,22 +1,11 @@
-import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
-
 import { About } from "./_components/about"
 import { Footer } from "./_components/footer"
 import { GoBackendBanner } from "./_components/go-backend-banner"
 import { Heading } from "./_components/heading"
 import { LandingRedirect } from "./_components/landing-redirect"
 import { Premium } from "./_components/premium"
-import { pages } from "@/config/routing/pages.route"
 
-export default async function Landing() {
-  const cookieStore = await cookies()
-  const redirectEnabled = cookieStore.get("redirect")?.value === "true"
-
-  if (redirectEnabled) {
-    redirect(pages.DASHBOARD())
-  }
-
+export default function Landing() {
   return (
     <div className="flex min-h-full flex-col">
       <LandingRedirect />
