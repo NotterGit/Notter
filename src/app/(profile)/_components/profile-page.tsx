@@ -16,7 +16,7 @@ import { Cover } from "@/components/cover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pages } from "@/config/routing/pages.route";
 import { images } from "@/config/routing/image.route";
-import { getById as getUserById, getByUsername as getUserByUsername } from "@/app/api/users/user";
+import { checkModerator, getByUsername as getUserByUsername } from "@/app/api/users/user";
 import { getByUsername as getOrgByUsername } from "@/app/api/orgs/org";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -50,12 +50,12 @@ function getProfileTitle(profile: ProfileEntity) {
   return fullName || profile.username;
 }
 
-function canViewPrivateProfile(profile: ProfileEntity, viewer: User | null, clerkUser: ReturnType<typeof useUser>["user"]) {
+function canViewPrivateProfile(profile: ProfileEntity, isModerator: boolean, clerkUser: ReturnType<typeof useUser>["user"]) {
   if (!profile.privated) {
     return true;
   }
 
-  if (viewer?.moderator) {
+  if (isModerator) {
     return true;
   }
 
@@ -131,20 +131,20 @@ export default function ProfilePage({ kind, slug }: ProfilePageComponentProps) {
   const origin = useOrigin();
   const { isLoaded, user } = useUser();
   const [profile, setProfile] = useState<ProfileEntity | null>(null);
-  const [account, setAccount] = useState<User | null>(null);
+  const [isModerator, setIsModerator] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     const fetchProfile = async () => {
       setProfileLoading(true);
 
-      const [profileData, accountData] = await Promise.all([
+      const [profileData, modStatus] = await Promise.all([
         kind === "org" ? getOrgByUsername(slug) : getUserByUsername(slug),
-        user?.id ? getUserById(user.id) : Promise.resolve(null),
+        user?.id ? checkModerator(user.id) : Promise.resolve(false),
       ]);
 
       setProfile(profileData);
-      setAccount(accountData);
+      setIsModerator(modStatus);
       setProfileLoading(false);
     };
 
@@ -167,7 +167,7 @@ export default function ProfilePage({ kind, slug }: ProfilePageComponentProps) {
   const profileKind = getProfileKind(profile);
   const profileName = getProfileTitle(profile);
   const ownProfile = profileKind === "org" ? user?.id === profile.owner : user?.id === profile._id;
-  const canViewPrivate = canViewPrivateProfile(profile, account, user);
+  const canViewPrivate = canViewPrivateProfile(profile, isModerator, user);
   const privateCopy = getPrivateCopy(profileKind, ownProfile);
   const verifiedBadgeText =
     profileKind === "org" ? "Верифицированная команда" : "Верифицированный пользователь";

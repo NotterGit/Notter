@@ -1,4 +1,4 @@
-import { apiPut } from "../client"
+import { apiGet, apiPut } from "../client"
 import { createProfileApi } from "../profile-api"
 import { apiRoutes } from "@/config/routing/api.route"
 import type {
@@ -79,4 +79,9 @@ export const updateUserBadge: UpdateBadgeFunction = usersApi.updateBadge
 
 export const changeVerifiedOrgs: ChangeVerifiedOrgsFunction = (_id, change) => {
   return apiPut<MessageResponse>(apiRoutes.USERS.CHANGE_VERIFIED_ORGS(_id), { change })
+}
+
+export const checkModerator = async (_id: string): Promise<boolean> => {
+  const data = await apiGet<{ moderator: boolean }>(apiRoutes.USERS.MODERATOR(_id))
+  return data?.moderator ?? false
 }

@@ -11,6 +11,7 @@ export const apiRoutes = {
 		UPDATE: (_id: string) => `/users/update/${_id}`,
 		UPDATE_BADGE: (_id: string) => `/users/update_badge/${_id}`,
 		CHANGE_VERIFIED_ORGS: (_id: string) => `/users/change_verified_orgs/${_id}`,
+		MODERATOR: (_id: string) => `/users/${_id}/moderator`,
 	},
 	ORGS: {
 		ADD: (_id: string) => `/orgs/add/${_id}`,

@@ -2,7 +2,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, D
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Menu } from "lucide-react";
-import { changeVerifiedOrgs, getById, updateUserBadge } from "../../api/users/user";
+import { changeVerifiedOrgs, checkModerator, updateUserBadge } from "../../api/users/user";
 import { updateUser } from "../../api/users/user";
 import { updateOrgBadge } from "../../api/orgs/org";
 import { updateOrg } from "../../api/orgs/org";
@@ -10,7 +10,6 @@ import { toast } from "react-hot-toast";
 import { Switch } from "@/components/ui/switch";
 import { useUser } from "@clerk/clerk-react";
 import type { UserProps } from "@/config/types/profile.types";
-import type { User } from "@/config/types/api.types";
 import { getPlanLimits } from "@/lib/plan-limits";
 
 export function ModeratorPanel({ user }: UserProps) {
@@ -25,23 +24,19 @@ export function ModeratorPanel({ user }: UserProps) {
   const [pendingToggle, setPendingToggle] = useState<string | null>(null);
   const { user: clerkUser } = useUser();
   const isOrg = user?._id.startsWith("org_");
-  const [clerkUserData, setClerkUserData] = useState<User | null>(null);
+  const [isModerator, setIsModerator] = useState(false);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchModeratorStatus = async () => {
       if (!clerkUser?.id) return;
-      try {
-        const data = await getById(clerkUser.id);
-        setClerkUserData(data);
-      } catch (error) {
-
-      }
+      const status = await checkModerator(clerkUser.id);
+      setIsModerator(status);
     };
 
-    fetchUserData();
+    fetchModeratorStatus();
   }, [clerkUser?.id]);
 
-  if (clerkUserData?.moderator !== true) {
+  if (!isModerator) {
     return null;
   }
 
