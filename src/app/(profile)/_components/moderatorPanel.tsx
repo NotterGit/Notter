@@ -84,6 +84,8 @@ export function ModeratorPanel({ user }: UserProps) {
       if (result) {
         toast.success(`Watermark обновлен на ${newWatermark ? "включен" : "выключен"}`);
         setWatermark(newWatermark);
+      } else {
+        toast.error("Не удалось обновить watermark");
       }
     } finally {
       setPendingToggle(null);
@@ -103,6 +105,8 @@ export function ModeratorPanel({ user }: UserProps) {
       if (result) {
         toast.success(`Профиль обновлен на ${newPrivated ? "приватный" : "публичный"}`);
         setPrivated(newPrivated);
+      } else {
+        toast.error("Не удалось обновить приватность профиля");
       }
     } finally {
       setPendingToggle(null);
@@ -121,6 +125,8 @@ export function ModeratorPanel({ user }: UserProps) {
 
       if (result) {
         toast.success("Уровень подписки обновлен");
+      } else {
+        toast.error("Не удалось обновить уровень подписки");
       }
     } finally {
       setPendingToggle(null);
@@ -139,6 +145,8 @@ export function ModeratorPanel({ user }: UserProps) {
       if (result) {
         toast.success(`Модератор ${newModerator ? "назначен" : "снят"}`);
         setIsUserModerator(newModerator);
+      } else {
+        toast.error("Не удалось изменить статус модератора");
       }
     } finally {
       setPendingToggle(null);
@@ -159,6 +167,8 @@ export function ModeratorPanel({ user }: UserProps) {
       if (result) {
         toast.success(`Бейдж ${badgeName} ${newStatus ? "выдан" : "снят"}`);
         setter(newStatus);
+      } else {
+        toast.error("Не удалось обновить бейдж");
       }
     } finally {
       setPendingToggle(null);
@@ -176,6 +186,8 @@ export function ModeratorPanel({ user }: UserProps) {
       if (result) {
         setVerifiedOrgs((prev) => prev + delta);
         toast.success("Количество верифицированных организаций обновлено");
+      } else {
+        toast.error("Не удалось обновить количество верифицированных организаций");
       }
     } finally {
       setPendingToggle(null);
