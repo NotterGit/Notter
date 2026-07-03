@@ -5,10 +5,6 @@ export type ApiRequestOptions = {
   headers?: Record<string, string>
 }
 
-export type MessageResponse = {
-  message: string
-}
-
 export type ApiEntityResponse = Record<string, unknown>
 
 export type ApiRequestFunction = <T>(
@@ -38,7 +34,6 @@ export type ProfileRoutes = {
   BY_USERNAME: (username: string) => string
   BY_ID: (_id: string) => string
   UPDATE: (_id: string) => string
-  UPDATE_BADGE: (_id: string) => string
 }
 
 export type ProfileApi<TProfile> = {
@@ -46,7 +41,6 @@ export type ProfileApi<TProfile> = {
   getByUsername: (username: string) => Promise<TProfile | null>
   getById: (_id: string) => Promise<TProfile | null>
   update: (_id: string, payload: Record<string, unknown>) => Promise<TProfile | null>
-  updateBadge: (_id: string, badgeName: string, status: boolean) => Promise<MessageResponse | null>
 }
 
 export type ProfileGetByUsernameFunction<TProfile> = ProfileApi<TProfile>["getByUsername"]
@@ -189,12 +183,8 @@ export type UpdateUserFunction = (
   publicDocuments?: number | null,
   verifiedDocuments?: number | null,
   watermark?: boolean | null,
-  mail?: string | null,
-  premium?: number | null,
-  moderator?: boolean | null
+  mail?: string | null
 ) => Promise<User | null>
-
-export type ChangeVerifiedOrgsFunction = (_id: string, change: number) => Promise<MessageResponse | null>
 
 export type CreateOrgFunction = (
   _id: string,
@@ -221,15 +211,8 @@ export type UpdateOrgFunction = (
   publicDocuments?: number | null,
   members?: string[] | null,
   watermark?: boolean | null,
-  premium?: number | null,
   verifiedDocuments?: number | null
 ) => Promise<Org | null>
-
-export type UpdateBadgeFunction = (
-  _id: string,
-  badgeName: string,
-  status: boolean
-) => Promise<MessageResponse | null>
 
 export type DocumentStats = {
   documentCount: number | null | undefined
@@ -243,3 +226,19 @@ export type UseDocumentStatsFunction = (userId?: string | null) => DocumentStats
 export type UseRequestUserFunction = () => null
 
 export type UseRequestOrgFunction = () => null
+
+export type AdminUpdateResponse = {
+  updated: boolean
+}
+
+export type SetPremiumFunction = (_id: string, premium: number) => Promise<AdminUpdateResponse | null>
+
+export type SetModeratorFunction = (_id: string, moderator: boolean) => Promise<AdminUpdateResponse | null>
+
+export type UpdateBadgeFunction = (
+  _id: string,
+  badge_name: string,
+  status: boolean
+) => Promise<AdminUpdateResponse | null>
+
+export type ChangeVerifiedOrgsFunction = (_id: string, change: number) => Promise<AdminUpdateResponse | null>

@@ -11,6 +11,30 @@ import type {
   WithApiBaseUrlFunction,
 } from "@/config/types/api.types"
 
+let clerkTokenGetter: (() => Promise<string | null>) | null = null
+
+export function setClerkTokenGetter(getter: () => Promise<string | null>) {
+  clerkTokenGetter = getter
+}
+
+API.interceptors.request.use(async (config) => {
+  if (!clerkTokenGetter || config.headers.Authorization) {
+    return config
+  }
+
+  try {
+    const token = await clerkTokenGetter()
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+  } catch {
+    // Leave request unauthenticated so the caller's error handling applies.
+  }
+
+  return config
+})
+
 export const removeNullish: RemoveNullishFunction = <T extends Record<string, unknown>>(payload: T) => {
   return Object.fromEntries(
     Object.entries(payload).filter(([, value]) => value !== null && value !== undefined)
@@ -31,7 +55,8 @@ export const apiRequest: ApiRequestFunction = async <T>(
     })
 
     return response.data
-  } catch {
+  } catch (error) {
+    console.error(`[API] ${method} ${url} failed:`, error)
     return null
   }
 }
@@ -66,7 +91,8 @@ const s3Request: ApiRequestFunction = async <T>(
     })
 
     return response.data
-  } catch {
+  } catch (error) {
+    console.error(`[S3] ${method} ${url} failed:`, error)
     return null
   }
 }

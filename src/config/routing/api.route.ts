@@ -9,8 +9,6 @@ export const apiRoutes = {
 		BY_USERNAME: (username: string) => `/users/by_username/${username}`,
 		BY_ID: (_id: string) => `/users/by_id/${_id}`,
 		UPDATE: (_id: string) => `/users/update/${_id}`,
-		UPDATE_BADGE: (_id: string) => `/users/update_badge/${_id}`,
-		CHANGE_VERIFIED_ORGS: (_id: string) => `/users/change_verified_orgs/${_id}`,
 		MODERATOR: (_id: string) => `/users/${_id}/moderator`,
 	},
 	ORGS: {
@@ -18,12 +16,23 @@ export const apiRoutes = {
 		BY_USERNAME: (username: string) => `/orgs/by_username/${username}`,
 		BY_ID: (_id: string) => `/orgs/by_id/${_id}`,
 		UPDATE: (_id: string) => `/orgs/update/${_id}`,
-		UPDATE_BADGE: (_id: string) => `/orgs/update_badge/${_id}`,
 	},
 	ORDER: {
 		CREATE: "/order/create",
 		CALLBACK: "/order/callback",
 		CHECK: (_id: string) => `/order/check/${_id}`,
 		SUCCESS: (_id: string) => `/order/success/${_id}`,
+	},
+	ADMIN: {
+		USERS: {
+			PREMIUM: (_id: string) => `/admin/users/${_id}/premium`,
+			MODERATOR: (_id: string) => `/admin/users/${_id}/moderator`,
+			BADGE: (_id: string) => `/admin/users/${_id}/badge`,
+			VERIFIED_ORGS: (_id: string) => `/admin/users/${_id}/verified_orgs`,
+		},
+		ORGS: {
+			PREMIUM: (_id: string) => `/admin/orgs/${_id}/premium`,
+			BADGE: (_id: string) => `/admin/orgs/${_id}/badge`,
+		},
 	},
 };

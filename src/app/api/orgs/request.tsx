@@ -51,7 +51,6 @@ export const useRequestOrg: UseRequestOrgFunction = () => {
         documentPublicCount,
         members,
         null,
-        null,
         documentVerifiedCount
       )
     }

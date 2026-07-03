@@ -5,7 +5,6 @@ import type {
   Org,
   ProfileGetByIdFunction,
   ProfileGetByUsernameFunction,
-  UpdateBadgeFunction,
   UpdateOrgFunction,
 } from "@/config/types/api.types"
 
@@ -51,7 +50,6 @@ export const updateOrg: UpdateOrgFunction = (
   publicDocuments = null,
   members = null,
   watermark = null,
-  premium = null,
   verifiedDocuments = null
 ) => {
   return orgsApi.update(_id, {
@@ -65,9 +63,6 @@ export const updateOrg: UpdateOrgFunction = (
     members,
     publicDocuments,
     watermark,
-    premium,
     verifiedDocuments,
   })
 }
-
-export const updateOrgBadge: UpdateBadgeFunction = orgsApi.updateBadge

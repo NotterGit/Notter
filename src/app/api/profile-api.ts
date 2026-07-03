@@ -1,5 +1,5 @@
 import { apiGet, apiPost, apiPut, removeNullish } from "./client"
-import type { MessageResponse, ProfileApi, ProfileRoutes } from "@/config/types/api.types"
+import type { ProfileApi, ProfileRoutes } from "@/config/types/api.types"
 
 export function createProfileApi<TProfile>(routes: ProfileRoutes): ProfileApi<TProfile> {
   return {
@@ -17,13 +17,6 @@ export function createProfileApi<TProfile>(routes: ProfileRoutes): ProfileApi<TP
 
     update(_id: string, payload: Record<string, unknown>) {
       return apiPut<TProfile>(routes.UPDATE(_id), removeNullish(payload))
-    },
-
-    updateBadge(_id: string, badgeName: string, status: boolean) {
-      return apiPut<MessageResponse>(routes.UPDATE_BADGE(_id), {
-        badge_name: badgeName,
-        status,
-      })
     },
   }
 }
