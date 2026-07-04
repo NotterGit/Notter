@@ -1,6 +1,7 @@
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Loader2, Menu, Minus, Plus } from "lucide-react";
 import { checkModerator, updateUser } from "../../api/users/user";
@@ -32,6 +33,7 @@ export function ModeratorPanel({ user }: UserProps) {
   const [isUserModerator, setIsUserModerator] = useState(
     !isOrg && user ? (user as { moderator?: boolean }).moderator ?? false : false
   );
+  const [sendEmail, setSendEmail] = useState(true);
   const [verified, setVerified] = useState(user?.badges?.verified ?? false);
   const [contributor, setContributor] = useState(user?.badges?.contributor ?? false);
   const [verifiedOrgs, setVerifiedOrgs] = useState(
@@ -63,12 +65,13 @@ export function ModeratorPanel({ user }: UserProps) {
     toggleName: string,
     checked: boolean,
     onCheckedChange: () => void,
+    disabled = false,
   ) => {
     if (pendingToggle === toggleName) {
       return <Loader2 className="h-4 w-4 animate-spin" />;
     }
 
-    return <Switch checked={checked} onCheckedChange={onCheckedChange} />;
+    return <Switch checked={checked} disabled={disabled} onCheckedChange={onCheckedChange} />;
   };
 
   const handleWatermarkToggle = async () => {
@@ -120,8 +123,8 @@ export function ModeratorPanel({ user }: UserProps) {
       setPendingToggle("premium");
 
       const result = isOrg
-        ? await setOrgPremium(user._id, premium)
-        : await setUserPremium(user._id, premium);
+        ? await setOrgPremium(user._id, premium, sendEmail)
+        : await setUserPremium(user._id, premium, sendEmail);
 
       if (result) {
         toast.success("Уровень подписки обновлен");
@@ -133,14 +136,21 @@ export function ModeratorPanel({ user }: UserProps) {
     }
   };
 
+  const isSelf = !isOrg && user?._id === clerkUser?.id;
+
   const handleModeratorToggle = async () => {
     if (!user || isOrg || !confirmToggle()) return;
     const newModerator = !isUserModerator;
 
+    if (isSelf && !newModerator) {
+      toast.error("Нельзя снять модератора с себя");
+      return;
+    }
+
     try {
       setPendingToggle("user-moderator");
 
-      const result = await setUserModerator(user._id, newModerator);
+      const result = await setUserModerator(user._id, newModerator, sendEmail);
 
       if (result) {
         toast.success(`Модератор ${newModerator ? "назначен" : "снят"}`);
@@ -161,8 +171,8 @@ export function ModeratorPanel({ user }: UserProps) {
       setPendingToggle(`badge-${badgeName}`);
 
       const result = isOrg
-        ? await updateOrgBadge(user._id, badgeName, newStatus)
-        : await updateUserBadge(user._id, badgeName, newStatus);
+        ? await updateOrgBadge(user._id, badgeName, newStatus, sendEmail)
+        : await updateUserBadge(user._id, badgeName, newStatus, sendEmail);
 
       if (result) {
         toast.success(`Бейдж ${badgeName} ${newStatus ? "выдан" : "снят"}`);
@@ -181,7 +191,7 @@ export function ModeratorPanel({ user }: UserProps) {
     try {
       setPendingToggle("verified-orgs");
 
-      const result = await changeUserVerifiedOrgs(user._id, delta);
+      const result = await changeUserVerifiedOrgs(user._id, delta, sendEmail);
 
       if (result) {
         setVerifiedOrgs((prev) => prev + delta);
@@ -219,6 +229,17 @@ export function ModeratorPanel({ user }: UserProps) {
             {!isOrg && <p>Verified orgs: {verifiedOrgs}</p>}
 
             <hr className="my-3 border-black/10 dark:border-white/10" />
+
+            <div className="flex items-center gap-2 pb-2">
+              <Checkbox
+                id="send-email"
+                checked={sendEmail}
+                onCheckedChange={(checked) => setSendEmail(Boolean(checked))}
+              />
+              <label htmlFor="send-email" className="text-sm cursor-pointer">
+                Отправлять email
+              </label>
+            </div>
 
             <div className="flex items-center gap-3">
               <p>Watermark: </p>
@@ -258,8 +279,8 @@ export function ModeratorPanel({ user }: UserProps) {
 
             {!isOrg && (
               <div className="flex items-center justify-between pt-2">
-                <p>Модератор</p>
-                {renderToggleControl("user-moderator", isUserModerator, handleModeratorToggle)}
+                <p>Модератор {isSelf && <span className="text-muted-foreground text-xs">(нельзя снять с себя)</span>}</p>
+                {renderToggleControl("user-moderator", isUserModerator, handleModeratorToggle, isSelf)}
               </div>
             )}
 

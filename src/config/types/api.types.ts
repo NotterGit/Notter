@@ -231,14 +231,27 @@ export type AdminUpdateResponse = {
   updated: boolean
 }
 
-export type SetPremiumFunction = (_id: string, premium: number) => Promise<AdminUpdateResponse | null>
+export type SetPremiumFunction = (
+  _id: string,
+  premium: number,
+  notify?: boolean
+) => Promise<AdminUpdateResponse | null>
 
-export type SetModeratorFunction = (_id: string, moderator: boolean) => Promise<AdminUpdateResponse | null>
+export type SetModeratorFunction = (
+  _id: string,
+  moderator: boolean,
+  notify?: boolean
+) => Promise<AdminUpdateResponse | null>
 
 export type UpdateBadgeFunction = (
   _id: string,
   badge_name: string,
-  status: boolean
+  status: boolean,
+  notify?: boolean
 ) => Promise<AdminUpdateResponse | null>
 
-export type ChangeVerifiedOrgsFunction = (_id: string, change: number) => Promise<AdminUpdateResponse | null>
+export type ChangeVerifiedOrgsFunction = (
+  _id: string,
+  change: number,
+  notify?: boolean
+) => Promise<AdminUpdateResponse | null>
