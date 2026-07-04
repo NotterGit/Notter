@@ -17,23 +17,28 @@ export function setClerkTokenGetter(getter: () => Promise<string | null>) {
   clerkTokenGetter = getter
 }
 
-API.interceptors.request.use(async (config) => {
-  if (!clerkTokenGetter || config.headers.Authorization) {
-    return config
-  }
-
-  try {
-    const token = await clerkTokenGetter()
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+function attachClerkToken(instance: typeof API | typeof S3) {
+  instance.interceptors.request.use(async (config) => {
+    if (!clerkTokenGetter || config.headers.Authorization) {
+      return config
     }
-  } catch {
-    // Leave request unauthenticated so the caller's error handling applies.
-  }
 
-  return config
-})
+    try {
+      const token = await clerkTokenGetter()
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
+    } catch {
+      // Leave request unauthenticated so the caller's error handling applies.
+    }
+
+    return config
+  })
+}
+
+attachClerkToken(API)
+attachClerkToken(S3)
 
 export const removeNullish: RemoveNullishFunction = <T extends Record<string, unknown>>(payload: T) => {
   return Object.fromEntries(

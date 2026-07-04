@@ -33,16 +33,30 @@ export const uploadFile: UploadFileFunction = async (userid, documentid, avatar,
 }
 
 export const deleteFile: DeleteFileFunction = async (userid, url) => {
-  const rawKey = url.split("/").pop()?.split("?")[0]
-  if (!rawKey) {
+  const key = extractS3Key(url)
+  if (!key) {
     return false
   }
-
-  const key = decodeURIComponent(rawKey)
 
   const s3Response = await s3Delete<ApiEntityResponse>("/delete", { key })
 
   await apiDelete<ApiEntityResponse>(apiRoutes.FILES.DELETE, { userid, url })
 
   return s3Response !== null
+}
+
+function extractS3Key(url: string): string | null {
+  try {
+    const parsed = new URL(url)
+    const path = decodeURIComponent(parsed.pathname.replace(/^\/+/, ""))
+    const segments = path.split("/").filter(Boolean)
+    const ownerIndex = segments.findIndex((segment) => /^(user_|org_)/.test(segment))
+    if (ownerIndex >= 0) {
+      return segments.slice(ownerIndex).join("/")
+    }
+    const last = segments[segments.length - 1]
+    return last || null
+  } catch {
+    return null
+  }
 }
