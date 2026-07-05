@@ -241,6 +241,7 @@ export default function ProfilePage({ kind, slug }: ProfilePageComponentProps) {
                   src={normalizeImageUrl(profile.avatar) ?? profile.avatar ?? images.DEFAULT.PROFILE}
                   alt={profileKind === "org" ? "Organization avatar" : "Profile avatar"}
                   height={80}
+                  width={80}
                   className="rounded-full ring-2 ring-white/70 dark:ring-white/15"
                 />
               </div>
