@@ -5,10 +5,6 @@ export type ApiRequestOptions = {
   headers?: Record<string, string>
 }
 
-export type MessageResponse = {
-  message: string
-}
-
 export type ApiEntityResponse = Record<string, unknown>
 
 export type ApiRequestFunction = <T>(
@@ -38,7 +34,6 @@ export type ProfileRoutes = {
   BY_USERNAME: (username: string) => string
   BY_ID: (_id: string) => string
   UPDATE: (_id: string) => string
-  UPDATE_BADGE: (_id: string) => string
 }
 
 export type ProfileApi<TProfile> = {
@@ -46,7 +41,6 @@ export type ProfileApi<TProfile> = {
   getByUsername: (username: string) => Promise<TProfile | null>
   getById: (_id: string) => Promise<TProfile | null>
   update: (_id: string, payload: Record<string, unknown>) => Promise<TProfile | null>
-  updateBadge: (_id: string, badgeName: string, status: boolean) => Promise<MessageResponse | null>
 }
 
 export type ProfileGetByUsernameFunction<TProfile> = ProfileApi<TProfile>["getByUsername"]
@@ -86,22 +80,11 @@ export type OrderCallbackPayload = {
 
 export type OrderCallbackFunction = (payload: OrderCallbackPayload) => Promise<ApiEntityResponse | null>
 
-export type UploadFileResponse = {
+export type S3UploadResponse = {
+  filename: string
+  key: string
   url: string
 }
-
-export type DeleteFileResponse = {
-  success: boolean
-}
-
-export type UserFile = {
-  fileid?: string
-  userid?: string
-  url?: string
-  avatar?: string
-  username?: string
-  documentid?: string
-} & ApiEntityResponse
 
 export type UploadFileFunction = (
   userid: string,
@@ -111,9 +94,7 @@ export type UploadFileFunction = (
   file: File
 ) => Promise<string | null>
 
-export type DeleteFileFunction = (userid: string, fileid: string) => Promise<boolean>
-
-export type GetFilesByUserFunction = (userid: string) => Promise<UserFile[] | null>
+export type DeleteFileFunction = (userid: string, url: string) => Promise<boolean>
 
 export type OrgBadge = {
   verified: boolean;
@@ -202,12 +183,8 @@ export type UpdateUserFunction = (
   publicDocuments?: number | null,
   verifiedDocuments?: number | null,
   watermark?: boolean | null,
-  mail?: string | null,
-  premium?: number | null,
-  moderator?: boolean | null
+  mail?: string | null
 ) => Promise<User | null>
-
-export type ChangeVerifiedOrgsFunction = (_id: string, change: number) => Promise<MessageResponse | null>
 
 export type CreateOrgFunction = (
   _id: string,
@@ -234,15 +211,8 @@ export type UpdateOrgFunction = (
   publicDocuments?: number | null,
   members?: string[] | null,
   watermark?: boolean | null,
-  premium?: number | null,
   verifiedDocuments?: number | null
 ) => Promise<Org | null>
-
-export type UpdateBadgeFunction = (
-  _id: string,
-  badgeName: string,
-  status: boolean
-) => Promise<MessageResponse | null>
 
 export type DocumentStats = {
   documentCount: number | null | undefined
@@ -256,3 +226,32 @@ export type UseDocumentStatsFunction = (userId?: string | null) => DocumentStats
 export type UseRequestUserFunction = () => null
 
 export type UseRequestOrgFunction = () => null
+
+export type AdminUpdateResponse = {
+  updated: boolean
+}
+
+export type SetPremiumFunction = (
+  _id: string,
+  premium: number,
+  notify?: boolean
+) => Promise<AdminUpdateResponse | null>
+
+export type SetModeratorFunction = (
+  _id: string,
+  moderator: boolean,
+  notify?: boolean
+) => Promise<AdminUpdateResponse | null>
+
+export type UpdateBadgeFunction = (
+  _id: string,
+  badge_name: string,
+  status: boolean,
+  notify?: boolean
+) => Promise<AdminUpdateResponse | null>
+
+export type ChangeVerifiedOrgsFunction = (
+  _id: string,
+  change: number,
+  notify?: boolean
+) => Promise<AdminUpdateResponse | null>

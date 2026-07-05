@@ -28,16 +28,11 @@ export function Cover({ url, preview }: CoverImageProps){
   const removeCoverImage = useMutation(api.document.removeCoverImage) 
   
   const onRemove = async () => {
-    if (!documentId || !orgId) {
+    if (!documentId || !orgId || !url) {
       return
     }
 
-    if (url) {
-      const fileId = url.split("/").pop()?.split("?")[0];
-      console.log(fileId);
-      if (fileId) 
-        await deleteFile(orgId, fileId);
-    }
+    await deleteFile(orgId, url)
 
     const promise = removeCoverImage({
       id: documentId,

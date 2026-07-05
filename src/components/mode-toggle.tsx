@@ -11,14 +11,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import toast from "react-hot-toast"
 
 export function ModeToggle() {
   const { setTheme } = useTheme()
 
   const handleSwitchTheme = (theme: string) => {
     setTheme(theme)
-    toast("Для полного изменения, перезагрузите страницу")
   }
 
   return (

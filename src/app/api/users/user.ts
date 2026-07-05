@@ -1,13 +1,10 @@
-import { apiPut } from "../client"
+import { apiGet } from "../client"
 import { createProfileApi } from "../profile-api"
 import { apiRoutes } from "@/config/routing/api.route"
 import type {
-  ChangeVerifiedOrgsFunction,
   CreateUserFunction,
-  MessageResponse,
   ProfileGetByIdFunction,
   ProfileGetByUsernameFunction,
-  UpdateBadgeFunction,
   UpdateUserFunction,
   User,
 } from "@/config/types/api.types"
@@ -54,9 +51,7 @@ export const updateUser: UpdateUserFunction = (
   publicDocuments = null,
   verifiedDocuments = null,
   watermark = null,
-  mail = null,
-  premium = null,
-  moderator = null
+  mail = null
 ) => {
   return usersApi.update(_id, {
     username,
@@ -70,13 +65,13 @@ export const updateUser: UpdateUserFunction = (
     verifiedDocuments,
     watermark,
     mail,
-    premium,
-    moderator,
   })
 }
 
-export const updateUserBadge: UpdateBadgeFunction = usersApi.updateBadge
-
-export const changeVerifiedOrgs: ChangeVerifiedOrgsFunction = (_id, change) => {
-  return apiPut<MessageResponse>(apiRoutes.USERS.CHANGE_VERIFIED_ORGS(_id), { change })
+export const checkModerator = async (_id: string): Promise<boolean> => {
+  const data = await apiGet<{ moderator: boolean }>(apiRoutes.USERS.MODERATOR(_id))
+  if (!data) {
+    console.error(`[checkModerator] Failed to fetch moderator status for ${_id}`)
+  }
+  return data?.moderator ?? false
 }

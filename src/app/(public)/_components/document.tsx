@@ -12,7 +12,7 @@ import Error404 from "@/app/not-found"
 import { Separator } from "@/components/ui/separator"
 import { api } from "../../../../convex/_generated/api"
 import { getByUsername as getByOrgname } from "../../api/orgs/org"
-import { getById, getByUsername } from "../../api/users/user"
+import { checkModerator, getByUsername } from "../../api/users/user"
 import { ModeratorPanel } from "./moderatorPanel"
 import { pages } from "@/config/routing/pages.route"
 import type { PublicDocumentComponentProps, UserInterface } from "@/config/types/public.types"
@@ -53,11 +53,10 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
   const isShort = params.documentId.length >= 4 && params.documentId.length <= 30
   const documentId = isValidConvexId(params.documentId) ? params.documentId : null
   const [profile, setProfile] = useState<User | Org | null>(null)
-  const [user, setUser] = useState<User | null>(null)
+  const [isModerator, setIsModerator] = useState<boolean | undefined>(undefined)
   const { user: clerkUser } = useUser()
   const { organization } = useOrganization()
   const incrementViews = useMutation(api.document.incrementViews)
-  const canModerate = user?.moderator === true
   const setNavbarLogo = usePublicNavbar()
 
   const document = useQuery(
@@ -69,7 +68,7 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
       : documentId
         ? {
             documentId,
-            alwaysView: user?.moderator,
+            alwaysView: isModerator,
             userId: organization?.id ?? clerkUser?.id,
           }
         : "skip"
@@ -94,8 +93,8 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
       setProfile(profileData)
 
       if (clerkUser?.id) {
-        const userData = await getById(clerkUser.id)
-        setUser(userData)
+        const modStatus = await checkModerator(clerkUser.id)
+        setIsModerator(modStatus)
       }
     }
 
@@ -162,7 +161,7 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
     )
   }
 
-  if ((!document?.isPublished && !canModerate) || document === null || (isShort && !document.isShort && !canModerate)) {
+  if ((!document?.isPublished && !isModerator) || document === null || (isShort && !document.isShort && !isModerator)) {
     return <Error404 />
   }
 

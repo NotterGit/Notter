@@ -1,47 +1,56 @@
-import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Menu } from "lucide-react";
-import { changeVerifiedOrgs, getById, updateUserBadge } from "../../api/users/user";
-import { updateUser } from "../../api/users/user";
-import { updateOrgBadge } from "../../api/orgs/org";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Loader2, Menu, Minus, Plus } from "lucide-react";
+import { checkModerator, updateUser } from "../../api/users/user";
 import { updateOrg } from "../../api/orgs/org";
+import {
+  changeUserVerifiedOrgs,
+  setOrgPremium,
+  setUserModerator,
+  setUserPremium,
+  updateOrgBadge,
+  updateUserBadge,
+} from "../../api/admin/admin";
 import { toast } from "react-hot-toast";
 import { Switch } from "@/components/ui/switch";
 import { useUser } from "@clerk/clerk-react";
 import type { UserProps } from "@/config/types/profile.types";
-import type { User } from "@/config/types/api.types";
 import { getPlanLimits } from "@/lib/plan-limits";
 
 export function ModeratorPanel({ user }: UserProps) {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [watermark, setWatermark] = useState(user?.watermark ?? false);
   const [privated, setPrivated] = useState(user?.privated ?? false);
-  const [amberSubscription, setAmberSubscription] = useState(user?.premium === 1);
-  const [diamondSubscription, setDiamondSubscription] = useState(user?.premium === 2);
-  const [verifiedStatus, setVerifiedStatus] = useState(user?.badges.verified ?? false);
-  const [contributorStatus, setContributorStatus] = useState(user?.badges.contributor ?? false);
-  const [moderatorStatus, setModeratorStatus] = useState(user?.moderator ?? false);
   const [pendingToggle, setPendingToggle] = useState<string | null>(null);
   const { user: clerkUser } = useUser();
   const isOrg = user?._id.startsWith("org_");
-  const [clerkUserData, setClerkUserData] = useState<User | null>(null);
+  const [isModerator, setIsModerator] = useState(false);
+
+  const [premium, setPremium] = useState(user?.premium ?? 0);
+  const [isUserModerator, setIsUserModerator] = useState(
+    !isOrg && user ? (user as { moderator?: boolean }).moderator ?? false : false
+  );
+  const [sendEmail, setSendEmail] = useState(true);
+  const [verified, setVerified] = useState(user?.badges?.verified ?? false);
+  const [contributor, setContributor] = useState(user?.badges?.contributor ?? false);
+  const [verifiedOrgs, setVerifiedOrgs] = useState(
+    !isOrg && user ? (user as { verifiedOrgs?: number }).verifiedOrgs ?? 0 : 0
+  );
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchModeratorStatus = async () => {
       if (!clerkUser?.id) return;
-      try {
-        const data = await getById(clerkUser.id);
-        setClerkUserData(data);
-      } catch (error) {
-
-      }
+      const status = await checkModerator(clerkUser.id);
+      setIsModerator(status);
     };
 
-    fetchUserData();
+    fetchModeratorStatus();
   }, [clerkUser?.id]);
 
-  if (clerkUserData?.moderator !== true) {
+  if (!isModerator) {
     return null;
   }
 
@@ -56,84 +65,13 @@ export function ModeratorPanel({ user }: UserProps) {
     toggleName: string,
     checked: boolean,
     onCheckedChange: () => void,
+    disabled = false,
   ) => {
     if (pendingToggle === toggleName) {
       return <Loader2 className="h-4 w-4 animate-spin" />;
     }
 
-    return <Switch checked={checked} onCheckedChange={onCheckedChange} />;
-  };
-
-  const handleBadgeToggle = async (badgeName: string) => {
-    if (!user || !confirmToggle()) return;
-
-    const currentStatus = badgeName === "verified" ? verifiedStatus : contributorStatus;
-    const newStatus = !currentStatus;
-
-    try {
-      setPendingToggle(`badge:${badgeName}`);
-
-      const result = isOrg
-        ? await updateOrgBadge(user._id, badgeName, newStatus)
-        : await updateUserBadge(user._id, badgeName, newStatus);
-
-      if (result) {
-        toast.success(`Бейдж '${badgeName}' обновлен на ${newStatus ? "активен" : "неактивен"}`);
-
-        if (badgeName === "verified") {
-          setVerifiedStatus(newStatus);
-          if (isOrg) {
-            await changeVerifiedOrgs(user.owner, newStatus ? 1 : -1);
-          }
-
-        } else if (badgeName === "contributor") {
-          setContributorStatus(newStatus);
-        }
-      }
-    } catch (error) {
-      toast.error("Произошла ошибка при обновлении бейджа");
-    } finally {
-      setPendingToggle(null);
-    }
-  };
-
-  const handleSubscriptionToggle = async (subscriptionType: "Amber" | "Diamond") => {
-    if (!user || !confirmToggle()) return;
-
-    const newPremium = subscriptionType === "Amber" ? 1 : subscriptionType === "Diamond" ? 2 : 0;
-
-    try {
-      setPendingToggle(`subscription:${subscriptionType}`);
-
-      if ((newPremium === 1 && amberSubscription) || (newPremium === 2 && diamondSubscription)) {
-        const result = isOrg
-          ? await updateOrg(user._id, null, null, null, null, null, null, null, null, null, null, 0)
-          : await updateUser(user._id, null, null, null, null, null, null, null, null, null, null, null, 0);
-        if (result) {
-          toast.success("Подписка снята");
-          setAmberSubscription(false);
-          setDiamondSubscription(false);
-        }
-      } else {
-        const result = isOrg
-          ? await updateOrg(user._id, null, null, null, null, null, null, null, null, null, null, newPremium)
-          : await updateUser(user._id, null, null, null, null, null, null, null, null, null, null, null, newPremium);
-        if (result) {
-          toast.success(`Подписка ${subscriptionType} активирована`);
-          if (subscriptionType === "Amber") {
-            setAmberSubscription(true);
-            setDiamondSubscription(false);
-          } else {
-            setDiamondSubscription(true);
-            setAmberSubscription(false);
-          }
-        }
-      }
-    } catch (error) {
-      toast.error("Произошла ошибка при обновлении подписки");
-    } finally {
-      setPendingToggle(null);
-    }
+    return <Switch checked={checked} disabled={disabled} onCheckedChange={onCheckedChange} />;
   };
 
   const handleWatermarkToggle = async () => {
@@ -149,6 +87,8 @@ export function ModeratorPanel({ user }: UserProps) {
       if (result) {
         toast.success(`Watermark обновлен на ${newWatermark ? "включен" : "выключен"}`);
         setWatermark(newWatermark);
+      } else {
+        toast.error("Не удалось обновить watermark");
       }
     } finally {
       setPendingToggle(null);
@@ -168,43 +108,107 @@ export function ModeratorPanel({ user }: UserProps) {
       if (result) {
         toast.success(`Профиль обновлен на ${newPrivated ? "приватный" : "публичный"}`);
         setPrivated(newPrivated);
+      } else {
+        toast.error("Не удалось обновить приватность профиля");
       }
     } finally {
       setPendingToggle(null);
     }
   };
 
-  const handleModeratorToggle = async () => {
-    if (!user || !user?.badges.notter || isOrg || !confirmToggle()) return;
-
-    const newModeratorStatus = !moderatorStatus;
+  const handlePremiumUpdate = async () => {
+    if (!user) return;
 
     try {
-      setPendingToggle("moderator");
+      setPendingToggle("premium");
 
-      const result = await updateUser(user._id, null, null, null, null, null, null, null, null, null, null, null, null, newModeratorStatus);
+      const result = isOrg
+        ? await setOrgPremium(user._id, premium, sendEmail)
+        : await setUserPremium(user._id, premium, sendEmail);
+
       if (result) {
-        toast.success(`${newModeratorStatus ? "Назначен модератором" : "Снят с поста модератора"}`);
-        setModeratorStatus(newModeratorStatus);
+        toast.success("Уровень подписки обновлен");
+      } else {
+        toast.error("Не удалось обновить уровень подписки");
       }
     } finally {
       setPendingToggle(null);
     }
   };
 
-  const handleOpenDialog = () => {
-    setDialogOpen(true);
+  const isSelf = !isOrg && user?._id === clerkUser?.id;
+
+  const handleModeratorToggle = async () => {
+    if (!user || isOrg || !confirmToggle()) return;
+    const newModerator = !isUserModerator;
+
+    if (isSelf && !newModerator) {
+      toast.error("Нельзя снять модератора с себя");
+      return;
+    }
+
+    try {
+      setPendingToggle("user-moderator");
+
+      const result = await setUserModerator(user._id, newModerator, sendEmail);
+
+      if (result) {
+        toast.success(`Модератор ${newModerator ? "назначен" : "снят"}`);
+        setIsUserModerator(newModerator);
+      } else {
+        toast.error("Не удалось изменить статус модератора");
+      }
+    } finally {
+      setPendingToggle(null);
+    }
   };
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
+  const handleBadgeToggle = async (badgeName: "verified" | "contributor", current: boolean, setter: (value: boolean) => void) => {
+    if (!user || !confirmToggle()) return;
+    const newStatus = !current;
+
+    try {
+      setPendingToggle(`badge-${badgeName}`);
+
+      const result = isOrg
+        ? await updateOrgBadge(user._id, badgeName, newStatus, sendEmail)
+        : await updateUserBadge(user._id, badgeName, newStatus, sendEmail);
+
+      if (result) {
+        toast.success(`Бейдж ${badgeName} ${newStatus ? "выдан" : "снят"}`);
+        setter(newStatus);
+      } else {
+        toast.error("Не удалось обновить бейдж");
+      }
+    } finally {
+      setPendingToggle(null);
+    }
+  };
+
+  const handleVerifiedOrgsChange = async (delta: number) => {
+    if (!user || isOrg) return;
+
+    try {
+      setPendingToggle("verified-orgs");
+
+      const result = await changeUserVerifiedOrgs(user._id, delta, sendEmail);
+
+      if (result) {
+        setVerifiedOrgs((prev) => prev + delta);
+        toast.success("Количество верифицированных организаций обновлено");
+      } else {
+        toast.error("Не удалось обновить количество верифицированных организаций");
+      }
+    } finally {
+      setPendingToggle(null);
+    }
   };
 
   return (
     <>
       <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
-          <Button onClick={handleOpenDialog} variant={"outline"} size={"icon"} className="h-8 w-8 rounded-lg border-border/70 bg-background/70 hover:bg-background">
+          <Button variant={"outline"} size={"icon"} className="h-8 w-8 rounded-lg border-border/70 bg-background/70 hover:bg-background">
             <Menu />
           </Button>
         </DialogTrigger>
@@ -222,9 +226,20 @@ export function ModeratorPanel({ user }: UserProps) {
             <p>Documents: {user?.documents}/{documentLimit}</p>
             <p>Public Documents: {user?.publicDocuments}/{publicDocumentLimit}</p>
             <p>Verified Documents: {user?.verifiedDocuments}</p>
-            {!isOrg && <p>Verified orgs: {user?.verifiedOrgs}</p>}
+            {!isOrg && <p>Verified orgs: {verifiedOrgs}</p>}
 
             <hr className="my-3 border-black/10 dark:border-white/10" />
+
+            <div className="flex items-center gap-2 pb-2">
+              <Checkbox
+                id="send-email"
+                checked={sendEmail}
+                onCheckedChange={(checked) => setSendEmail(Boolean(checked))}
+              />
+              <label htmlFor="send-email" className="text-sm cursor-pointer">
+                Отправлять email
+              </label>
+            </div>
 
             <div className="flex items-center gap-3">
               <p>Watermark: </p>
@@ -235,29 +250,84 @@ export function ModeratorPanel({ user }: UserProps) {
               {renderToggleControl("privated", privated, handlePrivatedToggle)}
             </div>
 
-            {user?.badges.notter && clerkUser?.id !== user?._id && (
-              <div className="flex items-center gap-3">
-                <p>Moderator</p>
-                {renderToggleControl("moderator", moderatorStatus, handleModeratorToggle)}
+            <hr className="my-3 border-black/10 dark:border-white/10" />
+
+            <div className="space-y-2">
+              <p className="font-medium">Подписка</p>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  max={2}
+                  value={premium}
+                  onChange={(event) => setPremium(Number(event.target.value))}
+                  className="w-24"
+                />
+                <Button
+                  size="sm"
+                  onClick={handlePremiumUpdate}
+                  disabled={pendingToggle === "premium"}
+                >
+                  {pendingToggle === "premium" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Обновить"
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {!isOrg && (
+              <div className="flex items-center justify-between pt-2">
+                <p>Модератор {isSelf && <span className="text-muted-foreground text-xs">(нельзя снять с себя)</span>}</p>
+                {renderToggleControl("user-moderator", isUserModerator, handleModeratorToggle, isSelf)}
               </div>
             )}
 
-            <div className="flex items-center gap-3">
-              <p>Amber Subscription: </p>
-              {renderToggleControl("subscription:Amber", amberSubscription, () => handleSubscriptionToggle("Amber"))}
+            <div className="flex items-center justify-between pt-2">
+              <p>Верификация</p>
+              {renderToggleControl("badge-verified", verified, () =>
+                handleBadgeToggle("verified", verified, setVerified)
+              )}
             </div>
-            <div className="flex items-center gap-3">
-              <p>Diamond Subscription: </p>
-              {renderToggleControl("subscription:Diamond", diamondSubscription, () => handleSubscriptionToggle("Diamond"))}
+
+            <div className="flex items-center justify-between pt-2">
+              <p>Контрибьютор</p>
+              {renderToggleControl("badge-contributor", contributor, () =>
+                handleBadgeToggle("contributor", contributor, setContributor)
+              )}
             </div>
-            <div className="flex items-center gap-3">
-              <p>Verified</p>
-              {renderToggleControl("badge:verified", verifiedStatus, () => handleBadgeToggle("verified"))}
-            </div>
-            <div className="flex items-center gap-3">
-              <p>Contributor badge</p>
-              {renderToggleControl("badge:contributor", contributorStatus, () => handleBadgeToggle("contributor"))}
-            </div>
+
+            {!isOrg && (
+              <div className="space-y-2 pt-2">
+                <p className="font-medium">Верифицированные организации</p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={() => handleVerifiedOrgsChange(-1)}
+                    disabled={pendingToggle === "verified-orgs"}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    type="number"
+                    value={verifiedOrgs}
+                    onChange={(event) => setVerifiedOrgs(Number(event.target.value))}
+                    className="w-24"
+                    readOnly
+                  />
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={() => handleVerifiedOrgsChange(1)}
+                    disabled={pendingToggle === "verified-orgs"}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </DialogDescription>
         </DialogContent>
       </Dialog>

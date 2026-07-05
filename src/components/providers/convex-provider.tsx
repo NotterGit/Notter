@@ -1,10 +1,11 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 import { ConvexReactClient } from "convex/react";
 import { ClerkProvider, useAuth } from "@clerk/nextjs"
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { dark } from "@clerk/themes";
+import { useTheme } from "next-themes";
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -13,16 +14,8 @@ export default function ConvexClientProvider({
 }: {
   children: ReactNode;
 }) {
-  const [baseTheme, setBaseTheme] = useState<undefined | typeof dark>(undefined)
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme === 'dark' || savedTheme === null) {
-      setBaseTheme(dark)
-    } else {
-      setBaseTheme(undefined)
-    }
-  }, [])
+  const { resolvedTheme } = useTheme();
+  const baseTheme = resolvedTheme === "dark" ? dark : undefined;
 
   return (
     <ClerkProvider

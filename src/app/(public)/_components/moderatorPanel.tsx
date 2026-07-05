@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { useUser } from "@clerk/nextjs";
-import { getById as getUserById } from "../../api/users/user";
+import { checkModerator } from "../../api/users/user";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Check, FileJson, Loader2, Menu, Trash, X } from "lucide-react";
@@ -14,7 +14,6 @@ import { useRouter } from "next/navigation";
 import { ConfirmModal } from "@/components/modal/confirm-modal";
 import { pages } from "@/config/routing/pages.route";
 import type { ModeratorPanelDocumentProps as DocumentProps } from "@/config/types/public.types";
-import type { User } from "@/config/types/api.types";
 import { formatLastEditTime, getCurrentEditTime } from "@/lib/last-edit-time";
 
 export function ModeratorPanel({
@@ -33,7 +32,7 @@ export function ModeratorPanel({
 }: DocumentProps) {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const { user: clerkUser } = useUser();
-  const [clerkUserData, setClerkUserData] = useState<User | null>(null);
+  const [isModerator, setIsModerator] = useState(false);
   const remove = useMutation(api.document.remove);
   const update = useMutation(api.document.update);
   const router = useRouter();
@@ -46,19 +45,15 @@ export function ModeratorPanel({
   const [pendingSwitch, setPendingSwitch] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchModeratorStatus = async () => {
       if (!clerkUser?.id) return;
-      try {
-        const data = await getUserById(clerkUser.id);
-        setClerkUserData(data);
-      } catch (error) {
-
-      }
+      const status = await checkModerator(clerkUser.id);
+      setIsModerator(status);
     };
-    fetchUserData();
+    fetchModeratorStatus();
   }, [clerkUser?.id]);
 
-  if (clerkUserData?.moderator !== true) return null;
+  if (!isModerator) return null;
 
   const confirmToggle = () => {
     if (typeof window === "undefined") return false;
