@@ -36,6 +36,4 @@ next-env.d.ts
 
 public/*.map
 certificates
-
 openapi.json
-convex/_generated
