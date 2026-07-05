@@ -13,6 +13,7 @@ import toast from "react-hot-toast"
 import { uploadFile as uploadFileOnServer } from "../app/api/files/file"
 import type { EditorProps } from "@/config/types/components.types";
 import type { ClipboardEvent } from "react";
+import { normalizeContentUrls } from "@/lib/image-url"
 
 const normalizePastedText = (text: string) =>
   text
@@ -57,7 +58,7 @@ export default function Editor({ onChange, initialContent, editable, documentId 
   
   const editor: BlockNoteEditor = useCreateBlockNote({
     initialContent: initialContent
-    ? (JSON.parse(initialContent) as PartialBlock[])
+    ? (normalizeContentUrls(JSON.parse(initialContent) as PartialBlock[]) as PartialBlock[])
     : undefined,
     uploadFile: handleUpload,
   }) 
