@@ -138,13 +138,21 @@ export default function ProfilePage({ kind, slug }: ProfilePageComponentProps) {
     const fetchProfile = async () => {
       setProfileLoading(true);
 
-      const [profileData, modStatus] = await Promise.all([
-        kind === "org" ? getOrgByUsername(slug) : getUserByUsername(slug),
-        user?.id ? checkModerator(user.id) : Promise.resolve(false),
-      ]);
+      const profileData = await (kind === "org" ? getOrgByUsername(slug) : getUserByUsername(slug));
 
-      setProfile(profileData);
-      setIsModerator(modStatus);
+      const viewerIsModerator = user?.id ? await checkModerator(user.id) : false;
+
+      let profileIsModerator = false;
+      if (profileData?._id) {
+        try {
+          profileIsModerator = await checkModerator(profileData._id);
+        } catch {
+          profileIsModerator = false;
+        }
+      }
+
+      setProfile(profileData ? { ...profileData, moderator: profileIsModerator } : null);
+      setIsModerator(viewerIsModerator);
       setProfileLoading(false);
     };
 
