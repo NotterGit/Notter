@@ -2,6 +2,9 @@ import { NextResponse } from "next/server"
 
 const S3_SERVICE = process.env.NEXT_PUBLIC_S3_SERVICE
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 function isYandexStorageHost(hostname: string): boolean {
   return hostname === "storage.yandexcloud.net" || hostname.endsWith(".storage.yandexcloud.net")
 }
@@ -46,7 +49,9 @@ export async function GET(request: Request) {
   }
 
   const downloadUrl = new URL("/download", S3_SERVICE).toString()
-  const downloadResponse = await fetch(`${downloadUrl}?key=${encodeURIComponent(fileKey)}`)
+  const downloadResponse = await fetch(`${downloadUrl}?key=${encodeURIComponent(fileKey)}`, {
+    cache: "no-store",
+  })
   if (!downloadResponse.ok) {
     return NextResponse.json({ error: "Failed to acquire download URL" }, { status: downloadResponse.status })
   }
@@ -57,13 +62,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Download service returned invalid response" }, { status: 500 })
   }
 
-  const imageResponse = await fetch(signedUrl)
+  const imageResponse = await fetch(signedUrl, {
+    cache: "no-store",
+  })
   if (!imageResponse.ok) {
     return NextResponse.json({ error: "Failed to fetch image from S3" }, { status: imageResponse.status })
   }
 
   const headers = new Headers(imageResponse.headers)
-  headers.set("Cache-Control", "public, max-age=60, stale-while-revalidate=60")
+  headers.set("Cache-Control", "no-store, no-cache, must-revalidate")
+  headers.set("Pragma", "no-cache")
+  headers.set("Expires", "0")
 
   return new Response(imageResponse.body, {
     status: imageResponse.status,
