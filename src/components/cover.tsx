@@ -11,6 +11,7 @@ import { api } from "../../convex/_generated/api"
 import { useCoverImage } from "./hooks/use-cover-image" 
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { deleteFile } from "../app/api/files/file"
+import { normalizeImageUrl } from "@/lib/image-url"
 import type { CoverImageProps } from "@/config/types/components.types";
 import toast from "react-hot-toast"
 import { isValidConvexId } from "@/lib/convex-id"
@@ -46,6 +47,8 @@ export function Cover({ url, preview }: CoverImageProps){
     });
   } 
 
+  const normalizedUrl = url ? normalizeImageUrl(url) || url : null
+
   return (
     <div
       className={cn(
@@ -54,8 +57,8 @@ export function Cover({ url, preview }: CoverImageProps){
         url && "bg-muted",
       )}
     >
-      {!!url && (
-        <Image src={url} fill alt="cover" className="object-cover" priority />
+      {!!normalizedUrl && (
+        <Image src={normalizedUrl} fill alt="cover" className="object-cover" priority />
       )}
       {url && !preview && (
         <div className="absolute bottom-5 right-5 flex items-center gap-x-2">

@@ -4,7 +4,7 @@ import { Navbar } from "../(landing)/_components/navbar"
 
 export const metadata: Metadata = {
   title: "Profile",
-  description: "User and organization profile pages",
+  description: "User/Organization profile pages",
 }
 
 export default function ProfileLayout({

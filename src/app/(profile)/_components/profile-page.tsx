@@ -9,6 +9,7 @@ import { useQuery } from "convex/react";
 import Twemoji from "react-twemoji";
 import toast from "react-hot-toast";
 import { LockKeyhole, Pin, Share2 } from "lucide-react";
+import { normalizeImageUrl } from "@/lib/image-url";
 
 import Error404 from "@/app/not-found";
 import BackButton from "@/components/back-button";
@@ -237,9 +238,8 @@ export default function ProfilePage({ kind, slug }: ProfilePageComponentProps) {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Image
-                  src={profile.avatar || images.DEFAULT.PROFILE}
-                  alt={profileKind === "org" ? "Org Avatar" : "Profile Picture"}
-                  width={80}
+                  src={normalizeImageUrl(profile.avatar) ?? profile.avatar ?? images.DEFAULT.PROFILE}
+                  alt={profileKind === "org" ? "Organization avatar" : "Profile avatar"}
                   height={80}
                   className="rounded-full ring-2 ring-white/70 dark:ring-white/15"
                 />

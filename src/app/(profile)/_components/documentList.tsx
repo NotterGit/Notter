@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { FileIcon } from "lucide-react";
 import Image from "next/image";
 import { Pin } from "lucide-react";
+import { normalizeImageUrl } from "@/lib/image-url";
 import { api } from "../../../../convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useState } from "react";
@@ -140,7 +141,7 @@ export function DocumentList({
                     {doc.coverImage && (
                       <div className="relative ml-auto h-16 w-56 overflow-hidden border-l border-black/10 dark:border-white/10 md:w-64">
                         <Image
-                          src={doc.coverImage}
+                          src={normalizeImageUrl(doc.coverImage) ?? doc.coverImage}
                           alt={doc.title}
                           fill
                           className="object-cover"

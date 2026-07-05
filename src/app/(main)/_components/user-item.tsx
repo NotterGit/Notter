@@ -14,6 +14,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { ChevronRight, Check } from "lucide-react"
 import Image from "next/image"
 import { images } from "@/config/routing/image.route"
+import { normalizeImageUrl } from "@/lib/image-url"
 import { getById as getUserById } from "../../api/users/user"
 import { getById as getOrgById } from "../../api/orgs/org"
 import { useEffect, useState } from "react"
@@ -28,7 +29,9 @@ export function UserItem(){
         event.stopPropagation()
     }
 
-    const image = (user as any)?.imageUrl || (user as any)?.profileImageUrl || (user as any)?.image || null
+    const image = normalizeImageUrl(
+      (user as any)?.imageUrl || (user as any)?.profileImageUrl || (user as any)?.image || null,
+    ) || (user as any)?.imageUrl || (user as any)?.profileImageUrl || (user as any)?.image || null
 
     useEffect(() => {
         const fetchProfile = async () => {
