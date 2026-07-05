@@ -5,20 +5,9 @@ import { ConvexReactClient } from "convex/react";
 import { ClerkProvider, useAuth } from "@clerk/nextjs"
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { dark } from "@clerk/themes";
-import { setClerkTokenGetter } from "@/app/api/client";
 import { useTheme } from "next-themes";
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-
-function ClerkTokenBridge() {
-  const { getToken } = useAuth();
-
-  useEffect(() => {
-    setClerkTokenGetter(() => getToken());
-  }, [getToken]);
-
-  return null;
-}
 
 export default function ConvexClientProvider({
   children,
@@ -72,7 +61,6 @@ export default function ConvexClientProvider({
         },
       }}
     >
-      <ClerkTokenBridge />
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         {children}
       </ConvexProviderWithClerk>
