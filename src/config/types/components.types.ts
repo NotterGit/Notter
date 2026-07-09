@@ -2,11 +2,6 @@ import type { DropzoneOptions } from "react-dropzone"
 import type * as React from "react"
 import type { Doc } from "../../../convex/_generated/dataModel"
 
-export type PriceCalculation = {
-  price: number;
-  oldPrice: number;
-};
-
 export interface CoverImageProps {
   url?: string
   preview?: boolean

@@ -47,39 +47,6 @@ export type ProfileGetByUsernameFunction<TProfile> = ProfileApi<TProfile>["getBy
 
 export type ProfileGetByIdFunction<TProfile> = ProfileApi<TProfile>["getById"]
 
-export interface Order {
-  _id: string
-  userid: string
-  premium: number
-  status: string
-  amount: number
-  payment_id: string
-  payment_url: string
-}
-
-export type CreateOrderResponse = string | (ApiEntityResponse & Partial<Order>)
-
-export type CreateOrderFunction = (
-  userid: string,
-  premium?: number | null,
-  status?: string | null,
-  amount?: number | null
-) => Promise<CreateOrderResponse | null>
-
-export type CheckOrderFunction = (_id: string) => Promise<Order | null>
-
-export type SuccessOrderFunction = (_id: string) => Promise<Order | null>
-
-export type OrderCallbackPayload = {
-  MerchantOrderId: number
-  InvId: number
-  Sum: number
-  Currency: string
-  SignatureValue: string
-}
-
-export type OrderCallbackFunction = (payload: OrderCallbackPayload) => Promise<ApiEntityResponse | null>
-
 export type S3UploadResponse = {
   filename: string
   key: string
