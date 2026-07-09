@@ -17,12 +17,6 @@ export const apiRoutes = {
 		BY_ID: (_id: string) => `/orgs/by_id/${_id}`,
 		UPDATE: (_id: string) => `/orgs/update/${_id}`,
 	},
-	ORDER: {
-		CREATE: "/order/create",
-		CALLBACK: "/order/callback",
-		CHECK: (_id: string) => `/order/check/${_id}`,
-		SUCCESS: (_id: string) => `/order/success/${_id}`,
-	},
 	ADMIN: {
 		USERS: {
 			PREMIUM: (_id: string) => `/admin/users/${_id}/premium`,

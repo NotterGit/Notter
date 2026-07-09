@@ -1,11 +1,12 @@
 const getAbsoluteUrl = (origin: string, path: string) => `${origin.replace(/\/$/, "")}${path}`
 
+const NOTTERGEM_URL = process.env.NEXT_PUBLIC_NOTTERGEM_URL || "https://gem.notter.su"
+
 export const pages = {
   ROOT: "/",
   URL: (origin: string) => origin.replace(/\/$/, ""),
   AUTH: "/auth/sign-in",
-  BUY: "/buy",
-  BUY_CHECK: "/buy/check",
+  BUY: NOTTERGEM_URL,
   DASHBOARD: (id?: string) => (id ? `/dashboard/${id}` : "/dashboard"),
   VIEW: (id: string) => `/view/${id}`,
   VIEW_URL: (origin: string, id: string) => getAbsoluteUrl(origin, pages.VIEW(id)),
