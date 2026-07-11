@@ -3,6 +3,20 @@ import { mutation, query, type MutationCtx } from "./_generated/server"
 import { Doc, Id } from "./_generated/dataModel"
 import { generateRandomId } from "./genId"
 
+async function generateUniqueShortId(ctx: MutationCtx): Promise<string> {
+    for (let attempt = 0; attempt < 10; attempt++) {
+        const candidate = generateRandomId()
+        const existing = await ctx.db
+            .query("documents")
+            .filter((q) => q.eq(q.field("shortId"), candidate))
+            .first()
+        if (!existing) {
+            return candidate
+        }
+    }
+    throw new Error("Failed to generate unique shortId")
+}
+
 const getDocumentLimit = (premiumLevel?: number, isOrg?: boolean) => {
     if (premiumLevel === 1) {
         return isOrg ? 500 : 200
@@ -68,7 +82,7 @@ export const archive = mutation({
             isAcrhived: true
         })
 
-        recursiveArchive(args.id)
+        await recursiveArchive(args.id)
 
         return document
     }
@@ -131,10 +145,12 @@ export const create = mutation({
 
         await assertCanCreateDocument(ctx, args.userId, args.premiumLevel, args.isOrg)
 
+        const shortId = await generateUniqueShortId(ctx)
+
         const document = await ctx.db.insert("documents", {
             title: args.title,
             parentDocument: args.parentDocument,
-            shortId: generateRandomId(),
+            shortId,
             userId: args.userId,
             userName: args.lastEditor,
             creatorName: args.creatorName,
@@ -223,8 +239,8 @@ export const restore = mutation({
         }
 
         const document = await ctx.db.patch(args.id, options)
-        
-        recursiveRestore(args.id)
+
+        await recursiveRestore(args.id)
 
         return document
     }
@@ -307,7 +323,7 @@ export const getById = query({
         return null
       }
     
-      if (document.userId !== args.userId && args.alwaysView === false) {
+      if (document.userId !== args.userId && args.alwaysView !== true) {
         return null
       }
   
