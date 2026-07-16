@@ -5,8 +5,11 @@ export const links = {
     QUAL_ID: "https://id.qual.su",
     TODO: "https://todo.notter.su",
     DOWNLOAD: {
-        WINDOWS: "https://github.com/Qualsu/Notter/raw/refs/heads/0.5.0/_build/Notter.msi",
-        LINUX: "https://github.com/Qualsu/Notter/raw/refs/heads/0.5.0/_build/Notter.deb",
-        GITHUB: "https://github.com/Qualsu/Notter/releases/"
+        WINDOWS: "https://github.com/NotterGit/Notter/releases/download/0.5.0/Notter.msi",
+        LINUX: {
+            DEB: "https://github.com/NotterGit/Notter/releases/download/0.5.0/Notter.deb",
+            APPIMAGE: "https://github.com/NotterGit/Notter/releases/download/0.5.0/Notter.AppImage"
+        },
+        GITHUB: "https://github.com/NotterGit/Notter/releases/"
     }
 }

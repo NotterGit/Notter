@@ -1,6 +1,6 @@
 {
   "name": "notter",
-  "version": "0.5.1",
+  "version": "0.5.3",
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "eslint .",
     "knip": "knip",
-    "pake": "npx --yes pake-cli@latest https://notter.su/?desktop=true --name Notter --app-version 0.5.0 --icon ./public/image/icon-dark.png",
+    "pake": "npx --yes pake-cli@latest https://notter.su/?desktop=true --name Notter --app-version 0.5.3 --icon ./public/image/icon-dark.png",
     "pake:windows": "npm run pake -- --targets msi",
     "pake:linux": "npm run pake -- --targets deb,appimage,rpm",
     "pake:macos": "npm run pake -- --targets dmg --multi-arch",
