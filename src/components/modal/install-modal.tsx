@@ -102,18 +102,34 @@ export const InstallModal = ({
                   </span>
                 </Link>
               </Button>
+              
+              <Button
+                asChild
+                variant="outline"
+                className="h-auto justify-start gap-3 p-4"
+              >
+                <Link href={links.DOWNLOAD.LINUX.DEB} download="Notter.deb">
+                  <Laptop className="h-5 w-5" />
+                  <span className="flex flex-col items-start text-left">
+                    <span>Скачать для Linux</span>
+                    <span className="text-xs font-normal text-muted-foreground">
+                      dpkg (.deb)
+                    </span>
+                  </span>
+                </Link>
+              </Button>
 
               <Button
                 asChild
                 variant="outline"
                 className="h-auto justify-start gap-3 p-4"
               >
-                <Link href={links.DOWNLOAD.LINUX} download="Notter.deb">
+                <Link href={links.DOWNLOAD.LINUX.APPIMAGE} download="Notter.deb">
                   <Laptop className="h-5 w-5" />
                   <span className="flex flex-col items-start text-left">
                     <span>Скачать для Linux</span>
                     <span className="text-xs font-normal text-muted-foreground">
-                      dpkg (.deb)
+                      AppImage
                     </span>
                   </span>
                 </Link>
