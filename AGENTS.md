@@ -21,6 +21,5 @@ Russian-first note-taking app on Next.js App Router.
 - Don't run `npm run build` or `npm start` yourself!
 
 ## Commands
-- `npm run dev`
 - `npm run lint`
 - `npm run knip`
