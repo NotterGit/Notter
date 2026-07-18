@@ -1,13 +1,103 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    images: {
-        domains: [
-            "files.edgestore.dev",
-            "img.clerk.com",
-            "media.discordapp.net",
-            "localhost"
-        ]
-    }
-}
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "files.edgestore.dev",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "img.clerk.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "db.api.qual.su",
+        port: "8000",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "storage.yandexcloud.net",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "qualcloud.storage.yandexcloud.net",
+        pathname: "/**",
+      },
+    ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/image/icon.png",
+        has: [
+          {
+            type: "header",
+            key: "host",
+            value: "dev\\.notter\\.su",
+          },
+        ],
+        destination: "/image/icon-beta.png",
+      },
+      {
+        source: "/image/icon-dark.png",
+        has: [
+          {
+            type: "header",
+            key: "host",
+            value: "dev\\.notter\\.su",
+          },
+        ],
+        destination: "/image/icon-beta.png",
+      },
+      {
+        source: "/image/pwa-192.png",
+        has: [
+          {
+            type: "header",
+            key: "host",
+            value: "dev\\.notter\\.su",
+          },
+        ],
+        destination: "/image/icon-beta.png",
+      },
+      {
+        source: "/image/pwa-512.png",
+        has: [
+          {
+            type: "header",
+            key: "host",
+            value: "dev\\.notter\\.su",
+          },
+        ],
+        destination: "/image/icon-beta.png",
+      },
+      {
+        source: "/favicon.ico",
+        has: [
+          {
+            type: "header",
+            key: "host",
+            value: "dev\\.notter\\.su",
+          },
+        ],
+        destination: "/image/icon-beta.png",
+      },
+      {
+        source: "/favicon.ico",
+        destination: "/image/icon-dark.png",
+      },
+    ];
+  },
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

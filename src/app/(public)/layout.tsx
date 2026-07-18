@@ -1,9 +1,11 @@
-"use client"
-import { useRequestOrg } from "../../../server/orgs/request"
-import { useRequestUser } from "../../../server/users/request"
+import type { ReactNode } from "react"
 
-export default function Layout({ children }: { children: React.ReactNode }){
-    useRequestUser()
-    useRequestOrg()
-    return children
+import { PublicLayout } from "./_components/public-layout"
+
+export default function Layout({
+  children,
+}: {
+  children: ReactNode
+}) {
+  return <PublicLayout>{children}</PublicLayout>
 }

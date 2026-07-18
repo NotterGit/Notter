@@ -1,59 +1,95 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import { ThemeProvider } from '@/components/providers/theme-provider'
-import ConvexClientProvider from '@/components/providers/convex-provider'
-import { Toaster } from 'react-hot-toast';
-import { ModalProvider } from '@/components/providers/modal-provider'
-import { EdgeStoreProvider } from '@/lib/edgestore'
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import { Toaster } from "react-hot-toast"
 
-const font = Inter({ subsets: ['latin'] })
+import "./globals.css"
+import ConvexClientProvider from "@/components/providers/convex-provider"
+import { ThemeProvider } from "@/components/providers/theme-provider"
+import { ThemeIcons } from "@/components/theme-icons"
+import { images } from "@/config/routing/image.route"
+import { PwaProvider } from "@/components/providers/pwa-provider"
+
+const font = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: 'Notter',
-  description: "Новый уровень построения задач. Встречайте Notter",
-  manifest: '/manifest.json',
+  title: {
+    default: "Notter",
+    template: "%s | Notter",
+  },
+  description: "A better way to organize tasks. Meet Notter.",
+  manifest: images.MANIFEST,
   icons: {
-    icon: "https://combative-moose-852.convex.site/getImage?storageId=kg20r77k2jdafrwmw8am9tseb575dp7c"
-  }
+    icon: [
+      {
+        url: images.IMAGE.DARK_ICON,
+        type: "image/png",
+      },
+      {
+        url: images.IMAGE.LIGHT_ICON,
+        type: "image/png",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: images.IMAGE.DARK_ICON,
+        type: "image/png",
+        media: "(prefers-color-scheme: dark)",
+      },
+    ],
+    shortcut: [
+      {
+        url: images.IMAGE.DARK_ICON,
+      },
+      {
+        url: images.IMAGE.LIGHT_ICON,
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: images.IMAGE.DARK_ICON,
+        media: "(prefers-color-scheme: dark)",
+      },
+    ],
+    apple: [images.IMAGE.DARK_ICON],
+  },
 }
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
     <html lang="ru" suppressHydrationWarning>
       <body className={font.className}>
-        <ConvexClientProvider>
-          <EdgeStoreProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <Toaster
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ConvexClientProvider>
+            <Toaster
               position="bottom-center"
+              containerStyle={{
+                zIndex: 100000,
+              }}
               toastOptions={{
                 style: {
-                  color: 'black',
-                  background: 'white',
-                  fontSize: '13px',
-                  borderRadius: '5px',
+                  color: "black",
+                  background: "white",
+                  fontSize: "13px",
+                  borderRadius: "5px",
                 },
                 iconTheme: {
-                  primary: 'black',
-                  secondary: 'white',
+                  primary: "black",
+                  secondary: "white",
                 },
               }}
-              />
-              <ModalProvider/>
-              {children}
-            </ThemeProvider>
-          </EdgeStoreProvider>
-        </ConvexClientProvider>
+            />
+            <PwaProvider />
+            <ThemeIcons />
+            {children}
+          </ConvexClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

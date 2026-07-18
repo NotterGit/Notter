@@ -2,28 +2,21 @@ import { cn } from "@/lib/utils";
 import { FileIcon } from "lucide-react";
 import Image from "next/image";
 import { Pin } from "lucide-react";
+import { normalizeImageUrl } from "@/lib/image-url";
 import { api } from "../../../../convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useState } from "react";
-import Twemoji from 'react-twemoji';
 import { Skeleton } from "@/components/ui/skeleton";
+import Twemoji from "react-twemoji";
 import { Id } from "../../../../convex/_generated/dataModel";
 import toast from "react-hot-toast";
-import { updateUser } from "../../../../server/users/user";
-import { User } from "../../../../server/users/types";
+import { updateUser } from "../../api/users/user";
 import { useUser } from "@clerk/nextjs";
 import VerifedBadge from "./verifed";
-import { Org } from "../../../../server/orgs/types";
-import { updateOrg } from "../../../../server/orgs/org";
-
-interface DocumentListProps {
-  user: User | Org;
-  profile: string;
-  setProfile: React.Dispatch<React.SetStateAction<User | Org | null>>;
-  parentDocumentId?: Id<"documents">;
-  level?: number;
-  publicSorted?: boolean;
-}
+import { updateOrg } from "../../api/orgs/org";
+import Link from "next/link";
+import { pages } from "@/config/routing/pages.route";
+import type { DocumentListProps } from "@/config/types/profile.types";
 
 export function DocumentList({
   user,
@@ -99,7 +92,7 @@ export function DocumentList({
   }
 
   if (documents.length === 0 && level === 0) {
-    return <p className="text-muted-foreground text-sm ml-2">Пусто</p>;
+    return <p className="ml-2 rounded-xl border border-black/5 bg-background/60 px-3 py-2 text-sm text-muted-foreground dark:border-white/10">Пусто</p>;
   }
 
   return (
@@ -111,72 +104,71 @@ export function DocumentList({
           if (doc.isPublished || !publicSorted) {
             return (
               <div key={doc._id} style={{ paddingLeft: level * 20 }}>
-                <div
-                  onClick={() => onToggleExpand(doc._id)}
-                  className={cn(
-                    "flex items-center justify-between hover:bg-secondary/20 rounded-lg transition-colors border-2 m-2 cursor-pointer"
-                  )}
-                >
-                  <div className={`flex items-center gap-2 ${!doc.coverImage ? "p-4" : ""}`}>
-                    {doc.icon ? (
-                      <span
-                        className={`inline-block w-6 h-6 ${doc.coverImage && "ml-4"}`}
-                        style={{ lineHeight: 0 }}
-                      >
-                        {doc.icon}
-                      </span>
-                    ) : (
-                      <FileIcon
-                        className={`w-5 h-5 text-muted-foreground ${doc.coverImage && "ml-4"}`}
-                      />
+                <div className="m-2 flex items-center gap-2">
+                  <div
+                    onClick={() => onToggleExpand(doc._id)}
+                    className={cn(
+                      "group flex flex-1 cursor-pointer items-center justify-between overflow-hidden rounded-2xl border border-black/10 bg-background/70 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-white/10"
                     )}
+                  >
+                    <div className={`flex items-center gap-2 px-4 py-3 ${!doc.coverImage ? "" : ""}`}>
+                      {doc.icon ? (
+                        <span
+                          className={`inline-block h-6 w-6 ${doc.coverImage && "ml-1"}`}
+                          style={{ lineHeight: 0 }}
+                        >
+                          {doc.icon}
+                        </span>
+                      ) : (
+                        <FileIcon
+                          className={`h-5 w-5 text-muted-foreground ${doc.coverImage && "ml-1"}`}
+                        />
+                      )}
 
-                    <a
-                      href={`/view/${doc._id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-xl text-primary/80 transition-all duration-300 hover:underline hover:text-primary"
-                    >
-                      {doc.title}
-                    </a>
+                      <Link
+                        href={pages.VIEW(doc._id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-lg text-primary/80 transition-all duration-300 hover:text-primary"
+                      >
+                        {doc.title}
+                      </Link>
 
-                    {doc.verifed && (
-                      <VerifedBadge text="Заметка верефицирована командой Qualsu" size={6}/>
+                      {doc.verifed && (
+                        <VerifedBadge text="Заметка верефицирована командой Qualsu" size={6}/>
+                      )}
+                    </div>
+
+                    {doc.coverImage && (
+                      <div className="relative ml-auto h-16 w-56 overflow-hidden border-l border-black/10 dark:border-white/10 md:w-64">
+                        <Image
+                          src={normalizeImageUrl(doc.coverImage) ?? doc.coverImage}
+                          alt={doc.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
                     )}
                   </div>
 
-                  {doc.coverImage && (
-                    <div className="relative w-64 h-16 overflow-hidden ml-auto">
-                      <Image
-                        src={doc.coverImage}
-                        alt={doc.title}
-                        fill
-                        className="rounded-r-lg object-cover ml-0.5"
-                      />
-                    </div>
-                  )}
-                
-
-                  {(clerkUser?.username === profile || user.owner == clerkUser?.id) && (
-                    <div className="relative">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePinClick(doc._id);
-                        }}
-                        className="absolute left-5 -bottom-3"
-                      >
-                        {doc._id === user?.pined ? (
-                          <Pin className="w-6 h-6 text-yellow-500 hover:text-yellow-600 transition-all duration-200" />
-                        ) : (
-                          <Pin className="w-6 h-6 rotate-45 text-yellow-500 opacity-60 hover:opacity-100 transition-all duration-200" />
-                        )}
-                      </button>
-                    </div>
+                  {(clerkUser?.id === user._id || (user.owner === clerkUser?.id && clerkUser?.id)) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePinClick(doc._id);
+                      }}
+                      className="rounded-md border border-black/10 bg-background/80 p-1.5 transition hover:bg-background dark:border-white/10"
+                    >
+                      {doc._id === user?.pined  ? (
+                        <Pin className="h-5 w-5 text-yellow-500 transition-all duration-200 hover:text-yellow-600" />
+                      ) : (
+                        <Pin className="h-5 w-5 rotate-45 text-yellow-500 opacity-60 transition-all duration-200 hover:opacity-100" />
+                      )}
+                    </button>
                   )}
                 </div>
 
                 {isExpanded && (
-                  <div className="ml-6 border-l border-muted-foreground/30 pl-4">
+                  <div className="ml-8 border-l border-black/10 pl-3 dark:border-white/10">
                     <DocumentList
                       user={user}
                       profile={profile}

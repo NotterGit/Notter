@@ -6,39 +6,48 @@ import { Button } from "./ui/button"
 import { ImageIcon, X } from "lucide-react" 
 import { useMutation, useQuery } from "convex/react" 
 import { useParams } from "next/navigation" 
-import { useEdgeStore } from "@/lib/edgestore" 
 import { Skeleton } from "./ui/skeleton" 
 import { api } from "../../convex/_generated/api" 
-import { useCoverImage } from "../../hooks/use-cover-image" 
-import { Id } from "../../convex/_generated/dataModel" 
+import { useCoverImage } from "./hooks/use-cover-image" 
 import { useOrganization, useUser } from "@clerk/nextjs"
-
-interface CoverImageProps {
-  url?: string 
-  preview?: boolean 
-}
+import { deleteFile } from "../app/api/files/file"
+import { normalizeImageUrl } from "@/lib/image-url"
+import type { CoverImageProps } from "@/config/types/components.types";
+import toast from "react-hot-toast"
+import { isValidConvexId } from "@/lib/convex-id"
 
 export function Cover({ url, preview }: CoverImageProps){
-  const { edgestore } = useEdgeStore() 
   const { user } = useUser()
   const { organization } = useOrganization()
 
-  const orgId = organization?.id !== undefined ? organization?.id as string : user?.id as string
+  const orgId = organization?.id ?? user?.id
   const params = useParams() 
+  const documentId = typeof params.documentId === "string" && isValidConvexId(params.documentId)
+    ? params.documentId
+    : null
   const coverImage = useCoverImage() 
   const removeCoverImage = useMutation(api.document.removeCoverImage) 
   
   const onRemove = async () => {
-    if (url) {
-      await edgestore.publicFiles.delete({
-        url: url,
-      }) 
+    if (!documentId || !orgId || !url) {
+      return
     }
-    removeCoverImage({
-      id: params.documentId as Id<"documents">,
+
+    await deleteFile(orgId, url)
+
+    const promise = removeCoverImage({
+      id: documentId,
       userId: orgId
-    }) 
+    });
+
+    toast.promise(promise, {
+      loading: "Удаление обложки...",
+      success: "Обложка удалена",
+      error: "Ошибка при удалении обложки"
+    });
   } 
+
+  const normalizedUrl = url ? normalizeImageUrl(url) || url : null
 
   return (
     <div
@@ -48,11 +57,11 @@ export function Cover({ url, preview }: CoverImageProps){
         url && "bg-muted",
       )}
     >
-      {!!url && (
-        <Image src={url} fill alt="cover" className="object-cover" priority />
+      {!!normalizedUrl && (
+        <Image src={normalizedUrl} fill alt="cover" className="object-cover" priority />
       )}
       {url && !preview && (
-        <div className="absolute bottom-5 right-5 flex items-center gap-x-2 opacity-0 group-hover:opacity-100">
+        <div className="absolute bottom-5 right-5 flex items-center gap-x-2">
           <Button
             onClick={() => coverImage.onReplace(url)}
             className="text-xs text-muted-foreground"
@@ -78,5 +87,5 @@ export function Cover({ url, preview }: CoverImageProps){
 } 
 
 Cover.Skeleton = function CoverSkeleton() {
-  return <Skeleton className="h-[12vh] w-full" /> 
+  return <Skeleton className="h-70 w-full" /> 
 }

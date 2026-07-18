@@ -1,18 +1,16 @@
-<img src="public/image/Notter.png" width="300px">
+<img src="public/image/logo-dark.png" width="300px">
 
 # Notter
 
-[notter.tech](https://notter.tech)
+[notter.su](https://notter.su)
 
 # Stack
 
-<p>
-    <img src="https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white" width="150px" height="33px"> 
-    <img src="https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB" width="105px" height="35px"> 
-    <img src="https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white" width="100px" height="35px"> 
-    <img src="https://camo.githubusercontent.com/fec464f064b78abf13719d8fb0450ea14277a027e61643d7252d1ef4a4e1a72b/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f73686164636e2f75692d3030303030302e7376673f7374796c653d666f722d7468652d6261646765266c6f676f3d73686164636e2f7569266c6f676f436f6c6f723d7768697465" width="145px" height="34px"> 
-    <img src="https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white" width="140px" height="32px"> 
-    <img src="https://i.ibb.co/pvMBqZp/convex-Badge.png" width="100px" height="33px"> 
-    <img src="https://camo.githubusercontent.com/b9a0233829c27ddd06dccd50688eb9b01a68f9f86c0375235736d0a00cf23a82/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f436c65726b2d3643343746462e7376673f7374796c653d666f722d7468652d6261646765266c6f676f3d436c65726b266c6f676f436f6c6f723d7768697465" width="105px" height="33px">
-    <img src="https://camo.githubusercontent.com/ddc0e05af3d421456518a479207cdac3461923e66591db79410ab70e57dd3e4b/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f4564676573746f72652d6135376666662e7376673f7374796c653d666f722d7468652d6261646765266c6f676f3d4564676573746f7265266c6f676f436f6c6f723d7768697465" width="115px" height="33px">
-</p>
+![Next.js](https://img.shields.io/badge/Next.js-15-000000?style=flat-square&logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/React-18-20232A?style=flat-square&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-09090B?style=flat-square&logo=shadcnui&logoColor=white)
+![Axios](https://img.shields.io/badge/Axios-1.12-5A29E4?style=flat-square&logo=axios&logoColor=white)
+![Clerk](https://img.shields.io/badge/Clerk-6C47FF?style=flat-square&logo=clerk&logoColor=white)
+![Convex](https://img.shields.io/badge/Convex-0F172A?style=flat-square&logo=convex&logoColor=white)

@@ -9,26 +9,35 @@ import {
 import { useState } from "react" 
 import { useMutation } from "convex/react" 
 import { useParams } from "next/navigation" 
-import { useCoverImage } from "../../../hooks/use-cover-image" 
+import { useCoverImage } from "../hooks/use-cover-image" 
 import { api } from "../../../convex/_generated/api" 
-import { Id } from "../../../convex/_generated/dataModel" 
-import { useEdgeStore } from "@/lib/edgestore" 
 import { DragAndDrop } from "../drag-and-drop" 
 import { useOrganization, useUser } from "@clerk/nextjs"
+import { uploadFile } from "../../app/api/files/file"
+import { getById as getUserById } from "../../app/api/users/user";
+import { getById as getOrgById } from "../../app/api/orgs/org";
+import toast from "react-hot-toast"
+import { isValidConvexId } from "@/lib/convex-id"
+import { getCurrentEditTime } from "@/lib/last-edit-time"
 
 export function CoverImageModal(){
   const params = useParams() 
+  const documentId = typeof params.documentId === "string" && isValidConvexId(params.documentId)
+    ? params.documentId
+    : null
 
   const [file, setFile] = useState<File>()
   const [isSubmitting, setIsSubmitting] = useState(false) 
 
   const update = useMutation(api.document.update) 
-  const coverImage = useCoverImage() 
-  const { edgestore } = useEdgeStore() 
+  const coverImage = useCoverImage()
 
   const { user } = useUser()
   const { organization } = useOrganization()
-  const orgId = organization?.id !== undefined ? organization?.id as string : user?.id as string
+  const isOrg = organization?.id !== undefined
+  const orgId = isOrg ? organization?.id : user?.id
+  const avatar = user?.imageUrl || ""
+  const username = user?.username || ""
 
   const onClose = () => {
     setFile(undefined) 
@@ -37,32 +46,50 @@ export function CoverImageModal(){
   } 
 
   const onChange = async (file?: File) => {
-    if (file) {
-      setIsSubmitting(true) 
-      setFile(file) 
+    if (!file || !documentId || !orgId) return;
 
-      const res = await edgestore.publicFiles.upload({
-        file,
-        options: {
-          replaceTargetUrl: coverImage.url
-        }
-      }) 
+    const userdata = isOrg ? 
+      await getOrgById(orgId) : 
+      await getUserById(orgId);
 
-      await update({
-        id: params.documentId as Id<"documents">,
-        coverImage: res.url,
-        userId: orgId,
-        lastEditor: user?.username as string
-      }) 
+    const userSize = 
+      userdata?.premium == 1 ? 3 
+      : userdata?.premium == 2 ? 10 
+      : 1;
+    const maxSize = userSize * 1024 * 1024
 
-      onClose() 
+    if (file.size > maxSize) {
+      toast.error(`Размер файла не может привышать ${userSize} МБ`);
+      coverImage.onClose();
+      return;
     }
-  } 
+
+    setIsSubmitting(true);
+    setFile(file);
+
+    const fileUrl = await uploadFile(orgId, documentId, avatar, username, file);
+    if (!fileUrl) {
+      toast.error("Не удалось загрузить обложку");
+      setIsSubmitting(false);
+      return;
+    }
+
+    await update({
+      id: documentId,
+      coverImage: fileUrl,
+      userId: orgId,
+      lastEditor: user?.username as string,
+      lastEditTime: getCurrentEditTime()
+    });
+
+    onClose();
+  };
+
 
   return (
     <Dialog open={coverImage.isOpen} onOpenChange={coverImage.onClose}>
       <DialogTitle>
-        <h1 className="sr-only">Изменить обложку</h1>
+        <p className="sr-only">Изменить обложку</p>
       </DialogTitle>
       <DialogContent>
         <DialogHeader>

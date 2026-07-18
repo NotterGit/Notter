@@ -1,6 +1,6 @@
 "use client"
 
-import EmojiPicker, { Theme, EmojiStyle } from "emoji-picker-react" 
+import dynamic from "next/dynamic"
 import { useTheme } from "next-themes" 
 
 import {
@@ -8,12 +8,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover" 
+import type { IconPickerPorps } from "@/config/types/components.types";
 
-interface IconPickerPorps {
-  onChange: (icon: string) => void 
-  children: React.ReactNode 
-  asChild?: boolean 
-}
+const EmojiPicker = dynamic(() => import("emoji-picker-react"), {
+  ssr: false,
+  loading: () => <div className="h-[350px] w-[350px]" />,
+})
 
 export function IconPicker({
   onChange,
@@ -21,14 +21,7 @@ export function IconPicker({
   asChild,
 }: IconPickerPorps){
   const { resolvedTheme } = useTheme() 
-  const currentTheme = (resolvedTheme || "light") as keyof typeof themeMap 
-
-  const themeMap = {
-    dark: Theme.DARK,
-    light: Theme.LIGHT
-  } 
-
-  const theme = themeMap[currentTheme] 
+  const theme = resolvedTheme === "dark" ? "dark" : "light"
 
   return (
     <Popover>
@@ -36,9 +29,9 @@ export function IconPicker({
       <PopoverContent className="w-full border-none p-0 shadow-none">
         <EmojiPicker
           height={350}
-          theme={theme}
-          onEmojiClick={(data) => onChange(data.emoji)}
-          emojiStyle={EmojiStyle.TWITTER}
+          theme={theme as never}
+          onEmojiClick={(data: { emoji: string }) => onChange(data.emoji)}
+          emojiStyle={"twitter" as never}
         />
       </PopoverContent>
     </Popover>

@@ -3,20 +3,20 @@ import { useMutation, useQuery } from "convex/react"
 import { useState, useEffect } from "react"
 import { toast } from "react-hot-toast"
 import { Button } from "@/components/ui/button"
-import { Check, Copy, Globe } from "lucide-react"
-import { Doc } from "../../../../convex/_generated/dataModel"
+import { Check, Copy, Eye, Globe } from "lucide-react"
 import { api } from "../../../../convex/_generated/api"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useOrigin } from "../../../../hooks/use-origin"
+import { useOrigin } from "../../../components/hooks/use-origin"
 import { Protect, useOrganization, useUser } from "@clerk/nextjs"
-import { getById as getUserByID, updateUser } from "../../../../server/users/user"
-import { getById as getOrgByID, updateOrg } from "../../../../server/orgs/org"
-import { User } from "../../../../server/users/types"
-import { Org } from "../../../../server/orgs/types"
-
-interface PublishProps {
-  initialData: Doc<"documents">
-}
+import { getById as getUserByID, updateUser } from "../../api/users/user"
+import { getById as getOrgByID, updateOrg } from "../../api/orgs/org"
+import type { PublishProps } from "@/config/types/main.types"
+import type { Org, User } from "@/config/types/api.types"
+import Link from "next/link"
+import { IframeModal } from "./iframe-modal"
+import { pages } from "@/config/routing/pages.route"
+import { getCurrentEditTime } from "@/lib/last-edit-time"
+import { getPublicDocumentLimit } from "@/lib/plan-limits"
 
 export function Publish({ initialData }: PublishProps) {
   const origin = useOrigin()
@@ -29,12 +29,12 @@ export function Publish({ initialData }: PublishProps) {
 
   const [copied, setCopied] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [publicDocumentLimit, setPublicDocumentLimit] = useState<number>(10)
+  const [publicDocumentLimit, setPublicDocumentLimit] = useState<number>(getPublicDocumentLimit(0, isOrg))
   const [userData, setUserData] = useState<User | Org | null>(null)
 
   const [isShortUrl, setIsShortUrl] = useState<boolean>(Boolean(initialData.isShort))
-  const [customShortId, setCustomShortId] = useState<string>(initialData.shortId || '')
-  const [previousShortId, setPreviousShortId] = useState<string>(initialData.shortId || '')
+  const [customShortId, setCustomShortId] = useState<string>(initialData.shortId || "")
+  const [previousShortId, setPreviousShortId] = useState<string>(initialData.shortId || "")
   const [editingShortId, setEditingShortId] = useState<boolean>(false)
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export function Publish({ initialData }: PublishProps) {
   }, [initialData.isShort])
 
   const currentPublicDocuments = useQuery(api.document.getPublicDocumentCount, {
-    userId: orgId
+    userId: orgId,
   })
 
   const fetchUserData = async () => {
@@ -50,7 +50,7 @@ export function Publish({ initialData }: PublishProps) {
     const u = isOrg ? await getOrgByID(orgId) : await getUserByID(orgId)
     if (u) {
       setUserData(u)
-      setPublicDocumentLimit(u.premium === 1 ? 100 : u.premium === 2 ? 1000 : 10)
+      setPublicDocumentLimit(getPublicDocumentLimit(u.premium, isOrg))
     }
   }
 
@@ -65,7 +65,7 @@ export function Publish({ initialData }: PublishProps) {
     if (userData?.premium === 0 && next) {
       setIsShortUrl(false)
       setCustomShortId(initialData.shortId)
-      toast.error("Для использования сокращенных ссылок требуется премиум уровень 1 или 2")
+      toast.error("Для использования коротких ссылок нужен премиум уровня 1 или 2")
       return
     }
 
@@ -77,6 +77,7 @@ export function Publish({ initialData }: PublishProps) {
       isPublished: initialData.isPublished,
       userId: orgId,
       lastEditor: user?.username as string,
+      lastEditTime: getCurrentEditTime(),
       isShort: next,
     }).catch(() => toast.error("Не удалось обновить параметр ссылки"))
   }
@@ -110,13 +111,14 @@ export function Publish({ initialData }: PublishProps) {
         isPublished: initialData.isPublished,
         userId: orgId,
         lastEditor: user?.username as string,
+        lastEditTime: getCurrentEditTime(),
         shortId: customShortId,
         isShort: true,
       })
       toast.success("Ссылка успешно обновлена!")
     } catch (error: any) {
       if (error.message.includes("Short ID already exists")) {
-        toast.error("Эта ссылка уже существует")
+        toast.error("Такая ссылка уже существует")
         setCustomShortId(previousShortId)
       } else {
         toast.error("Не удалось обновить ссылку")
@@ -139,10 +141,8 @@ export function Publish({ initialData }: PublishProps) {
     }
   }
 
-  const url = isShortUrl
-    ? `${origin}/${customShortId}`
-    : `${origin}/view/${initialData._id}`
-
+  const url = pages.DOCUMENT_URL(origin, initialData._id, isShortUrl, customShortId)
+  const iframeUrl = pages.DOCUMENT_IFRAME_URL(origin, initialData._id, isShortUrl, customShortId)
   const onPublish = async () => {
     if (currentPublicDocuments !== undefined && (currentPublicDocuments as number) >= publicDocumentLimit) {
       toast.error(`Вы достигли лимита на публикацию в ${publicDocumentLimit} публичных заметок`)
@@ -154,6 +154,7 @@ export function Publish({ initialData }: PublishProps) {
       isPublished: true,
       userId: orgId,
       lastEditor: user?.username as string,
+      lastEditTime: getCurrentEditTime(),
       isShort: isShortUrl,
     }).finally(() => setIsSubmitting(false))
 
@@ -171,6 +172,7 @@ export function Publish({ initialData }: PublishProps) {
       isPublished: false,
       userId: orgId,
       lastEditor: user?.username as string,
+      lastEditTime: getCurrentEditTime(),
       isShort: isShortUrl,
     }).finally(() => setIsSubmitting(false))
 
@@ -184,7 +186,7 @@ export function Publish({ initialData }: PublishProps) {
 
     toast.promise(promise, {
       loading: "Отменяем публикацию...",
-      success: "Заметка убрана с публикации!",
+      success: "Заметка снята с публикации!",
       error: "Не удалось отменить публикацию",
     })
   }
@@ -200,17 +202,17 @@ export function Publish({ initialData }: PublishProps) {
 
   return (
     <Popover>
-      <PopoverTrigger>
-        <Button size="sm" variant="ghost">
+      <PopoverTrigger asChild>
+        <Button size="sm" variant="ghost" className="h-8 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
           Опубликовать
           {initialData.isPublished && <Globe className="h-4 w-4 text-sky-500" />}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72" align="end" alignOffset={8} forceMount>
+      <PopoverContent className="w-80 rounded-2xl border-white/60 bg-white/95 p-4 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/95" align="end" alignOffset={8} forceMount>
         {initialData.isPublished ? (
           <div className="space-y-4">
             <div className="flex items-center gap-x-2">
-              <Globe className="h-4 w-4 animate-pulse text-sky-500" />
+              <Globe className="h-4 w-4 text-sky-500" />
               <p className="text-xs font-medium text-sky-500">
                 Эта заметка находится в открытом доступе
               </p>
@@ -219,10 +221,10 @@ export function Publish({ initialData }: PublishProps) {
             <div className="flex items-center">
               <input
                 value={editingShortId ? customShortId : url}
-                className="h-8 flex-1 rounded-l-md border bg-muted px-2 text-xs"
+                className="h-9 flex-1 rounded-l-lg border border-border/60 bg-background/70 px-3 text-xs"
                 onClick={() => {
                   if (isShortUrl && canUseCustomShort) {
-                    setEditingShortId(true);
+                    setEditingShortId(true)
                   }
                 }}
                 onBlur={handleBlur}
@@ -231,12 +233,16 @@ export function Publish({ initialData }: PublishProps) {
                 autoFocus
                 disabled={!isShortUrl || !canUseCustomShort}
               />
-              <Button onClick={onCopy} disabled={copied} className="h-8 rounded-l-none">
+              <Button onClick={onCopy} disabled={copied} className="h-9 rounded-l-none rounded-r-lg px-3">
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
 
-            <div className="flex flex-row items-center">
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2 py-1 text-xs text-sky-700 dark:text-sky-200">
+              <Eye className="w-4 h-4" /> Просмотров: {initialData.views ?? 0}
+            </span>
+
+            <div className="flex items-center rounded-lg border border-border/60 bg-background/60 px-2.5 py-2">
               <Checkbox
                 checked={isShortUrl}
                 onCheckedChange={handleCheckboxChange}
@@ -254,22 +260,34 @@ export function Publish({ initialData }: PublishProps) {
             >
               <Button
                 size="sm"
-                className="w-full text-xs"
+                className="h-9 w-full rounded-xl text-xs"
                 disabled={isSubmitting}
                 onClick={onUnpublish}
               >
                 Отменить публикацию
               </Button>
             </Protect>
+
+            <Link href={url} target="_blank">
+              <Button
+                className="h-9 w-full rounded-xl text-xs"
+                size="sm"
+                variant="outline"
+              >
+                Перейти
+              </Button>
+            </Link>
+
+            <IframeModal iframeUrl={iframeUrl} />
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-background/50 p-4 text-center">
             <Globe className="mb-2 h-8 w-8 text-muted-foreground" />
-            <p>Поделитесь своей заметкой</p>
+            <p className="font-medium">Поделитесь своей заметкой</p>
             <Protect
               condition={(check) => check({ role: "org:admin" }) || organization?.id === undefined}
               fallback={
-                <span className="text-[0.7rem] text-muted-foreground text-center w-full block">
+                <span className="text-center w-full block text-[0.7rem] text-muted-foreground">
                   Публиковать могут только администраторы организации
                 </span>
               }
@@ -280,7 +298,7 @@ export function Publish({ initialData }: PublishProps) {
               <Button
                 disabled={isSubmitting}
                 onClick={onPublish}
-                className="w-full text-xs"
+                className="h-9 w-full rounded-xl text-xs"
                 size="sm"
               >
                 Опубликовать

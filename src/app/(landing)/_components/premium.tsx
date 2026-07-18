@@ -1,9 +1,12 @@
-// Premium.tsx
+"use client"
+
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Check, X } from "lucide-react"; // Импортируем иконки
+import { Check, X } from "lucide-react";
 import PremiumCard from "./premium-card";
+import { images } from "@/config/routing/image.route";
+import { getPlanLimitsByTier } from "@/lib/plan-limits";
 
 export function Premium() {
   const [isTeam, setIsTeam] = useState(false);
@@ -16,18 +19,13 @@ export function Premium() {
   const diamondPrice = isTeam ? 299 : 99;
   const freePrice = 0;
 
-  const limits = {
-    free: { notes: "75", publicNotes: "10" },
-    amber: { notes: isTeam ? "500" : "200", publicNotes: isTeam ? "250" : "100" },
-    diamond: { notes: "1000", publicNotes: "1000" },
-  };
+  const limits = getPlanLimitsByTier(isTeam);
 
   return (
     <div className="p-6">
       <h1 className="text-5xl font-bold drop-shadow-sm">
-        <span className="text-yellow-300">N</span>
-        <span className="text-[#CFCFD0]">otter </span>
-        <span className="text-cyan-300">Gem</span>
+        <span className="bg-gradient-to-r from-logo-yellow to-logo-light-yellow bg-clip-text text-transparent">Notter </span>
+        <span className="text-logo-cyan">Gem</span>
       </h1>
 
       <p className="m-4">Подписка, улучшающая и делающая работу еще приятнее</p>
@@ -46,34 +44,40 @@ export function Premium() {
         <PremiumCard
           title="Free"
           price={freePrice}
-          color="gray"
-          features={[`До ${limits.free.notes} заметок`, `До ${limits.free.publicNotes} публичных заметок`]}
+          className="border-gray-300"
+          features={[
+            `До ${limits.free.documents} заметок`, 
+            `До ${limits.free.publicDocuments} публичных заметок`, 
+            `Загрузка изображений до ${limits.free.uploadMb} МБ`
+          ]}
           btn={false}
         />
         <PremiumCard
           title="Amber"
           price={amberPrice}
-          color="yellow"
-          icon="/badge/Amber.png"
+          className="border-yellow-300"
+          icon={images.BADGE.AMBER}
           features={[
             "Сокращенные ссылки для публичных заметок",
             "Уникальный значок в профиле",
-            `До ${limits.amber.notes} заметок`,
-            `До ${limits.amber.publicNotes} публичных заметок`,
+            `До ${limits.amber.documents} заметок`,
+            `До ${limits.amber.publicDocuments} публичных заметок`,
+            `Загрузка изображений до ${limits.amber.uploadMb} МБ`
           ]}
         />
         <PremiumCard
           title="Diamond"
           price={diamondPrice}
-          color="cyan"
-          icon="/badge/Diamond.png"
+          className="border-cyan-300"
+          icon={images.BADGE.DIAMOND}
           features={[
             "Все преимущества Amber",
             "Кастомные ссылки",
             "Отключение упоминаний Notter",
             "Скачивание/Загрузка заметок в JSON",
-            `До ${limits.diamond.notes} заметок`,
-            `До ${limits.diamond.publicNotes} публичных заметок`,
+            `До ${limits.diamond.documents} заметок`,
+            `До ${limits.diamond.publicDocuments} публичных заметок`,
+            `Загрузка изображений до ${limits.diamond.uploadMb} МБ`
           ]}
         />
       </div>
@@ -91,15 +95,21 @@ export function Premium() {
         <TableBody className="text-left">
           <TableRow>
             <TableCell>Заметки</TableCell>
-            <TableCell>{limits.free.notes}</TableCell>
-            <TableCell>{limits.amber.notes}</TableCell>
-            <TableCell>{limits.diamond.notes}</TableCell>
+            <TableCell>{limits.free.documents}</TableCell>
+            <TableCell>{limits.amber.documents}</TableCell>
+            <TableCell>{limits.diamond.documents}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Публичные заметки</TableCell>
-            <TableCell>{limits.free.publicNotes}</TableCell>
-            <TableCell>{limits.amber.publicNotes}</TableCell>
-            <TableCell>{limits.diamond.publicNotes}</TableCell>
+            <TableCell>{limits.free.publicDocuments}</TableCell>
+            <TableCell>{limits.amber.publicDocuments}</TableCell>
+            <TableCell>{limits.diamond.publicDocuments}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Максимальный размер загружаемых изображений</TableCell>
+            <TableCell>{limits.free.uploadMb} МБ</TableCell>
+            <TableCell>{limits.amber.uploadMb} МБ</TableCell>
+            <TableCell>{limits.diamond.uploadMb} МБ</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Значок в профиле</TableCell>

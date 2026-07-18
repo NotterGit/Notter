@@ -11,11 +11,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import type { ConfirmmModalProps } from "@/config/types/components.types";
 
-interface ConfirmmModalProps {
-  children: React.ReactNode;
-  onConfirm: () => void;
-}
 export const ConfirmModal = ({ children, onConfirm }: ConfirmmModalProps) => {
   const handleConfirm = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,

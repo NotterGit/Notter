@@ -1,39 +1,35 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
+import { pages } from "@/config/routing/pages.route";
+import type { PremiumCardProps } from "@/config/types/landing.types";
 
-interface PremiumCardProps {
-  title: string;
-  price: number;
-  color: string;
-  icon?: string;
-  features: string[];
-  btn?: boolean
-}
-
-export default function PremiumCard({ title, price, color, icon, features, btn = true }: PremiumCardProps){
+export default function PremiumCard({ title, price, className, icon, features, btn = true }: PremiumCardProps) {
   return (
-    <div className={`border-4 p-6 rounded-lg shadow-lg transition-all hover:scale-105 flex flex-col border-${color}-300`}>
-      <div className="flex flex-row items-center">
+    <div className={`rounded-2xl p-6 shadow-lg transition-transform hover:scale-[1.02] flex flex-col bg-card/70 dark:bg-zinc-900/60 ${className}`}>
+      <div className="flex items-center gap-3">
         {icon && (
-          <Image src={icon} alt={title} width={30} height={30} className="object-contain" />
+          <Image src={icon} alt={title} width={36} height={36} className="object-contain" />
         )}
-        <h2 className={`text-3xl font-semibold ml-2 mb-1.5`}>
-          <span className={`text-${color}-300`}>{title}</span> - {price}₽
-        </h2>
+        <div>
+          <h3 className="text-2xl font-semibold">{title}</h3>
+          <div className="text-sm text-muted-foreground">{price}₽ / навсегда</div>
+        </div>
       </div>
-      <ul className="list-disc pl-5 flex-grow mt-2">
+
+      <ul className="list-disc pl-5 mt-4 space-y-2 flex-grow">
         {features.map((feature, index) => (
-          <li key={index}>{feature}</li>
+          <li key={index} className="text-sm">{feature}</li>
         ))}
       </ul>
+
       {btn && (
-        <Link href={"/buy"} className="mt-auto">
-            <Button variant={"outline"} className="mt-2">
+        <Link href={pages.BUY} className="mt-6">
+          <Button variant={"outline"} className="w-full">
             Перейти
-            </Button>
+          </Button>
         </Link>
       )}
     </div>
-  );
-};
+  )
+}

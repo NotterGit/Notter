@@ -8,10 +8,8 @@ import { api } from "../../../../convex/_generated/api"
 import { ConfirmModal } from "@/components/modal/confirm-modal" 
 import { Id } from "../../../../convex/_generated/dataModel" 
 import { Protect, useOrganization, useUser } from "@clerk/nextjs"
-
-interface BannerProps {
-  documentId: Id<"documents"> 
-}
+import { pages } from "@/config/routing/pages.route"
+import type { BannerProps } from "@/config/types/main.types";
 
 export function Banner({ documentId }: BannerProps){
   const router = useRouter() 
@@ -33,7 +31,7 @@ export function Banner({ documentId }: BannerProps){
         error: "Не удалось удалить"
     }) 
 
-    router.push("/dashboard") 
+    router.push(pages.DASHBOARD()) 
   } 
 
   const onRestore = () => {
@@ -51,11 +49,11 @@ export function Banner({ documentId }: BannerProps){
 
     return (
     <div
-      className="fixed w-full z-[100000] flex justify-center bg-rose-500 p-0"
+      className="flex w-full justify-center bg-transparent p-2"
       style={{ minHeight: 40 }}
     >
-      <div className="flex flex-col md:flex-row items-center gap-3 w-full max-w-2xl px-4 py-2 text-center md:text-left text-sm text-white">
-        <p className="mb-2 md:mb-0">
+      <div className="flex w-full max-w-3xl justify-center flex-col items-center gap-3 rounded-2xl border border-rose-300/60 bg-rose-500/95 px-4 py-2 text-center text-sm text-white shadow-xl backdrop-blur md:flex-row md:text-left">
+        <p className=" md:mb-0">
           Эта заметка перемещена в архив
         </p>
         <Protect
@@ -71,7 +69,7 @@ export function Banner({ documentId }: BannerProps){
               size="sm"
               onClick={onRestore}
               variant="outline"
-              className="h-auto border-white bg-transparent p-1 px-2 font-normal text-white transition hover:bg-white hover:text-rose-500"
+              className="h-auto rounded-lg border-white/80 bg-transparent p-1 px-2 font-normal text-white transition hover:bg-white hover:text-rose-500"
             >
               Восстановить
             </Button>
@@ -79,7 +77,7 @@ export function Banner({ documentId }: BannerProps){
               <Button
                 size="sm"
                 variant="outline"
-                className="h-auto border-white bg-transparent p-1 px-2 font-normal text-white transition hover:bg-white hover:text-rose-500"
+                className="h-auto rounded-lg border-white/80 bg-transparent p-1 px-2 font-normal text-white transition hover:bg-white hover:text-rose-500"
               >
                 Удалить безвозвратно
               </Button>

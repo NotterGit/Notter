@@ -5,6 +5,7 @@ import Image from "next/image";
 import * as React from "react";
 import { useDropzone, type DropzoneOptions } from "react-dropzone";
 import { twMerge } from "tailwind-merge";
+import type { InputProps } from "@/config/types/components.types";
 
 const variants = {
   base: "relative rounded-md flex justify-center items-center flex-col cursor-pointer min-h-[150px] min-w-[200px] border border-dashed border-gray-400 dark:border-gray-300 transition-colors duration-200 ease-in-out",
@@ -15,16 +16,6 @@ const variants = {
     "bg-gray-200 border-gray-300 cursor-default pointer-events-none bg-opacity-30 dark:bg-gray-700",
   accept: "border border-blue-500 bg-blue-500 bg-opacity-10",
   reject: "border border-red-700 bg-red-700 bg-opacity-10",
-};
-
-type InputProps = {
-  width?: number;
-  height?: number;
-  className?: string;
-  value?: File | string;
-  onChange?: (file?: File) => void | Promise<void>;
-  disabled?: boolean;
-  dropzoneOptions?: Omit<DropzoneOptions, "disabled">;
 };
 
 const ERROR_MESSAGES = {
@@ -119,7 +110,7 @@ const DragAndDrop = React.forwardRef<HTMLInputElement, InputProps>(
       <div className="relative">
         {disabled && (
           <div className="absolute inset-y-0 z-[99999] flex h-full w-full items-center justify-center bg-background/80">
-            <Loader2 className="animate-spin w-8 h-8"/>
+            <Loader2 className="animate-spin w-6 h-6 text-primary/50 m-2"/>
           </div>
         )}
         <div
@@ -134,17 +125,19 @@ const DragAndDrop = React.forwardRef<HTMLInputElement, InputProps>(
           <input ref={ref} {...getInputProps()} />
 
           {imageUrl ? (
-            <img
-              className="h-full w-full rounded-md object-cover"
+            <Image
+              className="rounded-md object-cover"
               src={imageUrl}
-              alt={acceptedFiles[0]?.name}
+              alt={acceptedFiles[0]?.name || "Предпросмотр"}
+              fill
+              unoptimized
             />
           ) : (
             <div className="flex flex-col items-center justify-center text-xs text-gray-400">
               <UploadCloudIcon className="mb-2 h-7 w-7" />
-              <div className="text-gray-400">
+              <p className="text-gray-400">
                 Нажмите или перетащите в эту область, чтобы загрузить
-              </div>
+              </p>
             </div>
           )}
 

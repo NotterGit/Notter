@@ -12,6 +12,7 @@ import { ConfirmModal } from "@/components/modal/confirm-modal"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Protect, useOrganization, useUser } from "@clerk/nextjs"
+import { pages } from "@/config/routing/pages.route"
 
 export function TrashBox(){
   const router = useRouter() 
@@ -32,7 +33,7 @@ export function TrashBox(){
   }) 
 
   const onClick = (documentId: string) => {
-    router.push(`/dashboard/${documentId}`) 
+    router.push(pages.DASHBOARD(documentId)) 
   } 
 
   const onRestore = (
@@ -65,13 +66,13 @@ export function TrashBox(){
     }) 
 
     if (params.documentId === documentId) {
-      router.push("/dashboard") 
+      router.push(pages.DASHBOARD()) 
     }
   }
 
   const removeAll = () => {
 
-    router.push("/dashboard")
+    router.push(pages.DASHBOARD())
 
     let promise: any
     documents?.map((document) => {
@@ -101,20 +102,20 @@ export function TrashBox(){
   }
 
   return (
-    <section className="text-sm h-full flex flex-col">
-      <div className="flex items-center gap-x-1 p-2">
-        <Search className="h-4 w-4" />
+    <section className="flex h-full flex-col text-sm">
+      <div className="flex items-center gap-x-2 border-b border-black/5 p-3 dark:border-white/10">
+        <Search className="h-4 w-4 text-muted-foreground" />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="h-7 bg-secondary px-2 focus-visible:ring-transparent"
+          className="h-8 rounded-lg border-border/60 bg-background/70 px-3 focus-visible:ring-1 focus-visible:ring-ring"
           placeholder="Поиск заметок по названию"
           aria-label="Поиск заметок по названию"
         />
       </div>
       <div
         className="mt-2 px-1 pb-1 flex-1 overflow-y-auto"
-        style={{ maxHeight: "calc(100vh - 120px)" }} // Можно скорректировать под ваш layout
+        style={{ maxHeight: "calc(100vh - 120px)" }}
       >
         {filteredDocuments?.length === 0 && (
           <p className="pb-2 text-center text-xs text-muted-foreground">
@@ -125,7 +126,7 @@ export function TrashBox(){
           <button
             key={document._id}
             onClick={() => onClick(document._id)}
-            className="flex w-full items-center justify-between rounded-sm text-sm text-primary hover:bg-primary/5"
+            className="flex w-full items-center justify-between rounded-lg px-1 text-sm text-primary transition hover:bg-black/5 dark:hover:bg-white/10"
             aria-label="Заметки"
           >
             <span className="truncate pl-2 my-3">{document.title}</span>
@@ -140,14 +141,14 @@ export function TrashBox(){
               >
               <button
                 onClick={(e) => onRestore(e, document._id)}
-                className="rounded-sm p-2 dark:hover:bg-neutral-600 hover:bg-primary/5"
+                className="rounded-md p-2 hover:bg-background/80"
                 aria-label="Восстановить заметку"
               >
                 <Undo className="h-4 w-4 text-muted-foreground " />
               </button>
                 <ConfirmModal onConfirm={() => onRemove(document._id)}>
                   <button
-                    className="rounded-sm p-2 dark:hover:bg-neutral-600 hover:bg-primary/5"
+                    className="rounded-md p-2 hover:bg-background/80"
                     aria-label="Удалить безвозвратно"
                   >
                     <Trash className="h-4 w-4 text-muted-foreground"/>
@@ -171,7 +172,7 @@ export function TrashBox(){
               <Separator className="my-2"/>
               <ConfirmModal onConfirm={() => removeAll()}>
                 <div className="flex justify-center items-center">
-                  <Button className="w-40 h-8">
+                  <Button className="h-8 w-40 rounded-lg">
                     Очистить <Trash/>
                   </Button>
                 </div>

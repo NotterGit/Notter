@@ -1,8 +1,17 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
-import { SettingsModal } from "../modal/settings-modal"
-import { CoverImageModal } from "../modal/cover-image-modal"
+
+const SettingsModal = dynamic(
+  () => import("../modal/settings-modal").then((mod) => mod.SettingsModal),
+  { ssr: false }
+)
+
+const CoverImageModal = dynamic(
+  () => import("../modal/cover-image-modal").then((mod) => mod.CoverImageModal),
+  { ssr: false }
+)
 
 export function ModalProvider(){
   const [isMounted, setIsMounted] = useState(false)

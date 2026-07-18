@@ -1,7 +1,32 @@
 import { v } from "convex/values"
-import { mutation, query } from "./_generated/server"
+import { mutation, query, type MutationCtx } from "./_generated/server"
 import { Doc, Id } from "./_generated/dataModel"
 import { generateRandomId } from "./genId"
+
+const getDocumentLimit = (premiumLevel?: number, isOrg?: boolean) => {
+    if (premiumLevel === 1) {
+        return isOrg ? 500 : 200
+    }
+
+    if (premiumLevel === 2) {
+        return 1000
+    }
+
+    return 75
+}
+
+async function assertCanCreateDocument(ctx: MutationCtx, userId: string, premiumLevel?: number, isOrg?: boolean) {
+    const documents = await ctx.db
+        .query("documents")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect()
+
+    const documentLimit = getDocumentLimit(premiumLevel, isOrg)
+
+    if (documents.length >= documentLimit) {
+        throw new Error(`Rate limited note:${documentLimit}`)
+    }
+}
 
 export const archive = mutation({
     args: {
@@ -92,7 +117,10 @@ export const create = mutation({
         parentDocument: v.optional(v.id("documents")),
         userId: v.string(),
         lastEditor: v.string(),
-        creatorName: v.string()
+        lastEditTime: v.optional(v.string()),
+        creatorName: v.string(),
+        premiumLevel: v.optional(v.number()),
+        isOrg: v.optional(v.boolean())
     },
     handler: async(ctx, args) => {
         const identify = await ctx.auth.getUserIdentity()
@@ -100,6 +128,8 @@ export const create = mutation({
         if (!identify){
             throw new Error("Not authenticated")
         }
+
+        await assertCanCreateDocument(ctx, args.userId, args.premiumLevel, args.isOrg)
 
         const document = await ctx.db.insert("documents", {
             title: args.title,
@@ -110,7 +140,8 @@ export const create = mutation({
             creatorName: args.creatorName,
             isAcrhived: false,
             isPublished: false,
-            lastEditor: args.lastEditor
+            lastEditor: args.lastEditor,
+            lastEditTime: args.lastEditTime ?? new Date().toISOString()
         })
 
         return document
@@ -273,7 +304,7 @@ export const getById = query({
       }
   
       if (!identity) {
-        throw new Error("Not authenticated")
+        return null
       }
     
       if (document.userId !== args.userId && args.alwaysView === false) {
@@ -285,13 +316,26 @@ export const getById = query({
 })
 
 export const getByShortId = query({
-  args: {shortId: v.optional(v.string())},
+  args: { shortId: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const documents = await ctx.db.query("documents")
-      .filter((q) => q.eq(q.field("shortId"), args.shortId))
-      .collect()
+    if (!args.shortId) {
+      return null
+    }
 
-    return documents[0]
+    const document = await ctx.db
+      .query("documents")
+      .filter((q) => q.eq(q.field("shortId"), args.shortId))
+      .first()
+
+    if (!document) {
+      return null
+    }
+
+    if (document.isPublished && !document.isAcrhived) {
+      return document
+    }
+
+    return null
   }
 })
 
@@ -368,6 +412,7 @@ export const update = mutation({
       parentDocument: v.optional(v.union(v.id("documents"), v.null())),
       userId: v.string(),
       lastEditor: v.optional(v.string()),
+      lastEditTime: v.optional(v.string()),
       isShort: v.optional(v.boolean()),
       shortId: v.optional(v.string()),
       verifed: v.optional(v.boolean()),
@@ -472,6 +517,23 @@ export const removeCoverImage = mutation({
     })
 
     return document
+  }
+})
+
+export const incrementViews = mutation({
+  args: {
+    id: v.id("documents"),
+  },
+  handler: async (ctx, args) => {
+    const document = await ctx.db.get(args.id)
+
+    if (!document || !document.isPublished || document.isAcrhived) {
+      return
+    }
+
+    await ctx.db.patch(args.id, {
+      views: (document.views ?? 0) + 1,
+    })
   }
 })
 
