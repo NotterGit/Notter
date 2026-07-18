@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { links } from "@/config/routing/links.route";
 import { pages } from "@/config/routing/pages.route";
 import { images } from "@/config/routing/image.route";
-import packageJson from "../../../../package.json";
+import { VersionBadge } from "@/components/version-badge";
+import { BETA_HOSTS } from "@/config/const/app.const";
 
 export function Footer(){
     const currentYear = new Date().getFullYear()
@@ -14,8 +15,8 @@ export function Footer(){
 
     useEffect(() => {
         setIsBeta(
-            window.location.hostname === "dev.notter.su" ||
-            window.location.host === "localhost:3001"
+            BETA_HOSTS.includes(window.location.hostname) ||
+            BETA_HOSTS.includes(window.location.host)
         )
     }, [])
 
@@ -27,7 +28,7 @@ export function Footer(){
             <div className="w-full max-w-screen-xl mx-auto p-4 md:py-8 ">
                 <div className="sm:flex sm:items-center sm:justify-between">
                     <Link href={pages.ROOT} className="flex items-center mb-4 sm:mb-0 space-x-3 rtl:space-x-reverse">
-                        <Image src={logoSrc} height="50" width={isBeta ? 250 : 180} alt="Notter Logo" className={isBeta ? "block" : "block dark:hidden"}/>
+                        <Image src={logoSrc} height="50" width={isBeta ? 140 : 180} alt="Notter Logo" className={isBeta ? "block" : "block dark:hidden"}/>
                         {!isBeta && (
                             <Image src={darkLogoSrc} height="50" width="180" alt="Notter Logo" className="hidden dark:block"/>
                         )}
@@ -47,7 +48,12 @@ export function Footer(){
                 <hr className="my-6 border-gray-300 dark:border-gray-200 sm:mx-auto lg:my-8" />
                 <span className="block text-sm text-primary/50 sm:text-center">
                     © 2024-{currentYear} <Link href={links.QUALSU} className="hover:text-primary transition-colors duration-200">Qualsu</Link>
-                    {isBeta && ` • v${packageJson.version}`}
+                    {isBeta && (
+                        <>
+                            {" • "}
+                            <VersionBadge className="inline-flex items-center select-none" />
+                        </>
+                    )}
                 </span>
             </div>
         </footer>
