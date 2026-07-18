@@ -9,8 +9,15 @@ export function ThemeIcons() {
   const { resolvedTheme } = useTheme()
 
   useEffect(() => {
-    const href =
-      resolvedTheme === "light" ? images.IMAGE.LIGHT_ICON : images.IMAGE.DARK_ICON
+    const isBeta =
+      window.location.hostname === "dev.notter.su" ||
+      window.location.host === "localhost:3001"
+
+    const href = isBeta
+      ? images.IMAGE.BETA_ICON
+      : resolvedTheme === "light"
+        ? images.IMAGE.LIGHT_ICON
+        : images.IMAGE.DARK_ICON
 
     document
       .querySelectorAll<HTMLLinkElement>(

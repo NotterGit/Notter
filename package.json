@@ -1,6 +1,6 @@
 {
   "name": "notter",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
@@ -10,11 +10,13 @@
     "start": "next start",
     "lint": "eslint .",
     "knip": "knip",
-    "pake": "npx --yes pake-cli@latest https://notter.su/?desktop=true --name Notter --app-version 0.5.3 --icon ./public/image/icon-dark.png",
+    "pake": "npx --yes pake-cli@latest https://notter.su/?desktop=true --name Notter --app-version 0.5.4 --icon ./public/image/icon-dark.png",
     "pake:windows": "npm run pake -- --targets msi",
     "pake:linux": "npm run pake -- --targets deb,appimage,rpm",
     "pake:macos": "npm run pake -- --targets dmg --multi-arch",
-    "pake:all": "npm run pake:windows && npm run pake:linux && npm run pake:macos"
+    "pake:all": "npm run pake:windows && npm run pake:linux && npm run pake:macos",
+    "pake:dev": "npx --yes pake-cli@latest https://dev.notter.su/?desktop=true --name \"Notter Dev\" --app-version 0.5.4 --icon ./public/image/icon-beta.png",
+    "pake:dev:windows": "npm run pake:dev -- --targets msi"
   },
   "dependencies": {
     "@blocknote/core": "^0.24.0",

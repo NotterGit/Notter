@@ -11,6 +11,9 @@
   - Linux (DEB, AppImage, RPM): `npm run pake:linux`
   - macOS (DMG): `npm run pake:macos`
   - All platforms: `npm run pake:all`
+  - Dev/Beta (dev.notter.su):
+    - Build: `npm run pake:dev`
+    - Windows (MSI): `npm run pake:dev:windows`
 
 ## Project Structure
 - `src/app/` — Next.js 15 App Router routes.
@@ -20,6 +23,7 @@
   - `(public)/` — Publicly shared document views (accessible without auth).
   - `api/` — API route endpoints.
   - `globals.css` — Global styles (Tailwind CSS v4).
+  - `manifest.ts` — Dynamic PWA manifest.
 - `src/components/` — Shared React components.
   - `ui/` — Base UI components (Radix UI / custom).
   - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, etc.).
