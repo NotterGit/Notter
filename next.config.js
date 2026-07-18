@@ -35,6 +35,69 @@ const nextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/image/icon.png",
+        has: [
+          {
+            type: "header",
+            key: "host",
+            value: "dev\\.notter\\.su",
+          },
+        ],
+        destination: "/image/icon-beta.png",
+      },
+      {
+        source: "/image/icon-dark.png",
+        has: [
+          {
+            type: "header",
+            key: "host",
+            value: "dev\\.notter\\.su",
+          },
+        ],
+        destination: "/image/icon-beta.png",
+      },
+      {
+        source: "/image/pwa-192.png",
+        has: [
+          {
+            type: "header",
+            key: "host",
+            value: "dev\\.notter\\.su",
+          },
+        ],
+        destination: "/image/icon-beta.png",
+      },
+      {
+        source: "/image/pwa-512.png",
+        has: [
+          {
+            type: "header",
+            key: "host",
+            value: "dev\\.notter\\.su",
+          },
+        ],
+        destination: "/image/icon-beta.png",
+      },
+      {
+        source: "/favicon.ico",
+        has: [
+          {
+            type: "header",
+            key: "host",
+            value: "dev\\.notter\\.su",
+          },
+        ],
+        destination: "/image/icon-beta.png",
+      },
+      {
+        source: "/favicon.ico",
+        destination: "/image/icon-dark.png",
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
