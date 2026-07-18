@@ -6,6 +6,8 @@ import { SignedOut, SignInButton, UserButton } from "@clerk/clerk-react"
 import { SignedIn, useAuth } from "@clerk/nextjs"
 import { useConvexAuth } from "convex/react"
 
+import { useEffect, useState } from "react"
+
 import { ModeToggle } from "@/components/mode-toggle"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
@@ -22,6 +24,18 @@ export function Navbar({ logo = true }: NavbarProps) {
   const { isLoading } = useConvexAuth()
   const authLoading = !isLoaded || isLoading
 
+  const [isBeta, setIsBeta] = useState(false)
+
+  useEffect(() => {
+    setIsBeta(
+      window.location.hostname === "dev.notter.su" ||
+      window.location.host === "localhost:3001"
+    )
+  }, [])
+
+  const lightIcon = isBeta ? images.IMAGE.BETA_ICON : images.IMAGE.LIGHT_ICON
+  const darkIcon = isBeta ? images.IMAGE.BETA_ICON : images.IMAGE.DARK_ICON
+
   return (
     <div
       className={cn(
@@ -32,14 +46,14 @@ export function Navbar({ logo = true }: NavbarProps) {
       <div className="container mx-3 flex items-center justify-between md:mx-auto">
         <Link href={pages.ROOT}>
           <Image
-            src={images.IMAGE.LIGHT_ICON}
+            src={lightIcon}
             height={35}
             width={35}
             alt="Notter"
             className={`${!logo ? "hidden" : ""} block dark:hidden`}
           />
           <Image
-            src={images.IMAGE.DARK_ICON}
+            src={darkIcon}
             height={35}
             width={35}
             alt="Notter"
