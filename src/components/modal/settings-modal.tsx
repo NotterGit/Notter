@@ -16,6 +16,7 @@ import { Button } from "../ui/button"
 import { useRef } from "react"
 import { LogOut, Settings, User } from "lucide-react"
 import { isDesktopApp } from "@/lib/desktop-app"
+import { VersionBadge } from "../version-badge"
 
 const readRedirectPreference = () => {
   if (typeof window === "undefined") return false
@@ -265,7 +266,10 @@ export function SettingsModal() {
             </SignOutButton>
           </div>
         </section>
+
+        <VersionBadge className="block text-center text-[0.7rem] text-muted-foreground select-none" />
       </DialogContent>
     </Dialog>
   )
 }
+

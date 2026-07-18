@@ -11,7 +11,7 @@ export const images = {
 		LOGO: "/image/logo-dark.png",
 		LIGHT_LOGO: "/image/logo.png",
 		DARK_LOGO: "/image/logo-dark.png",
-		BETA_LOGO: "/image/beta-logo.png",
+		BETA_LOGO: "/image/logo-beta.png",
 		ICON: "/image/icon-dark.png",
 		LIGHT_ICON: "/image/icon.png",
 		DARK_ICON: "/image/icon-dark.png",

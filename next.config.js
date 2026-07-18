@@ -55,12 +55,12 @@ const nextConfig = {
       {
         source: "/image/logo.png",
         has: [{ type: "header", key: "host", value: host }],
-        destination: "/image/beta-logo.png",
+        destination: "/image/logo-beta.png",
       },
       {
         source: "/image/logo-dark.png",
         has: [{ type: "header", key: "host", value: host }],
-        destination: "/image/beta-logo.png",
+        destination: "/image/logo-beta.png",
       },
       {
         source: "/image/pwa-192.png",
