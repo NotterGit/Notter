@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import localFont from "next/font/local"
 import { Toaster } from "react-hot-toast"
 
 import "./globals.css"
@@ -11,7 +11,10 @@ import { PwaProvider } from "@/components/providers/pwa-provider"
 
 import { headers } from "next/headers"
 
-const font = Inter({ subsets: ["latin"] })
+const font = localFont({
+  src: "../../public/fonts/Inter-Variable.woff2",
+  display: "swap",
+})
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers()

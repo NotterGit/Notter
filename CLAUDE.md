@@ -14,6 +14,8 @@
   - Dev/Beta (dev.notter.su):
     - Build: `npm run pake:dev`
     - Windows (MSI): `npm run pake:dev:windows`
+- **Troubleshooting:**
+  - If Next.js/Tailwind CSS compilation fails with a missing `lightningcss` binary error on Linux, ensure `lightningcss-linux-x64-gnu` is installed.
 
 ## Project Structure
 - `src/app/` — Next.js 15 App Router routes.
