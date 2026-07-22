@@ -6,6 +6,7 @@ export const links = {
     TODO: "https://todo.notter.su",
     DOWNLOAD: {
         WINDOWS: "https://github.com/NotterGit/Notter/releases/download/0.5.0/Notter.msi",
+        WINDOWS_DEV: "https://github.com/NotterGit/Notter/releases/download/0.5.4-dev/Notter.Dev.msi",
         LINUX: {
             DEB: "https://github.com/NotterGit/Notter/releases/download/0.5.0/Notter.deb",
             APPIMAGE: "https://github.com/NotterGit/Notter/releases/download/0.5.0/Notter.AppImage"
