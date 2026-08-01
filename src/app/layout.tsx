@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import localFont from "next/font/local"
 import { Toaster } from "react-hot-toast"
 
 import "./globals.css"
@@ -9,47 +9,61 @@ import { ThemeIcons } from "@/components/theme-icons"
 import { images } from "@/config/routing/image.route"
 import { PwaProvider } from "@/components/providers/pwa-provider"
 
-const font = Inter({ subsets: ["latin"] })
+import { headers } from "next/headers"
 
-export const metadata: Metadata = {
-  title: {
-    default: "Notter",
-    template: "%s | Notter",
-  },
-  description: "A better way to organize tasks. Meet Notter.",
-  manifest: images.MANIFEST,
-  icons: {
-    icon: [
-      {
-        url: images.IMAGE.DARK_ICON,
-        type: "image/png",
-      },
-      {
-        url: images.IMAGE.LIGHT_ICON,
-        type: "image/png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: images.IMAGE.DARK_ICON,
-        type: "image/png",
-        media: "(prefers-color-scheme: dark)",
-      },
-    ],
-    shortcut: [
-      {
-        url: images.IMAGE.DARK_ICON,
-      },
-      {
-        url: images.IMAGE.LIGHT_ICON,
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: images.IMAGE.DARK_ICON,
-        media: "(prefers-color-scheme: dark)",
-      },
-    ],
-    apple: [images.IMAGE.DARK_ICON],
-  },
+const font = localFont({
+  src: "../../public/fonts/Inter-Variable.woff2",
+  display: "swap",
+})
+
+export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await headers()
+  const host = headersList.get("host") || ""
+  const isBeta = host.includes("dev.notter.su") || host.includes("localhost:3001")
+
+  const iconDark = isBeta ? images.IMAGE.BETA_ICON : images.IMAGE.DARK_ICON
+  const iconLight = isBeta ? images.IMAGE.BETA_ICON : images.IMAGE.LIGHT_ICON
+
+  return {
+    title: {
+      default: "Notter",
+      template: "%s | Notter",
+    },
+    description: "A better way to organize tasks. Meet Notter.",
+    manifest: "/manifest.webmanifest",
+    icons: {
+      icon: [
+        {
+          url: iconDark,
+          type: "image/png",
+        },
+        {
+          url: iconLight,
+          type: "image/png",
+          media: "(prefers-color-scheme: light)",
+        },
+        {
+          url: iconDark,
+          type: "image/png",
+          media: "(prefers-color-scheme: dark)",
+        },
+      ],
+      shortcut: [
+        {
+          url: iconDark,
+        },
+        {
+          url: iconLight,
+          media: "(prefers-color-scheme: light)",
+        },
+        {
+          url: iconDark,
+          media: "(prefers-color-scheme: dark)",
+        },
+      ],
+      apple: [iconDark],
+    },
+  }
 }
 
 export default function RootLayout({
