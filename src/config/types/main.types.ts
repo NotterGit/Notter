@@ -21,6 +21,7 @@ export interface ItemProps {
   expanded?: boolean
   isSearch?: boolean
   shortcut?: string
+  hasArrow?: boolean
   level?: number
   onExpand?: () => void
   label: string

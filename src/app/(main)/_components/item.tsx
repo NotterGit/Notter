@@ -1,6 +1,6 @@
 "use client"
 
-import { Archive, ChevronDown, ChevronRight, LucideIcon, MoreHorizontal, Plus, Trash } from "lucide-react"
+import { Archive, ArrowRight, ChevronDown, ChevronRight, LucideIcon, MoreHorizontal, Plus, Trash } from "lucide-react"
 import { Id } from "../../../../convex/_generated/dataModel"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -28,7 +28,8 @@ export function Item({
     expanded,
     lastEditor,
     lastEditTime,
-    shortcut
+    shortcut,
+    hasArrow
 }: ItemProps){
     const router = useRouter()
     const create = useMutation(api.document.create)
@@ -175,6 +176,9 @@ export function Item({
                 <kbd className="ml-auto inline-flex h-5 select-none items-center gap-1 rounded-md border border-border/60 bg-background/70 px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
                     <span className="text-xs">Ctrl</span>{shortcut.toUpperCase()}
                 </kbd>
+            )}
+            {hasArrow && (
+                <ArrowRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 -translate-x-1 group-hover:translate-x-0 group-hover:text-foreground" />
             )}
 
             {!!id && (

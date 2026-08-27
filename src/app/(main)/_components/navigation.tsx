@@ -266,7 +266,7 @@ export function Navigation() {
                         <Item label="Настройки" icon={Settings2} onClick={settings.onOpen} shortcut="k" />
                         {!isInstalled ? (
                             <>
-                                <Item label="Перейти в ToDo ⇒" icon={Check} onClick={() => {router.push(links.TODO)}} />
+                                <Item label="Перейти в ToDo" icon={Check} onClick={() => {router.push(links.TODO)}} hasArrow />
 
                                 <Item label="Скачать приложение" icon={Download} onClick={() => {
                                     if (isMobile) {
