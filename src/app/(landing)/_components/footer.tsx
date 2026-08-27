@@ -20,7 +20,6 @@ export function Footer(){
         )
     }, [])
 
-    const logoSrc = isBeta ? images.IMAGE.BETA_LOGO : images.IMAGE.LIGHT_LOGO;
     const darkLogoSrc = isBeta ? images.IMAGE.BETA_LOGO : images.IMAGE.DARK_LOGO;
 
     return (
@@ -28,10 +27,7 @@ export function Footer(){
             <div className="w-full max-w-screen-xl mx-auto p-4 md:py-8 ">
                 <div className="sm:flex sm:items-center sm:justify-between">
                     <Link href={pages.ROOT} className="flex items-center mb-4 sm:mb-0 space-x-3 rtl:space-x-reverse">
-                        <Image src={logoSrc} height="50" width={isBeta ? 140 : 180} alt="Notter Logo" className={isBeta ? "block" : "block dark:hidden"}/>
-                        {!isBeta && (
-                            <Image src={darkLogoSrc} height="50" width="180" alt="Notter Logo" className="hidden dark:block"/>
-                        )}
+                        <Image src={darkLogoSrc} height="50" width={isBeta ? 140 : 180} alt="Notter Logo"/>
                     </Link>
                     <ul className="flex flex-wrap items-center mb-6 text-sm font-medium sm:mb-0 text-primary/50">
                         <li>

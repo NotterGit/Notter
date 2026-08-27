@@ -15,9 +15,7 @@ export function ThemeIcons() {
 
     const href = isBeta
       ? images.IMAGE.BETA_ICON
-      : resolvedTheme === "light"
-        ? images.IMAGE.LIGHT_ICON
-        : images.IMAGE.DARK_ICON
+      : images.IMAGE.DARK_ICON
 
     document
       .querySelectorAll<HTMLLinkElement>(
