@@ -27,8 +27,8 @@
   - `globals.css` — Global styles (Tailwind CSS v4).
   - `manifest.ts` — Dynamic PWA manifest.
 - `src/components/` — Shared React components.
+  - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, `use-workspace-admin`, etc.).
   - `ui/` — Base UI components (Radix UI / custom).
-  - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, etc.).
 - `src/lib/` — Utilities (PWA, Desktop App helper, image URLs, plan limits).
 - `convex/` — Backend logic and Database configuration on Convex.
   - `schema.ts` — Database schema (defines `documents` table).

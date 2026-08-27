@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from "next/navigation";
-import { useOrganization, useUser } from "@clerk/clerk-react";
+import { useOrganization, useUser } from "@clerk/nextjs";
+import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin";
 import { useMutation, useQuery } from "convex/react";
 import { toast } from "react-hot-toast";
 import {
@@ -16,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { api } from "../../../../convex/_generated/api";
-import { Protect } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/ui/shadcn-io/dropzone";
 import { getById as getOrg } from "../../api/orgs/org";
@@ -30,7 +30,7 @@ export function Menu({ documentId }: MenuProps) {
   const router = useRouter();
   const { user } = useUser();
   const { organization } = useOrganization();
-  const isOrg = organization?.id !== undefined
+  const { isOrg, isAdmin } = useWorkspaceAdmin();
   const orgId = isOrg ? organization?.id as string : user?.id as string;
   const archive = useMutation(api.document.archive);
   const restore = useMutation(api.document.restore);
@@ -58,6 +58,11 @@ export function Menu({ documentId }: MenuProps) {
   }, [orgId, isOrg]);
 
   const onArchive = () => {
+    if (isOrg && !isAdmin) {
+      toast.error("Только администраторы могут архивировать заметки");
+      return;
+    }
+
     update({
       id: documentId,
       userId: orgId,
@@ -81,6 +86,11 @@ export function Menu({ documentId }: MenuProps) {
   };
 
   const onRestore = () => {
+    if (isOrg && !isAdmin) {
+      toast.error("Только администраторы могут восстанавливать заметки");
+      return;
+    }
+
     update({
       id: documentId,
       userId: orgId,
@@ -157,28 +167,23 @@ export function Menu({ documentId }: MenuProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-60 rounded-xl border-white/60 bg-white/95 shadow-xl dark:border-white/10 dark:bg-zinc-950/95" align="end" alignOffset={8} forceMount>
-        <Protect
-          condition={(check) => {
-            return check({
-              role: "org:admin",
-            }) || doc?.userId === user?.id;
-          }}
-          fallback={<></>}
-        >
-          {!doc?.isAcrhived ? (
-            <DropdownMenuItem onClick={onArchive}>
-              <Archive className="h-4 w-4" />
-              Архивировать
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem onClick={onRestore}>
-              <Undo className="h-4 w-4" />
-              Восстановить
-            </DropdownMenuItem>
-          )}
+        {isAdmin && (
+          <>
+            {!doc?.isAcrhived ? (
+              <DropdownMenuItem onClick={onArchive}>
+                <Archive className="h-4 w-4" />
+                Архивировать
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={onRestore}>
+                <Undo className="h-4 w-4" />
+                Восстановить
+              </DropdownMenuItem>
+            )}
 
-          <DropdownMenuSeparator />
-        </Protect>
+            <DropdownMenuSeparator />
+          </>
+        )}
         
         {profile?.premium == 2 && (
           <>

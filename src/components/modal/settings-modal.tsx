@@ -4,6 +4,7 @@ import { useSettings } from "../hooks/use-settings"
 import { Label } from "../ui/label"
 import { Separator } from "@radix-ui/react-dropdown-menu"
 import { SignOutButton, useOrganization, useClerk, useUser } from "@clerk/nextjs"
+import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Switch } from "@/components/ui/switch"
@@ -38,17 +39,17 @@ export function SettingsModal() {
   const { user } = useUser()
   const clerk = useClerk()
   const { organization } = useOrganization()
+  const { isOrg, isAdmin } = useWorkspaceAdmin()
   const [isPrivated, setIsPrivated] = useState<boolean>(false)
   const [watermark, setWatermark] = useState<boolean>(false)
   const [redirect, setRedirect] = useState<boolean>(false)
   const [isDesktop, setIsDesktop] = useState<boolean>(false)
   const [userData, setUserData] = useState<any>(null)
-  const isOrg = organization?.id !== undefined
-  const id = isOrg ? organization?.id : user?.id as string
+  const id = isOrg ? organization?.id : user?.id
 
   useEffect(() => {
     const fetchData = async () => {
-      if (user?.id) {
+      if (id) {
         const data = isOrg ? await getOrgById(id) : await getUserById(id)
         if (data) {
           setUserData(data)
@@ -62,9 +63,10 @@ export function SettingsModal() {
 
     setIsDesktop(isDesktopApp())
     setRedirect(readRedirectPreference())
-  }, [user, id, isOrg])
+  }, [id, isOrg])
 
   const handlePrivacyToggle = async (value: boolean) => {
+    if (isOrg && !isAdmin && userData?.owner !== user?.id) return
     setIsPrivated(value)
 
     if (id) {
@@ -79,6 +81,7 @@ export function SettingsModal() {
   }
 
   const handleWatermarkToggle = async (value: boolean) => {
+    if (isOrg && !isAdmin && userData?.owner !== user?.id) return
     setWatermark(value)
 
     if (id) {
@@ -205,7 +208,7 @@ export function SettingsModal() {
           />
         </div>
 
-        {(userData?.owner === user?.id || !isOrg) && (
+        {((userData?.owner === user?.id || isAdmin) || !isOrg) && (
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-y-1">
               <Label>Приватный профиль</Label>
@@ -221,7 +224,7 @@ export function SettingsModal() {
           </div>
         )}
 
-        {(userData?.premium === 2 && userData?.owner === user?.id || !isOrg) && (
+        {userData?.premium === 2 && ((userData?.owner === user?.id || isAdmin) || !isOrg) && (
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-y-1">
               <Label>Логотип Notter</Label>

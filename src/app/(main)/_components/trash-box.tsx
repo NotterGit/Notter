@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input"
 import { ConfirmModal } from "@/components/modal/confirm-modal" 
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Protect, useOrganization, useUser } from "@clerk/nextjs"
+import { useOrganization, useUser } from "@clerk/nextjs"
+import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
 import { pages } from "@/config/routing/pages.route"
 
 export function TrashBox(){
@@ -19,6 +20,7 @@ export function TrashBox(){
   const params = useParams() 
   const { user } = useUser()
   const { organization } = useOrganization()
+  const { isOrg, isAdmin } = useWorkspaceAdmin()
   const orgId = organization?.id !== undefined ? organization?.id as string : user?.id as string
   const documents = useQuery(api.document.getTrash, {
     userId: orgId
@@ -41,6 +43,11 @@ export function TrashBox(){
     documentId: Id<"documents">,
   ) => {
     event.stopPropagation() 
+    if (isOrg && !isAdmin) {
+      toast.error("Только администраторы могут восстанавливать заметки")
+      return
+    }
+
     const promise = restore({
       id: documentId,
       userId: orgId
@@ -54,6 +61,11 @@ export function TrashBox(){
   } 
 
   const onRemove = (documentId: Id<"documents">) => {
+    if (isOrg && !isAdmin) {
+      toast.error("Только администраторы могут удалять заметки")
+      return
+    }
+
     const promise = remove({
       id: documentId,
       userId: orgId
@@ -71,6 +83,10 @@ export function TrashBox(){
   }
 
   const removeAll = () => {
+    if (isOrg && !isAdmin) {
+      toast.error("Только администраторы могут очищать архив")
+      return
+    }
 
     router.push(pages.DASHBOARD())
 
@@ -131,55 +147,41 @@ export function TrashBox(){
           >
             <span className="truncate pl-2 my-3">{document.title}</span>
             <div className="flex items-center">
-              <Protect
-                    condition={(check) => {
-                        return check({
-                            role: "org:admin"
-                        }) || document?.userId === user?.id
-                    }}
-                    fallback={<></>}
-              >
-              <button
-                onClick={(e) => onRestore(e, document._id)}
-                className="rounded-md p-2 hover:bg-background/80"
-                aria-label="Восстановить заметку"
-              >
-                <Undo className="h-4 w-4 text-muted-foreground " />
-              </button>
-                <ConfirmModal onConfirm={() => onRemove(document._id)}>
+              {isAdmin && (
+                <>
                   <button
+                    onClick={(e) => onRestore(e, document._id)}
                     className="rounded-md p-2 hover:bg-background/80"
-                    aria-label="Удалить безвозвратно"
+                    aria-label="Восстановить заметку"
                   >
-                    <Trash className="h-4 w-4 text-muted-foreground"/>
+                    <Undo className="h-4 w-4 text-muted-foreground " />
                   </button>
-                </ConfirmModal>
-              </Protect>
+                  <ConfirmModal onConfirm={() => onRemove(document._id)}>
+                    <button
+                      className="rounded-md p-2 hover:bg-background/80"
+                      aria-label="Удалить безвозвратно"
+                    >
+                      <Trash className="h-4 w-4 text-muted-foreground"/>
+                    </button>
+                  </ConfirmModal>
+                </>
+              )}
             </div>
           </button>
         ))}
         
-        <Protect
-            condition={(check) => {
-                return check({
-                    role: "org:admin"
-                }) || organization?.id === undefined
-            }}
-            fallback={<></>}
-        >
-          {filteredDocuments?.length !== 0 && (
-            <>
-              <Separator className="my-2"/>
-              <ConfirmModal onConfirm={() => removeAll()}>
-                <div className="flex justify-center items-center">
-                  <Button className="h-8 w-40 rounded-lg">
-                    Очистить <Trash/>
-                  </Button>
-                </div>
-              </ConfirmModal>
-            </>
-          )}
-        </Protect>
+        {isAdmin && filteredDocuments?.length !== 0 && (
+          <>
+            <Separator className="my-2"/>
+            <ConfirmModal onConfirm={() => removeAll()}>
+              <div className="flex justify-center items-center">
+                <Button className="h-8 w-40 rounded-lg">
+                  Очистить <Trash/>
+                </Button>
+              </div>
+            </ConfirmModal>
+          </>
+        )}
       </div>
     </section>
   ) 

@@ -9,7 +9,8 @@ import { useRouter } from "next/navigation"
 import { useMutation } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Protect, useOrganization, useUser } from "@clerk/nextjs"
+import { useOrganization, useUser } from "@clerk/nextjs"
+import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
 import { pages } from "@/config/routing/pages.route"
 import { formatLastEditTime, getCurrentEditTime } from "@/lib/last-edit-time"
 import type { ItemProps } from "@/config/types/main.types";
@@ -37,7 +38,7 @@ export function Item({
     const update = useMutation(api.document.update)
     const { user } = useUser()
     const { organization } = useOrganization()
-    const isOrg = organization?.id !== undefined
+    const { isOrg, isAdmin } = useWorkspaceAdmin()
     const orgId = isOrg ? organization?.id as string : user?.id as string
 
     const onArchive = (
@@ -45,6 +46,10 @@ export function Item({
     ) => {
         event.stopPropagation()
         if(!id) return
+        if (isOrg && !isAdmin) {
+            toast.error("Только администраторы могут архивировать заметки")
+            return
+        }
         update({
             id: id,
             isPublished: false,
@@ -190,20 +195,15 @@ export function Item({
                             </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-60 rounded-xl border-white/60 bg-white/95 shadow-xl dark:border-white/10 dark:bg-zinc-950/95" align="start" side="right" forceMount>
-                            <Protect
-                                condition={(check) => {
-                                    return check({
-                                        role: "org:admin"
-                                    }) || organization?.id === undefined
-                                }}
-                                fallback={<></>}
-                            >
-                                <DropdownMenuItem onClick={onArchive}>
-                                    <Archive className="h-4 w-4"/>
-                                    Архивировать
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator/>
-                            </Protect>
+                            {isAdmin && (
+                                <>
+                                    <DropdownMenuItem onClick={onArchive}>
+                                        <Archive className="h-4 w-4"/>
+                                        Архивировать
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator/>
+                                </>
+                            )}
                                 <div className="text-xs text-muted-foreground p-2">
                                     Последнее изменение от: {lastEditor}
                                 </div>

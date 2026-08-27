@@ -59,7 +59,7 @@ export function UserItem(){
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                     <button className="flex w-full items-center gap-2 rounded-xl border border-transparent p-2 transition hover:border-black/10 hover:bg-white/70 dark:hover:border-white/10 dark:hover:bg-zinc-900/70">
-                        <Avatar className="h-7 w-7 ring-1 ring-border/60">
+                        <Avatar className="h-6 w-6 ring-1 ring-border/60">
                             {image ? (
                                 <AvatarImage src={image} alt={user?.username ?? user?.fullName ?? "user"} className="object-cover" />
                             ) : (
