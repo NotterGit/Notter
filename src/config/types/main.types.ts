@@ -29,6 +29,8 @@ export interface ItemProps {
   icon: LucideIcon
   lastEditor?: string
   lastEditTime?: string
+  creatorName?: string
+  createdAt?: number | string
   verified?: boolean
 }
 

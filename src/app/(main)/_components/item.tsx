@@ -1,6 +1,6 @@
 "use client"
 
-import { Archive, ArrowRight, ChevronDown, ChevronRight, LucideIcon, MoreHorizontal, Plus, Trash } from "lucide-react"
+import { Archive, ArrowRight, Calendar, ChevronDown, ChevronRight, History, LucideIcon, MoreHorizontal, Plus, Trash } from "lucide-react"
 import { Id } from "../../../../convex/_generated/dataModel"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -29,6 +29,8 @@ export function Item({
     expanded,
     lastEditor,
     lastEditTime,
+    creatorName,
+    createdAt,
     shortcut,
     hasArrow
 }: ItemProps){
@@ -194,22 +196,59 @@ export function Item({
                                 <MoreHorizontal className="h-4 w-4 text-muted-foreground"/>
                             </div>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-60 rounded-xl border-white/60 bg-white/95 shadow-xl dark:border-white/10 dark:bg-zinc-950/95" align="start" side="right" forceMount>
+                        <DropdownMenuContent className="w-64 rounded-2xl border-white/60 bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/95" align="start" side="right" forceMount>
                             {isAdmin && (
                                 <>
-                                    <DropdownMenuItem onClick={onArchive}>
-                                        <Archive className="h-4 w-4"/>
+                                    <DropdownMenuItem onClick={onArchive} className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10">
+                                        <Archive className="h-4 w-4 text-muted-foreground"/>
                                         Архивировать
                                     </DropdownMenuItem>
-                                    <DropdownMenuSeparator/>
+                                    <DropdownMenuSeparator className="my-1"/>
                                 </>
                             )}
-                                <div className="text-xs text-muted-foreground p-2">
-                                    Последнее изменение от: {lastEditor}
+                            <div className="rounded-xl border border-black/5 bg-black/[0.03] p-2.5 dark:border-white/5 dark:bg-white/[0.04] space-y-2.5">
+                                {(createdAt || creatorName) && (
+                                    <>
+                                        <div className="flex items-start gap-2.5">
+                                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                                <Calendar className="h-3.5 w-3.5" />
+                                            </div>
+                                            <div className="flex min-w-0 flex-1 flex-col">
+                                                <div className="flex items-center justify-between gap-1">
+                                                    <span className="text-[11px] font-medium text-muted-foreground">Создана</span>
+                                                    {createdAt && (
+                                                        <span className="text-[10px] text-muted-foreground/70 font-mono">
+                                                            {formatLastEditTime(createdAt)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className="truncate text-xs font-semibold text-foreground" title={creatorName || "Пользователь"}>
+                                                    {creatorName || "Пользователь"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="h-px bg-black/[0.04] dark:bg-white/[0.06]" />
+                                    </>
+                                )}
+                                <div className="flex items-start gap-2.5">
+                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                                        <History className="h-3.5 w-3.5" />
+                                    </div>
+                                    <div className="flex min-w-0 flex-1 flex-col">
+                                        <div className="flex items-center justify-between gap-1">
+                                            <span className="text-[11px] font-medium text-muted-foreground">Изменена</span>
+                                            {lastEditTime && (
+                                                <span className="text-[10px] text-muted-foreground/70 font-mono">
+                                                    {formatLastEditTime(lastEditTime)}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <span className="truncate text-xs font-semibold text-foreground" title={lastEditor || "—"}>
+                                            {lastEditor || "—"}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div className="text-xs text-muted-foreground px-2 pb-2">
-                                    Последние изменение в: {formatLastEditTime(lastEditTime)}
-                                </div>
+                            </div>
                         </DropdownMenuContent>
                     </DropdownMenu>
                     <div 

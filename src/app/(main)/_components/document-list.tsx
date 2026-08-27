@@ -82,6 +82,8 @@ export function DocumentList({
               expanded={expanded[document._id]}
               lastEditor={document.lastEditor as string}
               lastEditTime={document.lastEditTime as string}
+              creatorName={(document.userName || document.creatorName) as string}
+              createdAt={document._creationTime}
               verified={document.verifed}
             />
             {expanded[document._id] && (

@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Archive, FileJson, MoreHorizontal, Undo } from "lucide-react";
+import { Archive, Calendar, Download, History, MoreHorizontal, Undo, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -166,47 +166,92 @@ export function Menu({ documentId }: MenuProps) {
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-60 rounded-xl border-white/60 bg-white/95 shadow-xl dark:border-white/10 dark:bg-zinc-950/95" align="end" alignOffset={8} forceMount>
+      <DropdownMenuContent
+        className="w-72 rounded-2xl border-white/60 bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/95"
+        align="end"
+        alignOffset={8}
+        forceMount
+      >
         {isAdmin && (
           <>
             {!doc?.isAcrhived ? (
-              <DropdownMenuItem onClick={onArchive}>
-                <Archive className="h-4 w-4" />
+              <DropdownMenuItem
+                onClick={onArchive}
+                className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10"
+              >
+                <Archive className="h-4 w-4 text-muted-foreground" />
                 Архивировать
               </DropdownMenuItem>
             ) : (
-              <DropdownMenuItem onClick={onRestore}>
-                <Undo className="h-4 w-4" />
+              <DropdownMenuItem
+                onClick={onRestore}
+                className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10"
+              >
+                <Undo className="h-4 w-4 text-muted-foreground" />
                 Восстановить
               </DropdownMenuItem>
             )}
 
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="my-1" />
           </>
         )}
         
         {profile?.premium == 2 && (
           <>
-            <DropdownMenuItem onClick={downloadJson}>
-              <FileJson className="h-4 w-4" /> Скачать JSON
+            <DropdownMenuItem
+              onClick={downloadJson}
+              className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10"
+            >
+              <Download className="h-4 w-4 text-muted-foreground" /> Скачать JSON
             </DropdownMenuItem>
 
-            <DropdownMenuItem onClick={() => setOpenModal(true)}>
-              <FileJson className="h-4 w-4" /> Загрузить JSON
+            <DropdownMenuItem
+              onClick={() => setOpenModal(true)}
+              className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10"
+            >
+              <Upload className="h-4 w-4 text-muted-foreground" /> Загрузить JSON
             </DropdownMenuItem>
 
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="my-1" />
           </>
         )}
 
-        <div className="p-1 text-xs text-muted-foreground">
-          Заметка создана: {doc?.userName}
-        </div>
-        <div className="p-1 text-xs text-muted-foreground">
-          Последнее изменение от: {doc?.lastEditor}
-        </div>
-        <div className="p-1 text-xs text-muted-foreground">
-          Последние изменение в: {formatLastEditTime(doc?.lastEditTime)}
+        <div className="rounded-xl border border-black/5 bg-black/[0.03] p-2.5 dark:border-white/5 dark:bg-white/[0.04] space-y-2.5">
+          <div className="flex items-start gap-2.5">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <Calendar className="h-3.5 w-3.5" />
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[11px] font-medium text-muted-foreground">Создана</span>
+                <span className="text-[10px] text-muted-foreground/70 font-mono">
+                  {doc?._creationTime ? formatLastEditTime(doc._creationTime) : "—"}
+                </span>
+              </div>
+              <span className="truncate text-xs font-semibold text-foreground" title={doc?.userName || doc?.creatorName || "Пользователь"}>
+                {doc?.userName || doc?.creatorName || "Пользователь"}
+              </span>
+            </div>
+          </div>
+
+          <div className="h-px bg-black/[0.04] dark:bg-white/[0.06]" />
+
+          <div className="flex items-start gap-2.5">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              <History className="h-3.5 w-3.5" />
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[11px] font-medium text-muted-foreground">Изменена</span>
+                <span className="text-[10px] text-muted-foreground/70 font-mono">
+                  {doc?.lastEditTime ? formatLastEditTime(doc.lastEditTime) : "—"}
+                </span>
+              </div>
+              <span className="truncate text-xs font-semibold text-foreground" title={doc?.lastEditor || "—"}>
+                {doc?.lastEditor || "—"}
+              </span>
+            </div>
+          </div>
         </div>
       </DropdownMenuContent>
       {openModal && profile?.premium == 2 && (
