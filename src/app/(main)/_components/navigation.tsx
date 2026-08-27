@@ -35,6 +35,7 @@ import {
     subscribePwaInstalled,
     subscribePwaPromptInstall,
 } from "@/lib/pwa-install"
+import { links } from "@/config/routing/links.route"
 
 export function Navigation() {
     const router = useRouter()
@@ -264,16 +265,19 @@ export function Navigation() {
                         <Item label="Поиск" icon={Search} isSearch onClick={seacrh.onOpen} />
                         <Item label="Настройки" icon={Settings2} onClick={settings.onOpen} shortcut="k" />
                         {!isInstalled ? (
-                            <Item label="Скачать приложение" icon={Download} onClick={() => {
-                                if (isMobile) {
-                                    void installPwa()
-                                    return
-                                }
+                            <>
+                                <Item label="Перейти в ToDo ⇒" icon={Check} onClick={() => {router.push(links.TODO)}} />
 
-                                setIsInstallModalOpen(true)
-                            }} />
+                                <Item label="Скачать приложение" icon={Download} onClick={() => {
+                                    if (isMobile) {
+                                        void installPwa()
+                                        return
+                                    }
+
+                                    setIsInstallModalOpen(true)
+                                }} />
+                            </>
                         ) : null}
-                        {/* <Item label="Notter ToDo" icon={Check} onClick={() => {router.push(links.TODO)}} /> */}
                         <Item onClick={handleCreate} label="Новая заметка" icon={PlusCircle} />
                     </div>
 
