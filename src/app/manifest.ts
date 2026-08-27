@@ -14,7 +14,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
   return {
     name: "Notter",
     short_name: "Notter",
-    description: "Новый уровень построения задач. Встречайте Notter",
+    description: "Думайте, пишите, создавайте. Все это Notter",
     start_url: "/?source=pwa",
     scope: "/",
     id: "/",
