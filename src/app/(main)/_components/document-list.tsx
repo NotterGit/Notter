@@ -317,6 +317,7 @@ export function DocumentList({
             creatorName={(item.doc.userName || item.doc.creatorName) as string}
             createdAt={item.doc._creationTime}
             verified={item.doc.verifed}
+            isPinned={item.doc.isPinned}
           />
         ))}
         {onCreateDocument && (
@@ -389,6 +390,7 @@ export function DocumentList({
                         creatorName={(item.doc.userName || item.doc.creatorName) as string}
                         createdAt={item.doc._creationTime}
                         verified={item.doc.verifed}
+                        isPinned={item.doc.isPinned}
                         isDragging={snapshot.isDragging}
                         isCombineTarget={Boolean(snapshot.combineTargetFor)}
                         dragHandleProps={provided.dragHandleProps}

@@ -108,6 +108,11 @@ export const getSidebar = query({
             .collect()
 
         return documents.sort((a, b) => {
+            const aPinned = Boolean(a.isPinned)
+            const bPinned = Boolean(b.isPinned)
+            if (aPinned !== bPinned) {
+                return aPinned ? -1 : 1
+            }
             if (a.order !== undefined && b.order !== undefined) {
                 return a.order - b.order
             }
@@ -136,6 +141,11 @@ export const getAllSidebar = query({
             .collect()
 
         return documents.sort((a, b) => {
+            const aPinned = Boolean(a.isPinned)
+            const bPinned = Boolean(b.isPinned)
+            if (aPinned !== bPinned) {
+                return aPinned ? -1 : 1
+            }
             if (a.order !== undefined && b.order !== undefined) {
                 return a.order - b.order
             }
@@ -452,6 +462,7 @@ export const update = mutation({
       shortId: v.optional(v.string()),
       verifed: v.optional(v.boolean()),
       isAcrhived: v.optional(v.boolean()),
+      isPinned: v.optional(v.boolean()),
       order: v.optional(v.number())
     },
     handler: async (ctx, args) => {

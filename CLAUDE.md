@@ -41,7 +41,7 @@
 - **Styling:** Tailwind CSS v4 with `@tailwindcss/postcss`.
 - **Editor:** BlockNote (`@blocknote/react` and `@blocknote/mantine`).
 - **Drag & Drop:** `@hello-pangea/dnd` for hierarchical note reordering and nesting in the sidebar.
-- **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `parentDocument`, `order`, `content`, `coverImage`, `icon`, `isPublished`, etc.
+- **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `isPinned`, `parentDocument`, `order`, `content`, `coverImage`, `icon`, `isPublished`, etc.
 - **Convex Indexes:**
   - `by_user`: `["userId"]`
   - `by_user_parent`: `["userId", "parentDocument"]`

@@ -10,6 +10,7 @@ export default defineSchema({
         shortId: v.string(),
         isShort: v.optional(v.boolean()),
         isAcrhived: v.boolean(),
+        isPinned: v.optional(v.boolean()),
         parentDocument: v.optional(v.union(v.id("documents"), v.null())),
         content: v.optional(v.string()),
         coverImage: v.optional(v.string()),

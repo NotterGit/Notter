@@ -36,6 +36,7 @@ export interface ItemProps {
   creatorName?: string
   createdAt?: number | string
   verified?: boolean
+  isPinned?: boolean
   isDragging?: boolean
   isCombineTarget?: boolean
   isArchiveTarget?: boolean

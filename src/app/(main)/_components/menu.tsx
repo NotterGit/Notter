@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Archive, Calendar, Download, History, MoreHorizontal, Undo, Upload } from "lucide-react";
+import { Archive, Calendar, Download, History, MoreHorizontal, Pin, PinOff, Undo, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -56,6 +56,25 @@ export function Menu({ documentId }: MenuProps) {
 
     fetchProfile();
   }, [orgId, isOrg]);
+
+  const onTogglePin = () => {
+    if (!doc) return;
+
+    const isCurrentlyPinned = Boolean(doc.isPinned);
+    const promise = update({
+      id: documentId,
+      userId: orgId,
+      isPinned: !isCurrentlyPinned,
+      lastEditor: user?.username as string,
+      lastEditTime: getCurrentEditTime(),
+    });
+
+    toast.promise(promise, {
+      loading: isCurrentlyPinned ? "Открепляем заметку..." : "Закрепляем заметку...",
+      success: isCurrentlyPinned ? "Заметка откреплена!" : "Заметка закреплена!",
+      error: isCurrentlyPinned ? "Не удалось открепить заметку" : "Не удалось закрепить заметку",
+    });
+  };
 
   const onArchive = () => {
     if (isOrg && !isAdmin) {
@@ -172,6 +191,25 @@ export function Menu({ documentId }: MenuProps) {
         alignOffset={8}
         forceMount
       >
+        <DropdownMenuItem
+          onClick={onTogglePin}
+          className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10"
+        >
+          {doc?.isPinned ? (
+            <>
+              <PinOff className="h-4 w-4 text-muted-foreground" />
+              Открепить
+            </>
+          ) : (
+            <>
+              <Pin className="h-4 w-4 text-muted-foreground" />
+              Закрепить
+            </>
+          )}
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator className="my-1" />
+
         {isAdmin && (
           <>
             {!doc?.isAcrhived ? (

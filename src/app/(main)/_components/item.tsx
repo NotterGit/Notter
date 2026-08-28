@@ -1,7 +1,7 @@
 "use client"
 
 import Twemoji from "react-twemoji"
-import { Archive, ArrowRight, Calendar, ChevronDown, ChevronRight, History, LucideIcon, MoreHorizontal, Plus, Trash } from "lucide-react"
+import { Archive, ArrowRight, Calendar, ChevronDown, ChevronRight, History, LucideIcon, MoreHorizontal, Pin, PinOff, Plus, Trash } from "lucide-react"
 import { Id } from "../../../../convex/_generated/dataModel"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -34,6 +34,7 @@ export function Item({
     createdAt,
     shortcut,
     hasArrow,
+    isPinned,
     isDragging,
     isCombineTarget,
     isArchiveTarget,
@@ -50,6 +51,27 @@ export function Item({
     const { organization } = useOrganization()
     const { isOrg, isAdmin } = useWorkspaceAdmin()
     const orgId = isOrg ? organization?.id as string : user?.id as string
+
+    const onTogglePin = (
+        event: React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+        event.stopPropagation()
+        if (!id) return
+
+        const promise = update({
+            id,
+            isPinned: !isPinned,
+            userId: orgId,
+            lastEditor: user?.username as string,
+            lastEditTime: getCurrentEditTime(),
+        })
+
+        toast.promise(promise, {
+            loading: isPinned ? "Открепляем заметку..." : "Закрепляем заметку...",
+            success: isPinned ? "Заметка откреплена!" : "Заметка закреплена!",
+            error: isPinned ? "Не удалось открепить заметку" : "Не удалось закрепить заметку",
+        })
+    }
 
     const onArchive = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>
@@ -160,6 +182,10 @@ export function Item({
                 </Twemoji>
             </span>
 
+            {isPinned && (
+                <Pin className="ml-1.5 h-3.5 w-3.5 shrink-0 rotate-45 text-amber-500 fill-amber-500/20 dark:text-amber-400 dark:fill-amber-400/20" />
+            )}
+
             {isCombineTarget && (
                 <span className="ml-1.5 shrink-0 rounded-md bg-logo-yellow/30 px-1.5 py-0.5 text-[10px] font-bold text-foreground">
                     Вложить
@@ -200,6 +226,20 @@ export function Item({
                             </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-64 rounded-2xl border-white/60 bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/95" align="start" side="right" forceMount>
+                            <DropdownMenuItem onClick={onTogglePin} className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10">
+                                {isPinned ? (
+                                    <>
+                                        <PinOff className="h-4 w-4 text-muted-foreground"/>
+                                        Открепить
+                                    </>
+                                ) : (
+                                    <>
+                                        <Pin className="h-4 w-4 text-muted-foreground"/>
+                                        Закрепить
+                                    </>
+                                )}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="my-1"/>
                             {isAdmin && (
                                 <>
                                     <DropdownMenuItem onClick={onArchive} className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10">
