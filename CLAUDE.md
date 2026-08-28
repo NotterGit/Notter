@@ -40,7 +40,8 @@
 - **Authentication:** Clerk (`@clerk/nextjs`).
 - **Styling:** Tailwind CSS v4 with `@tailwindcss/postcss`.
 - **Editor:** BlockNote (`@blocknote/react` and `@blocknote/mantine`).
-- **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `parentDocument`, `content`, `coverImage`, `icon`, `isPublished`, etc.
+- **Drag & Drop:** `@hello-pangea/dnd` for hierarchical note reordering and nesting in the sidebar.
+- **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `parentDocument`, `order`, `content`, `coverImage`, `icon`, `isPublished`, etc.
 - **Convex Indexes:**
   - `by_user`: `["userId"]`
   - `by_user_parent`: `["userId", "parentDocument"]`
@@ -51,6 +52,7 @@
 - **Convex Operations:** All DB reads/writes must go through Convex mutations/queries. Verify identity via `ctx.auth.getUserIdentity()`.
 - **Imports:** Use absolute path aliases like `@/components/...` or `@/lib/...`.
 - **Components:** Maintain modular architecture; separate layout structure, presentation, and logic.
+- Do not run `npm run dev` or `npm run build`!
 
 ## Auto-Update Rule (English Only)
 > [!IMPORTANT]

@@ -1,5 +1,9 @@
 import type { Doc, Id } from "../../../convex/_generated/dataModel"
 import type { LucideIcon } from "lucide-react"
+import type {
+  DraggableProvidedDraggableProps,
+  DraggableProvidedDragHandleProps,
+} from "@hello-pangea/dnd"
 
 export interface NavbarProps {
   isCollapsed: boolean
@@ -32,6 +36,11 @@ export interface ItemProps {
   creatorName?: string
   createdAt?: number | string
   verified?: boolean
+  isDragging?: boolean
+  isCombineTarget?: boolean
+  draggableProps?: DraggableProvidedDraggableProps
+  dragHandleProps?: DraggableProvidedDragHandleProps | null
+  innerRef?: React.Ref<HTMLDivElement>
 }
 
 export interface BannerProps {

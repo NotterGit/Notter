@@ -1,5 +1,6 @@
 "use client"
 
+import Twemoji from "react-twemoji"
 import { Archive, ArrowRight, Calendar, ChevronDown, ChevronRight, History, LucideIcon, MoreHorizontal, Plus, Trash } from "lucide-react"
 import { Id } from "../../../../convex/_generated/dataModel"
 import { cn } from "@/lib/utils"
@@ -32,7 +33,12 @@ export function Item({
     creatorName,
     createdAt,
     shortcut,
-    hasArrow
+    hasArrow,
+    isDragging,
+    isCombineTarget,
+    draggableProps,
+    dragHandleProps,
+    innerRef,
 }: ItemProps){
     const router = useRouter()
     const create = useMutation(api.document.create)
@@ -108,47 +114,20 @@ export function Item({
     }    
 
     const ChevronIcon = expanded ? ChevronDown : ChevronRight
-    
-    const handleDragStart = (event: React.DragEvent<HTMLDivElement>) => {
-        if (id) {
-            event.dataTransfer.setData("text/plain", id as Id<"documents">)
-            event.dataTransfer.effectAllowed = "move"
-        }
-    }
-
-    const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-        event.preventDefault()
-        const draggedId = event.dataTransfer.getData("text/plain")
-        
-        if (draggedId && id && draggedId != id) {
-            const promise = update({ 
-                id: draggedId as Id<"documents">, 
-                parentDocument: id as Id<"documents">,
-                userId: orgId,
-                lastEditor: user?.username as string,
-                lastEditTime: getCurrentEditTime()
-            })
-            
-            toast.promise(promise, {
-                loading: "Перемещаем...",
-                success: "Заметка успешно перемещена!",
-                error: "Не удалось переместить заметку"
-            })
-        }
-    }
 
     return (
         <div 
+            ref={innerRef}
+            {...(draggableProps ?? {})}
+            {...(dragHandleProps ?? {})}
             onClick={onClick} 
             role="button" 
             style={{paddingLeft: level ? `${(level * 12) + 12}px` : "12px"}} 
-            className={cn(`group mb-0.5 flex min-h-[34px] w-full items-center rounded-xl py-1.5 pr-2 text-sm font-medium text-muted-foreground transition hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10`,
-            active && "bg-gradient-to-r from-logo-yellow/20 to-logo-cyan/20 text-foreground shadow-sm"
+            className={cn(`group mb-0.5 flex min-h-[34px] w-full items-center rounded-xl py-1.5 pr-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10 select-none`,
+            active && "bg-gradient-to-r from-logo-yellow/20 to-logo-cyan/20 text-foreground shadow-sm",
+            isDragging && "bg-white/95 dark:bg-zinc-900/95 shadow-xl ring-2 ring-logo-yellow/40 text-foreground",
+            isCombineTarget && "bg-logo-yellow/20 dark:bg-logo-yellow/25 ring-2 ring-logo-yellow shadow-lg text-foreground border-logo-yellow/50"
             )}
-            draggable={id === undefined ? false : true}
-            onDragStart={handleDragStart}
-            onDrop={handleDrop}
-            onDragOver={(e) => e.preventDefault()}
         >
             
             {!!id && (
@@ -156,21 +135,32 @@ export function Item({
                     role="button" 
                     className="mr-1 rounded-md p-0.5 hover:bg-background/70"
                     onClick={handleExpand}
+                    onMouseDown={(e) => e.stopPropagation()}
                 >
                     <ChevronIcon className="h-4 w-4 shrink-0 text-muted-foreground/70"/>
                 </div>
             )}
             {documentIcon ? (
                 <div className="shrink-0 mr-2 text-[18px]">
-                    {documentIcon}
+                    <Twemoji options={{ className: "twemoji" }}>
+                        {documentIcon}
+                    </Twemoji>
                 </div>
             ) : (
                 <Icon className="mr-2 h-[17px] w-[17px] shrink-0 text-muted-foreground"/>
             )}
             
             <span className="truncate">
-                {label}
+                <Twemoji options={{ className: "twemoji" }}>
+                    {label}
+                </Twemoji>
             </span>
+
+            {isCombineTarget && (
+                <span className="ml-1.5 shrink-0 rounded-md bg-logo-yellow/30 px-1.5 py-0.5 text-[10px] font-bold text-foreground">
+                    Вложить
+                </span>
+            )}
             
 
 
@@ -192,7 +182,11 @@ export function Item({
                 <div className="ml-auto flex items-center gap-x-2">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <div role="button" className="ml-auto rounded-md p-1 transition hover:bg-background/70">
+                            <div 
+                                role="button" 
+                                className="ml-auto rounded-md p-1 transition-colors duration-150 hover:bg-background/70"
+                                onMouseDown={(e) => e.stopPropagation()}
+                            >
                                 <MoreHorizontal className="h-4 w-4 text-muted-foreground"/>
                             </div>
                         </DropdownMenuTrigger>
@@ -254,7 +248,8 @@ export function Item({
                     <div 
                         role="button" 
                         onClick={onCreate} 
-                        className="ml-auto rounded-md p-1 transition hover:bg-background/70"
+                        className="ml-auto rounded-md p-1 transition-colors duration-150 hover:bg-background/70"
+                        onMouseDown={(e) => e.stopPropagation()}
                     >
                         <Plus className="h-4 w-4 text-muted-foreground"/>
                     </div>
