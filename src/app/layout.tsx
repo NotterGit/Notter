@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const host = headersList.get("host") || ""
   const isBeta = host.includes("dev.notter.su") || host.includes("localhost:3001")
 
-  const icon = isBeta ? images.IMAGE.BETA_ICON : images.IMAGE.DARK_ICON
+  const icon = isBeta ? images.ICONS.BETA : images.ICONS.DARK
 
   return {
     title: {

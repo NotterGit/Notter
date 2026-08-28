@@ -7,9 +7,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const host = headersList.get("host") || ""
 
   const isBeta = host.includes("dev.notter.su") || host.includes("localhost:3001")
-  const iconSrc = isBeta ? images.IMAGE.BETA_ICON_192 : "/image/pwa-192.png"
-  const icon512Src = isBeta ? images.IMAGE.BETA_ICON_512 : "/image/pwa-512.png"
-
+  const iconSrc = isBeta ? images.ICONS.BETA_192 : images.ICONS.PWA_192
+  const icon512Src = isBeta ? images.ICONS.BETA_512 : images.ICONS.PWA_512
 
   return {
     name: "Notter",

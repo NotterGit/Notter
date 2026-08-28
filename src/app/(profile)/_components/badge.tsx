@@ -8,7 +8,7 @@ export function Badges({profile}: BadgesProps){
             {profile?.badges.notter && (
                 <div className="relative group select-none">
                     <Image
-                        src={images.BADGE.NOTTER}
+                        src={images.BADGES.NOTTER}
                         alt="Notter Icon"
                         width={27}
                         height={27}
@@ -23,7 +23,7 @@ export function Badges({profile}: BadgesProps){
             {profile?.verifiedDocuments > 0 && (
                 <div className="relative group select-none">
                     <Image
-                        src={images.BADGE.NOTE_VERIFIED}
+                        src={images.BADGES.NOTE_VERIFIED}
                         alt="Note Verifed Icon"
                         width={25}
                         height={25}
@@ -38,7 +38,7 @@ export function Badges({profile}: BadgesProps){
             {(profile?.badges.org_verifed || profile?.verifiedOrgs > 0) && (
                 <div className="relative group select-none mx-0.5">
                     <Image
-                        src={images.BADGE.ORG_VERIFIED}
+                        src={images.BADGES.ORG_VERIFIED}
                         alt="Note Verifed Icon"
                         width={28}
                         height={28}
@@ -53,7 +53,7 @@ export function Badges({profile}: BadgesProps){
             {profile?.moderator && (
                 <div className="relative group select-none mx-0.5">
                     <Image
-                        src={images.BADGE.MODERATOR}
+                        src={images.BADGES.MODERATOR}
                         alt="Note Verifed Icon"
                         width={24}
                         height={24}
@@ -68,7 +68,7 @@ export function Badges({profile}: BadgesProps){
             {profile?.badges.contributor && (
                 <div className="relative group select-none">
                     <Image
-                        src={images.BADGE.CONTRIBUTOR}
+                        src={images.BADGES.CONTRIBUTOR}
                         alt="Note Verifed Icon"
                         width={28}
                         height={28}
@@ -83,7 +83,7 @@ export function Badges({profile}: BadgesProps){
             {profile?.premium == 1 && (
                 <div className="relative group">
                     <Image
-                        src={images.BADGE.AMBER}
+                        src={images.BADGES.AMBER}
                         alt="Note Verifed Icon"
                         width={25}
                         height={25}
@@ -98,7 +98,7 @@ export function Badges({profile}: BadgesProps){
             {profile?.premium == 2 && (
                 <div className="relative group select-none">
                     <Image
-                        src={images.BADGE.DIAMOND}
+                        src={images.BADGES.DIAMOND}
                         alt="Note Verifed Icon"
                         width={25}
                         height={25}
@@ -112,7 +112,7 @@ export function Badges({profile}: BadgesProps){
 
             <div className="relative group">
                 <Image
-                    src={images.BADGE.ID}
+                    src={images.BADGES.ID}
                     alt="ID Icon"
                     width={25}
                     height={25}

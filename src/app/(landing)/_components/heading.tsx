@@ -34,7 +34,7 @@ export function Heading() {
 
       <div className="mt-6 flex justify-center md:mt-0 drop-shadow-xl drop-shadow-white/15">
         <Image
-          src={images.IMAGE.LANDING}
+          src={images.LANDING.HERO}
           alt="Notter"
           width={500}
           height={500}

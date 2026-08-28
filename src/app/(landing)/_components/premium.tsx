@@ -68,7 +68,7 @@ export function Premium() {
           price={amberPrice}
           isPopular
           className="border-yellow-300 dark:border-yellow-300/40"
-          icon={images.BADGE.AMBER}
+          icon={images.BADGES.AMBER}
           features={[
             "Сокращенные ссылки для публичных заметок",
             "Уникальный значок в профиле",
@@ -81,7 +81,7 @@ export function Premium() {
           title="Diamond"
           price={diamondPrice}
           className="border-cyan-300 dark:border-cyan-300/40"
-          icon={images.BADGE.DIAMOND}
+          icon={images.BADGES.DIAMOND}
           features={[
             "Все преимущества Amber",
             "Кастомные ссылки",

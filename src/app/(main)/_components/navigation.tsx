@@ -127,7 +127,7 @@ export function Navigation() {
                     }
                 }
             } catch {
-                // src/app/api/client.ts returns null on request errors, but keep this guarded
+
             } finally {
                 if (isMounted) {
                     setIsLimitsLoading((isOrg && !organization?.id) || (!isOrg && !user?.id))

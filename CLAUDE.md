@@ -18,6 +18,7 @@
   - If Next.js/Tailwind CSS compilation fails with a missing `lightningcss` binary error on Linux, ensure `lightningcss-linux-x64-gnu` is installed.
 
 ## Project Structure
+- `public/` — Static assets organized by domain (`badges/`, `defaults/`, `fonts/`, `icons/`, `images/`, `landing/`, `logos/`).
 - `src/app/` — Next.js 15 App Router routes.
   - `(landing)/` — Welcome and landing page.
   - `(main)/` — Primary application workspace (dashboard, document editor/viewer).

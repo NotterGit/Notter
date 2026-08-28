@@ -29,7 +29,7 @@ export default function VerifedBadge({ text, size, clicked = false, down = false
         alt='verifed badge'
         width={200}
         height={200}
-        src={images.BADGE.VERIFIED}
+        src={images.BADGES.VERIFIED}
       />
       <span
         className={`absolute ${down ? "top-5 ml-8" : "-top-10"} left-1/2 -translate-x-1/2 rounded-lg border border-white/20 bg-zinc-950/95 px-2 py-1 text-center text-xs whitespace-nowrap text-yellow-200 shadow-lg transition-opacity duration-200

@@ -12,8 +12,6 @@ export function useWorkspaceAdmin() {
     role === "admin" ||
     (typeof role === "string" && role.includes("admin"))
 
-  // In personal workspace (!isOrg), the user is the owner and has full admin access.
-  // In an organization, only users with an admin role have admin access.
   const isAdmin = isLoaded
     ? !isOrg || isRoleAdmin(orgRole) || isRoleAdmin(membership?.role)
     : false

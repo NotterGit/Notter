@@ -65,7 +65,7 @@ export default function Dashboard() {
                     Welcome to Notter
                 </div>
                 <Image 
-                    src={images.IMAGE.EMPTY}
+                    src={images.ILLUSTRATIONS.EMPTY}
                     width={360}
                     height={360}
                     alt="Empty"

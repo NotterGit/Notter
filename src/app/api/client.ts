@@ -30,7 +30,7 @@ function attachClerkToken(instance: typeof API | typeof S3) {
         config.headers.Authorization = `Bearer ${token}`
       }
     } catch {
-      // Leave request unauthenticated so the caller's error handling applies.
+
     }
 
     return config

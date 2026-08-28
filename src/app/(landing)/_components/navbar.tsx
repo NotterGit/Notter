@@ -33,7 +33,7 @@ export function Navbar({ logo = true }: NavbarProps) {
     )
   }, [])
 
-  const darkIcon = isBeta ? images.IMAGE.BETA_ICON : images.IMAGE.DARK_ICON
+  const darkIcon = isBeta ? images.ICONS.BETA : images.ICONS.DARK
 
   return (
     <div

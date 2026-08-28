@@ -20,7 +20,7 @@ export function Footer(){
         )
     }, [])
 
-    const darkLogoSrc = isBeta ? images.IMAGE.BETA_LOGO : images.IMAGE.DARK_LOGO;
+    const darkLogoSrc = isBeta ? images.LOGOS.BETA : images.LOGOS.DARK;
 
     return (
         <footer className="dark:bg-zinc-950 rounded-lg m-4">
