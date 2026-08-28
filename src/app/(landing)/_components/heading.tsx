@@ -16,7 +16,7 @@ export function Heading() {
 
   return (
     <section className="grid items-center px-4 py-1 md:grid-cols-2">
-      <div className="space-y-6 text-left">
+      <div className="space-y-4 text-left">
         <h1 className="text-4xl font-extrabold leading-tight sm:text-5xl md:text-6xl">
           Думайте, пишите, создавайте. Все это <span className="bg-gradient-to-r from-logo-yellow to-logo-light-yellow bg-clip-text text-transparent">Notter</span>
         </h1>
