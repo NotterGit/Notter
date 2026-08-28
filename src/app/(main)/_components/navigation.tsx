@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Archive, Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, Plus, PlusCircle, Search, Settings2 } from "lucide-react"
+import { Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, PlusCircle, Search, Settings2 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { ElementRef, useEffect, useRef, useState } from "react"
 import { useMediaQuery } from 'usehooks-ts'
@@ -17,8 +17,6 @@ import { InstallModal } from "@/components/modal/install-modal"
 import { UserItem } from "./user-item"
 import { Item } from "./item"
 import { DocumentList } from "./document-list"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { TrashBox } from "./trash-box"
 import { useSearch } from "../../../components/hooks/use-search"
 import { useSettings } from "../../../components/hooks/use-settings"
 import { Navbar } from "./navbar"
@@ -282,16 +280,7 @@ export function Navigation() {
                     </div>
 
                     <div className="mt-2 px-2">
-                        <DocumentList />
-                        <Item onClick={handleCreate} icon={Plus} label="Добавить заметку" />
-                        <Popover>
-                            <PopoverTrigger className="mt-2 w-full">
-                                <Item label="Архив" icon={Archive} />
-                            </PopoverTrigger>
-                            <PopoverContent className="z-[99999] w-80 rounded-2xl border-white/60 bg-white/90 p-0 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90" side={isMobile ? "bottom" : "right"}>
-                                <TrashBox />
-                            </PopoverContent>
-                        </Popover>
+                        <DocumentList onCreateDocument={handleCreate} />
                     </div>
 
                     <div className="mx-3 mt-4 rounded-2xl border border-black/5 bg-background/60 p-3 dark:border-white/10 dark:bg-zinc-900/60">

@@ -4,8 +4,9 @@ import { useParams, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import { useMutation, useQuery } from "convex/react"
-import { FileIcon } from "lucide-react"
+import { Archive, FileIcon, Plus } from "lucide-react"
 import { useOrganization, useUser } from "@clerk/nextjs"
+import { useMediaQuery } from "usehooks-ts"
 import {
   DragDropContext,
   Droppable,
@@ -18,6 +19,9 @@ import toast from "react-hot-toast"
 import { api } from "../../../../convex/_generated/api"
 import type { Id } from "../../../../convex/_generated/dataModel"
 import { Item } from "./item"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { TrashBox } from "./trash-box"
+import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
 import { cn } from "@/lib/utils"
 import { pages } from "@/config/routing/pages.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
@@ -31,12 +35,18 @@ import {
 
 export function DocumentList({
   level = 0,
+  onCreateDocument,
 }: DocumentListProps) {
   const params = useParams()
   const router = useRouter()
   const { user } = useUser()
   const { organization } = useOrganization()
+  const { isOrg, isAdmin } = useWorkspaceAdmin()
+  const isMobile = useMediaQuery("(max-width: 768px)")
+
   const reorder = useMutation(api.document.reorder)
+  const archive = useMutation(api.document.archive)
+  const update = useMutation(api.document.update)
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [draggingDocId, setDraggingDocId] = useState<string | null>(null)
@@ -81,7 +91,42 @@ export function DocumentList({
 
     if (!documents) return
 
-    // 1. Handled dropping directly onto another note (Combine mode: nest inside target note)
+    if (destination?.droppableId === "archive-drop-target") {
+      const docId = draggableId as Id<"documents">
+      const draggedDoc = documents.find((d) => d._id === docId)
+      if (!draggedDoc) return
+
+      if (isOrg && !isAdmin) {
+        toast.error("Только администраторы могут архивировать заметки")
+        return
+      }
+
+      void update({
+        id: docId,
+        isPublished: false,
+        userId: orgId,
+        lastEditor: user?.username as string,
+        lastEditTime: getCurrentEditTime(),
+      })
+
+      const promise = archive({
+        id: docId,
+        userId: orgId,
+      }).then(() => {
+        const currentDocId = typeof params?.documentId === "string" ? params.documentId : undefined
+        if (currentDocId && (currentDocId === docId || isDescendant(docId, currentDocId, documents))) {
+          router.push(pages.DASHBOARD())
+        }
+      })
+
+      toast.promise(promise, {
+        loading: "Перемещаем в архив...",
+        success: "Заметка перемещена в архив!",
+        error: "Не удалось переместить в архив",
+      })
+      return
+    }
+
     if (combine) {
       const targetParentId = combine.draggableId as Id<"documents">
 
@@ -140,7 +185,7 @@ export function DocumentList({
       return
     }
 
-    // 2. Handled reordering or dropping between notes
+    // 3. Handled reordering or dropping between notes
     if (!destination) {
       return
     }
@@ -242,6 +287,12 @@ export function DocumentList({
         <Item.Skeleton level={level} />
         <Item.Skeleton level={level} />
         <Item.Skeleton level={level} />
+        {onCreateDocument && (
+          <Item onClick={onCreateDocument} icon={Plus} label="Добавить заметку" />
+        )}
+        <div className="mt-2">
+          <Item label="Архив" icon={Archive} />
+        </div>
       </>
     )
   }
@@ -268,6 +319,20 @@ export function DocumentList({
             verified={item.doc.verifed}
           />
         ))}
+        {onCreateDocument && (
+          <Item onClick={onCreateDocument} icon={Plus} label="Добавить заметку" />
+        )}
+        <Popover>
+          <PopoverTrigger className="mt-2 w-full">
+            <Item label="Архив" icon={Archive} />
+          </PopoverTrigger>
+          <PopoverContent
+            className="z-[99999] w-80 rounded-2xl border-white/60 bg-white/90 p-0 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90"
+            side={isMobile ? "bottom" : "right"}
+          >
+            <TrashBox />
+          </PopoverContent>
+        </Popover>
       </>
     )
   }
@@ -340,6 +405,41 @@ export function DocumentList({
               </Draggable>
             ))}
             {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+
+      {onCreateDocument && (
+        <Item onClick={onCreateDocument} icon={Plus} label="Добавить заметку" />
+      )}
+
+      <Droppable droppableId="archive-drop-target" type="document">
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className="mt-2"
+          >
+            <Popover>
+              <PopoverTrigger asChild className="w-full">
+                <div>
+                  <Item
+                    label={snapshot.isDraggingOver ? "Переместить в архив" : "Архив"}
+                    icon={Archive}
+                    isArchiveTarget={snapshot.isDraggingOver}
+                  />
+                </div>
+              </PopoverTrigger>
+              <PopoverContent
+                className="z-[99999] w-80 rounded-2xl border-white/60 bg-white/90 p-0 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90"
+                side={isMobile ? "bottom" : "right"}
+              >
+                <TrashBox />
+              </PopoverContent>
+            </Popover>
+            <div className="hidden" aria-hidden="true">
+              {provided.placeholder}
+            </div>
           </div>
         )}
       </Droppable>

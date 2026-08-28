@@ -36,6 +36,8 @@ export function Item({
     hasArrow,
     isDragging,
     isCombineTarget,
+    isArchiveTarget,
+    className,
     draggableProps,
     dragHandleProps,
     innerRef,
@@ -126,7 +128,9 @@ export function Item({
             className={cn(`group mb-0.5 flex min-h-[34px] w-full items-center rounded-xl py-1.5 pr-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10 select-none`,
             active && "bg-gradient-to-r from-logo-yellow/20 to-logo-cyan/20 text-foreground shadow-sm",
             isDragging && "bg-white/95 dark:bg-zinc-900/95 shadow-xl ring-2 ring-logo-yellow/40 text-foreground",
-            isCombineTarget && "bg-logo-yellow/20 dark:bg-logo-yellow/25 ring-2 ring-logo-yellow shadow-lg text-foreground border-logo-yellow/50"
+            isCombineTarget && "bg-logo-yellow/20 dark:bg-logo-yellow/25 ring-2 ring-logo-yellow shadow-lg text-foreground border-logo-yellow/50",
+            isArchiveTarget && "bg-red-500/15 dark:bg-red-500/25 ring-2 ring-red-500 text-red-600 dark:text-red-400 font-semibold shadow-lg",
+            className
             )}
         >
             
@@ -147,7 +151,7 @@ export function Item({
                     </Twemoji>
                 </div>
             ) : (
-                <Icon className="mr-2 h-[17px] w-[17px] shrink-0 text-muted-foreground"/>
+                <Icon className={cn("mr-2 h-[17px] w-[17px] shrink-0 text-muted-foreground", isArchiveTarget && "text-red-600 dark:text-red-400")}/>
             )}
             
             <span className="truncate">
@@ -159,6 +163,11 @@ export function Item({
             {isCombineTarget && (
                 <span className="ml-1.5 shrink-0 rounded-md bg-logo-yellow/30 px-1.5 py-0.5 text-[10px] font-bold text-foreground">
                     Вложить
+                </span>
+            )}
+            {isArchiveTarget && (
+                <span className="ml-1.5 shrink-0 rounded-md bg-red-500/20 px-1.5 py-0.5 text-[10px] font-bold text-red-600 dark:text-red-400">
+                    В архив
                 </span>
             )}
             

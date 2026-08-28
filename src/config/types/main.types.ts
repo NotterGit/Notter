@@ -38,6 +38,8 @@ export interface ItemProps {
   verified?: boolean
   isDragging?: boolean
   isCombineTarget?: boolean
+  isArchiveTarget?: boolean
+  className?: string
   draggableProps?: DraggableProvidedDraggableProps
   dragHandleProps?: DraggableProvidedDragHandleProps | null
   innerRef?: React.Ref<HTMLDivElement>
@@ -51,6 +53,7 @@ export interface DocumentListProps {
   parentDocumentId?: Id<"documents">
   level?: number
   data?: Doc<"documents">[]
+  onCreateDocument?: () => void
 }
 
 export interface PublishProps {
