@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Qual ID Auth",
   description: "SignIn",
   icons: {
-    icon: images.IMAGE.DARK_ICON,
+    icon: images.ICONS.DARK,
   }
 };
 

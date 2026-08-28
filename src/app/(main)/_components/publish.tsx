@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Check, Copy, Eye, Globe } from "lucide-react"
 import { api } from "../../../../convex/_generated/api"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Hint } from "@/components/ui/hint"
 import { useOrigin } from "../../../components/hooks/use-origin"
-import { Protect, useOrganization, useUser } from "@clerk/nextjs"
+import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
+import { useOrganization, useUser } from "@clerk/nextjs"
 import { getById as getUserByID, updateUser } from "../../api/users/user"
 import { getById as getOrgByID, updateOrg } from "../../api/orgs/org"
 import type { PublishProps } from "@/config/types/main.types"
@@ -23,8 +25,8 @@ export function Publish({ initialData }: PublishProps) {
   const update = useMutation(api.document.update)
   const { user } = useUser()
   const { organization } = useOrganization()
+  const { isOrg, isAdmin } = useWorkspaceAdmin()
 
-  const isOrg = organization?.id !== undefined
   const orgId = (isOrg ? organization?.id : user?.id) as string
 
   const [copied, setCopied] = useState(false)
@@ -60,6 +62,11 @@ export function Publish({ initialData }: PublishProps) {
   }, [orgId, isOrg])
 
   const handleCheckboxChange = (checked: boolean | "indeterminate") => {
+    if (isOrg && !isAdmin) {
+      toast.error("Изменять настройки публикации могут только администраторы организации")
+      return
+    }
+
     const next = checked === true
 
     if (userData?.premium === 0 && next) {
@@ -83,11 +90,18 @@ export function Publish({ initialData }: PublishProps) {
   }
 
   const handleCustomShortIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isOrg && !isAdmin) return
     const newShortId = e.target.value
     setCustomShortId(newShortId)
   }
 
   const handleValidateAndSave = async () => {
+    if (isOrg && !isAdmin) {
+      toast.error("Изменять ссылку могут только администраторы организации")
+      setCustomShortId(previousShortId)
+      return
+    }
+
     if (customShortId === "") {
       toast.error("Ссылка не может быть пустой.")
       setCustomShortId(previousShortId)
@@ -127,6 +141,7 @@ export function Publish({ initialData }: PublishProps) {
   }
 
   const handleBlur = () => {
+    if (isOrg && !isAdmin) return
     setEditingShortId(false)
     handleValidateAndSave()
 
@@ -143,7 +158,13 @@ export function Publish({ initialData }: PublishProps) {
 
   const url = pages.DOCUMENT_URL(origin, initialData._id, isShortUrl, customShortId)
   const iframeUrl = pages.DOCUMENT_IFRAME_URL(origin, initialData._id, isShortUrl, customShortId)
+
   const onPublish = async () => {
+    if (isOrg && !isAdmin) {
+      toast.error("Публиковать заметки могут только администраторы организации")
+      return
+    }
+
     if (currentPublicDocuments !== undefined && (currentPublicDocuments as number) >= publicDocumentLimit) {
       toast.error(`Вы достигли лимита на публикацию в ${publicDocumentLimit} публичных заметок`)
       return
@@ -166,6 +187,11 @@ export function Publish({ initialData }: PublishProps) {
   }
 
   const onUnpublish = async () => {
+    if (isOrg && !isAdmin) {
+      toast.error("Снимать с публикации могут только администраторы организации")
+      return
+    }
+
     setIsSubmitting(true)
     const promise = update({
       id: initialData._id,
@@ -223,7 +249,7 @@ export function Publish({ initialData }: PublishProps) {
                 value={editingShortId ? customShortId : url}
                 className="h-9 flex-1 rounded-l-lg border border-border/60 bg-background/70 px-3 text-xs"
                 onClick={() => {
-                  if (isShortUrl && canUseCustomShort) {
+                  if (isAdmin && isShortUrl && canUseCustomShort) {
                     setEditingShortId(true)
                   }
                 }}
@@ -231,7 +257,7 @@ export function Publish({ initialData }: PublishProps) {
                 onChange={handleCustomShortIdChange}
                 onKeyPress={handleKeyPress}
                 autoFocus
-                disabled={!isShortUrl || !canUseCustomShort}
+                disabled={!isAdmin || !isShortUrl || !canUseCustomShort}
               />
               <Button onClick={onCopy} disabled={copied} className="h-9 rounded-l-none rounded-r-lg px-3">
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -242,22 +268,37 @@ export function Publish({ initialData }: PublishProps) {
               <Eye className="w-4 h-4" /> Просмотров: {initialData.views ?? 0}
             </span>
 
-            <div className="flex items-center rounded-lg border border-border/60 bg-background/60 px-2.5 py-2">
-              <Checkbox
-                checked={isShortUrl}
-                onCheckedChange={handleCheckboxChange}
-                disabled={!canUseShort}
-              />
-              <p className="ml-1 text-xs">
-                Сократить ссылку
-                <span className="italic">{!canUseShort && " (доступно с тарифа Amber)"}</span>
-              </p>
-            </div>
+            {!canUseShort ? (
+              <Hint
+                side="bottom"
+                sideOffset={4}
+                description="Доступно с тарифа Amber"
+              >
+                <div className="flex items-center rounded-lg border border-border/60 bg-background/60 px-2.5 py-2 cursor-not-allowed">
+                  <Checkbox
+                    checked={isShortUrl}
+                    onCheckedChange={handleCheckboxChange}
+                    disabled={!isAdmin || !canUseShort}
+                  />
+                  <p className="ml-1 text-xs select-none">
+                    Сократить ссылку
+                  </p>
+                </div>
+              </Hint>
+            ) : (
+              <div className="flex items-center rounded-lg border border-border/60 bg-background/60 px-2.5 py-2">
+                <Checkbox
+                  checked={isShortUrl}
+                  onCheckedChange={handleCheckboxChange}
+                  disabled={!isAdmin}
+                />
+                <p className="ml-1 text-xs select-none">
+                  Сократить ссылку
+                </p>
+              </div>
+            )}
 
-            <Protect
-              condition={(check) => check({ role: "org:admin" }) || organization?.id === undefined}
-              fallback={<></>}
-            >
+            {isAdmin && (
               <Button
                 size="sm"
                 className="h-9 w-full rounded-xl text-xs"
@@ -266,7 +307,7 @@ export function Publish({ initialData }: PublishProps) {
               >
                 Отменить публикацию
               </Button>
-            </Protect>
+            )}
 
             <Link href={url} target="_blank">
               <Button
@@ -284,29 +325,29 @@ export function Publish({ initialData }: PublishProps) {
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-background/50 p-4 text-center">
             <Globe className="mb-2 h-8 w-8 text-muted-foreground" />
             <p className="font-medium">Поделитесь своей заметкой</p>
-            <Protect
-              condition={(check) => check({ role: "org:admin" }) || organization?.id === undefined}
-              fallback={
-                <span className="text-center w-full block text-[0.7rem] text-muted-foreground">
-                  Публиковать могут только администраторы организации
+            {isAdmin ? (
+              <>
+                <span className="mb-2 text-xs text-muted-foreground">
+                  Поделитесь своими мыслями с другими
                 </span>
-              }
-            >
-              <span className="mb-2 text-xs text-muted-foreground">
-                Поделитесь своими мыслями с другими
+                <Button
+                  disabled={isSubmitting}
+                  onClick={onPublish}
+                  className="h-9 w-full rounded-xl text-xs"
+                  size="sm"
+                >
+                  Опубликовать
+                </Button>
+              </>
+            ) : (
+              <span className="text-center w-full block text-[0.7rem] text-muted-foreground mt-2">
+                Публиковать могут только администраторы организации
               </span>
-              <Button
-                disabled={isSubmitting}
-                onClick={onPublish}
-                className="h-9 w-full rounded-xl text-xs"
-                size="sm"
-              >
-                Опубликовать
-              </Button>
-            </Protect>
+            )}
           </div>
         )}
       </PopoverContent>
     </Popover>
   )
 }
+

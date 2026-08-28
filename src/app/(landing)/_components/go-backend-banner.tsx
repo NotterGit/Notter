@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { links } from "@/config/routing/links.route"
+import { images } from "@/config/routing/image.route"
 
 const STORAGE_KEY = "notter-cpp-backend-banner-hidden"
 
@@ -58,7 +59,7 @@ export function GoBackendBanner() {
           <div className="flex min-w-0 items-center gap-3 pr-10 sm:pr-0">
             <div className="mt-0.5">
               <Image
-                src="/image/InAPI-logo.png"
+                src={images.LANDING.INAPI_LOGO}
                 alt="InAPI"
                 width={50}
                 height={50}
@@ -104,7 +105,7 @@ export function GoBackendBanner() {
         <DialogContent className="overflow-hidden p-0 sm:max-w-md">
           <div className="relative flex h-64 items-center justify-center overflow-hidden border-b px-6">
             <Image
-              src="/image/InAPI.png"
+              src={images.LANDING.INAPI}
               alt="InAPI"
               width={480}
               height={360}

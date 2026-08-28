@@ -231,14 +231,14 @@ export default function ProfilePage({ kind, slug }: ProfilePageComponentProps) {
           <BackButton className="mb-4 2xl:absolute 2xl:-left-14 2xl:top-0 2xl:mb-0 xl:-left-16" />
           <div className="flex w-full flex-col rounded-3xl border border-white/50 bg-white/75 p-3 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/75">
           <div className="overflow-hidden rounded-2xl border border-black/10 dark:border-white/10">
-            <Cover url={document?.coverImage || images.DEFAULT.COVER} preview />
+            <Cover url={document?.coverImage || images.DEFAULTS.COVER} preview />
           </div>
 
           <div className="relative my-3 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Image
-                  src={normalizeImageUrl(profile.avatar) ?? profile.avatar ?? images.DEFAULT.PROFILE}
+                  src={normalizeImageUrl(profile.avatar) ?? profile.avatar ?? images.ICONS.DEFAULT}
                   alt={profileKind === "org" ? "Organization avatar" : "Profile avatar"}
                   height={80}
                   width={80}

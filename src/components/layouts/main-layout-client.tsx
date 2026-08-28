@@ -1,5 +1,6 @@
 "use client"
 
+import { useOrganization, useUser } from "@clerk/nextjs"
 import { useConvexAuth } from "convex/react"
 import { Loader2 } from "lucide-react"
 import dynamic from "next/dynamic"
@@ -26,6 +27,8 @@ export function MainLayoutClient({
   children: React.ReactNode
 }) {
   const { isAuthenticated, isLoading } = useConvexAuth()
+  const { user } = useUser()
+  const { organization } = useOrganization()
   const params = useParams()
   const router = useRouter()
   const isDocumentPage = Boolean(params.documentId)
@@ -35,6 +38,27 @@ export function MainLayoutClient({
       router.replace(pages.AUTH)
     }
   }, [isAuthenticated, isLoading, router])
+
+  useEffect(() => {
+    if (isDocumentPage) return
+
+    const orgName = organization?.name || organization?.slug
+    const fullName = user?.fullName?.trim() || `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim()
+    const username = user?.username?.trim()
+    const displayName = orgName || fullName || username
+
+    if (displayName) {
+      globalThis.document.title = `${displayName} | Notter`
+    }
+  }, [
+    isDocumentPage,
+    organization?.slug,
+    organization?.name,
+    user?.fullName,
+    user?.firstName,
+    user?.lastName,
+    user?.username,
+  ])
 
   if (isLoading) {
     return (

@@ -1,10 +1,10 @@
 import type { Metadata } from "next"
 import { ConvexHttpClient } from "convex/browser"
 
-import { api } from "../../../../convex/_generated/api"
-import type { Id } from "../../../../convex/_generated/dataModel"
-import { getByUsername as getByOrgname } from "../../api/orgs/org"
-import { getByUsername } from "../../api/users/user"
+import { api } from "../../convex/_generated/api"
+import type { Id } from "../../convex/_generated/dataModel"
+import { getByUsername as getByOrgname } from "@/app/api/orgs/org"
+import { getByUsername } from "@/app/api/users/user"
 import { isValidConvexId } from "@/lib/convex-id"
 
 type PublicDocumentMetadata = {

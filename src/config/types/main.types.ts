@@ -1,5 +1,9 @@
 import type { Doc, Id } from "../../../convex/_generated/dataModel"
 import type { LucideIcon } from "lucide-react"
+import type {
+  DraggableProvidedDraggableProps,
+  DraggableProvidedDragHandleProps,
+} from "@hello-pangea/dnd"
 
 export interface NavbarProps {
   isCollapsed: boolean
@@ -21,6 +25,7 @@ export interface ItemProps {
   expanded?: boolean
   isSearch?: boolean
   shortcut?: string
+  hasArrow?: boolean
   level?: number
   onExpand?: () => void
   label: string
@@ -28,7 +33,17 @@ export interface ItemProps {
   icon: LucideIcon
   lastEditor?: string
   lastEditTime?: string
+  creatorName?: string
+  createdAt?: number | string
   verified?: boolean
+  isPinned?: boolean
+  isDragging?: boolean
+  isCombineTarget?: boolean
+  isArchiveTarget?: boolean
+  className?: string
+  draggableProps?: DraggableProvidedDraggableProps
+  dragHandleProps?: DraggableProvidedDragHandleProps | null
+  innerRef?: React.Ref<HTMLDivElement>
 }
 
 export interface BannerProps {
@@ -39,6 +54,7 @@ export interface DocumentListProps {
   parentDocumentId?: Id<"documents">
   level?: number
   data?: Doc<"documents">[]
+  onCreateDocument?: () => void
 }
 
 export interface PublishProps {

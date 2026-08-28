@@ -2,7 +2,7 @@ export function getCurrentEditTime() {
   return new Date().toISOString()
 }
 
-export function formatLastEditTime(value?: string) {
+export function formatLastEditTime(value?: string | number | Date | null) {
   if (!value) {
     return "Неизвестно"
   }
@@ -10,7 +10,7 @@ export function formatLastEditTime(value?: string) {
   const date = new Date(value)
 
   if (Number.isNaN(date.getTime())) {
-    return value
+    return String(value)
   }
 
   return new Intl.DateTimeFormat("ru-RU", {

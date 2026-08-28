@@ -1,6 +1,6 @@
-"use client" 
-
-import { use } from "react"
+"use client"
+ 
+import { use, useEffect } from "react"
 import dynamic from "next/dynamic" 
 
 import { Skeleton } from "@/components/ui/skeleton" 
@@ -35,6 +35,12 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps){
         }
       : "skip"
   )
+
+  useEffect(() => {
+    if (document?.title) {
+      globalThis.document.title = `${document.title} | Notter`
+    }
+  }, [document?.title])
 
   const update = useMutation(api.document.update) 
   

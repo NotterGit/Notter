@@ -68,7 +68,7 @@ export const archive = mutation({
             isAcrhived: true
         })
 
-        recursiveArchive(args.id)
+        await recursiveArchive(args.id)
 
         return document
     }
@@ -107,7 +107,52 @@ export const getSidebar = query({
             .order("desc")
             .collect()
 
-        return documents
+        return documents.sort((a, b) => {
+            const aPinned = Boolean(a.isPinned)
+            const bPinned = Boolean(b.isPinned)
+            if (aPinned !== bPinned) {
+                return aPinned ? -1 : 1
+            }
+            if (a.order !== undefined && b.order !== undefined) {
+                return a.order - b.order
+            }
+            if (a.order !== undefined) return -1
+            if (b.order !== undefined) return 1
+            return b._creationTime - a._creationTime
+        })
+    }
+})
+
+export const getAllSidebar = query({
+    args: {
+        userId: v.string(),
+    },
+    handler: async(ctx, args) => {
+        const identify = await ctx.auth.getUserIdentity()
+
+        if (!identify) {
+            throw new Error("Not authenticated")
+        }
+
+        const documents = await ctx.db
+            .query("documents")
+            .withIndex("by_user", (q) => q.eq("userId", args.userId))
+            .filter((q) => q.eq(q.field("isAcrhived"), false))
+            .collect()
+
+        return documents.sort((a, b) => {
+            const aPinned = Boolean(a.isPinned)
+            const bPinned = Boolean(b.isPinned)
+            if (aPinned !== bPinned) {
+                return aPinned ? -1 : 1
+            }
+            if (a.order !== undefined && b.order !== undefined) {
+                return a.order - b.order
+            }
+            if (a.order !== undefined) return -1
+            if (b.order !== undefined) return 1
+            return b._creationTime - a._creationTime
+        })
     }
 })
 
@@ -224,7 +269,7 @@ export const restore = mutation({
 
         const document = await ctx.db.patch(args.id, options)
         
-        recursiveRestore(args.id)
+        await recursiveRestore(args.id)
 
         return document
     }
@@ -416,7 +461,9 @@ export const update = mutation({
       isShort: v.optional(v.boolean()),
       shortId: v.optional(v.string()),
       verifed: v.optional(v.boolean()),
-      isAcrhived: v.optional(v.boolean())
+      isAcrhived: v.optional(v.boolean()),
+      isPinned: v.optional(v.boolean()),
+      order: v.optional(v.number())
     },
     handler: async (ctx, args) => {
       const identity = await ctx.auth.getUserIdentity()
@@ -544,5 +591,52 @@ export const getTestPage = query({
       .collect()
 
     return document[0]
+  }
+})
+
+export const reorder = mutation({
+  args: {
+    userId: v.string(),
+    items: v.array(
+      v.object({
+        id: v.id("documents"),
+        order: v.number(),
+        parentDocument: v.optional(v.union(v.id("documents"), v.null())),
+      })
+    ),
+    lastEditor: v.optional(v.string()),
+    lastEditTime: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+
+    if (!identity) {
+      throw new Error("Not authenticated")
+    }
+
+    for (const item of args.items) {
+      const existing = await ctx.db.get(item.id)
+
+      if (!existing || existing.userId !== args.userId) {
+        continue
+      }
+
+      if (item.parentDocument === null || item.parentDocument === undefined) {
+        const { parentDocument: _, ...restDoc } = existing
+        await ctx.db.replace(item.id, {
+          ...restDoc,
+          order: item.order,
+          ...(args.lastEditor ? { lastEditor: args.lastEditor } : {}),
+          ...(args.lastEditTime ? { lastEditTime: args.lastEditTime } : {}),
+        })
+      } else {
+        await ctx.db.patch(item.id, {
+          order: item.order,
+          parentDocument: item.parentDocument,
+          ...(args.lastEditor ? { lastEditor: args.lastEditor } : {}),
+          ...(args.lastEditTime ? { lastEditTime: args.lastEditTime } : {}),
+        })
+      }
+    }
   }
 })

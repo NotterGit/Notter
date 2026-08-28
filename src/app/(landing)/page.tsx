@@ -4,6 +4,7 @@ import { GoBackendBanner } from "./_components/go-backend-banner"
 import { Heading } from "./_components/heading"
 import { LandingRedirect } from "./_components/landing-redirect"
 import { Premium } from "./_components/premium"
+import { Todo } from "./_components/todo"
 
 export default function Landing() {
   return (
@@ -18,8 +19,12 @@ export default function Landing() {
           <Heading />
         </div>
 
-        <div className="mx-auto w-full max-w-6xl">
+        <div className="mx-auto w-full max-w-6xl mt-10">
           <About />
+        </div>
+
+        <div className="mx-auto w-full max-w-6xl my-10">
+          <Todo />
         </div>
 
         <div className="mx-auto w-full max-w-6xl">

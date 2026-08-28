@@ -10,6 +10,7 @@ export default defineSchema({
         shortId: v.string(),
         isShort: v.optional(v.boolean()),
         isAcrhived: v.boolean(),
+        isPinned: v.optional(v.boolean()),
         parentDocument: v.optional(v.union(v.id("documents"), v.null())),
         content: v.optional(v.string()),
         coverImage: v.optional(v.string()),
@@ -19,6 +20,7 @@ export default defineSchema({
         lastEditTime: v.optional(v.string()),
         verifed: v.optional(v.boolean()),
         views: v.optional(v.number()),
+        order: v.optional(v.number()),
     })
     .index("by_user", ["userId"])
     .index("by_user_parent", ["userId", "parentDocument"])

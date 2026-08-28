@@ -47,7 +47,7 @@ export function UserItem(){
                     setProfile(u)
                 }
             } catch (e) {
-                // ignore
+
             }
         }
 
@@ -59,7 +59,7 @@ export function UserItem(){
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                     <button className="flex w-full items-center gap-2 rounded-xl border border-transparent p-2 transition hover:border-black/10 hover:bg-white/70 dark:hover:border-white/10 dark:hover:bg-zinc-900/70">
-                        <Avatar className="h-7 w-7 ring-1 ring-border/60">
+                        <Avatar className="h-6 w-6 ring-1 ring-border/60">
                             {image ? (
                                 <AvatarImage src={image} alt={user?.username ?? user?.fullName ?? "user"} className="object-cover" />
                             ) : (
@@ -70,11 +70,11 @@ export function UserItem(){
                                 <span className={`text-sm font-medium truncate max-w-[8rem] ${profile?.premium === 1 ? 'bg-gradient-to-b from-[#FFEB9C] to-[#FFDB4A] bg-clip-text text-transparent' : profile?.premium === 2 ? 'bg-gradient-to-b from-[#2BD8FF] to-[#94AAF3] bg-clip-text text-transparent' : 'text-muted-foreground'}`}>{user?.username ?? user?.fullName ?? "Пользователь"}</span>
 
                                 {profile?.premium === 1 && (
-                                    <Image src={images.BADGE.AMBER} alt="Amber" width={14} height={14} className="object-contain relative right-0.5" />
+                                    <Image src={images.BADGES.AMBER} alt="Amber" width={14} height={14} className="object-contain relative right-0.5" />
                                 )}
 
                                 {profile?.premium === 2 && (
-                                    <Image src={images.BADGE.DIAMOND} alt="Diamond" width={14} height={14} className="object-contain relative right-0.5" />
+                                    <Image src={images.BADGES.DIAMOND} alt="Diamond" width={14} height={14} className="object-contain relative right-0.5" />
                                 )}
                         </div>
                     </button>
