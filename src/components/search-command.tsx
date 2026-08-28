@@ -40,7 +40,9 @@ export function SearchCommand() {
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "s" && (e.metaKey || e.ctrlKey)) {
+      const isSearchKey = e.code === "KeyS" || e.key?.toLowerCase() === "s"
+
+      if ((e.metaKey || e.ctrlKey) && isSearchKey) {
         e.preventDefault()
         toggle()
       }

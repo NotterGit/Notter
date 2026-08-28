@@ -41,7 +41,9 @@ export function Navigation() {
 
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
-            if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) {
+            const isSettingsKey = e.code === "KeyK" || e.key?.toLowerCase() === "k"
+
+            if ((e.ctrlKey || e.metaKey) && isSettingsKey) {
                 e.preventDefault()
                 settings.onOpen()
             }
