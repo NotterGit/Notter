@@ -18,6 +18,7 @@
   - If Next.js/Tailwind CSS compilation fails with a missing `lightningcss` binary error on Linux, ensure `lightningcss-linux-x64-gnu` is installed.
 
 ## Project Structure
+- `public/` — Static assets organized by domain (`badges/`, `defaults/`, `fonts/`, `icons/`, `images/`, `landing/`, `logos/`).
 - `src/app/` — Next.js 15 App Router routes.
   - `(landing)/` — Welcome and landing page.
   - `(main)/` — Primary application workspace (dashboard, document editor/viewer).
@@ -27,8 +28,8 @@
   - `globals.css` — Global styles (Tailwind CSS v4).
   - `manifest.ts` — Dynamic PWA manifest.
 - `src/components/` — Shared React components.
+  - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, `use-workspace-admin`, etc.).
   - `ui/` — Base UI components (Radix UI / custom).
-  - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, etc.).
 - `src/lib/` — Utilities (PWA, Desktop App helper, image URLs, plan limits).
 - `convex/` — Backend logic and Database configuration on Convex.
   - `schema.ts` — Database schema (defines `documents` table).
@@ -39,7 +40,8 @@
 - **Authentication:** Clerk (`@clerk/nextjs`).
 - **Styling:** Tailwind CSS v4 with `@tailwindcss/postcss`.
 - **Editor:** BlockNote (`@blocknote/react` and `@blocknote/mantine`).
-- **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `parentDocument`, `content`, `coverImage`, `icon`, `isPublished`, etc.
+- **Drag & Drop:** `@hello-pangea/dnd` for hierarchical note reordering and nesting in the sidebar.
+- **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `isPinned`, `parentDocument`, `order`, `content`, `coverImage`, `icon`, `isPublished`, etc.
 - **Convex Indexes:**
   - `by_user`: `["userId"]`
   - `by_user_parent`: `["userId", "parentDocument"]`
@@ -50,6 +52,7 @@
 - **Convex Operations:** All DB reads/writes must go through Convex mutations/queries. Verify identity via `ctx.auth.getUserIdentity()`.
 - **Imports:** Use absolute path aliases like `@/components/...` or `@/lib/...`.
 - **Components:** Maintain modular architecture; separate layout structure, presentation, and logic.
+- Do not run `npm run dev` or `npm run build`!
 
 ## Auto-Update Rule (English Only)
 > [!IMPORTANT]

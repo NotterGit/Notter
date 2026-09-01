@@ -33,8 +33,7 @@ export function Navbar({ logo = true }: NavbarProps) {
     )
   }, [])
 
-  const lightIcon = isBeta ? images.IMAGE.BETA_ICON : images.IMAGE.LIGHT_ICON
-  const darkIcon = isBeta ? images.IMAGE.BETA_ICON : images.IMAGE.DARK_ICON
+  const darkIcon = isBeta ? images.ICONS.BETA : images.ICONS.DARK
 
   return (
     <div
@@ -46,18 +45,11 @@ export function Navbar({ logo = true }: NavbarProps) {
       <div className="container mx-3 flex items-center justify-between md:mx-auto">
         <Link href={pages.ROOT}>
           <Image
-            src={lightIcon}
-            height={35}
-            width={35}
-            alt="Notter"
-            className={`${!logo ? "hidden" : ""} block dark:hidden`}
-          />
-          <Image
             src={darkIcon}
             height={35}
             width={35}
             alt="Notter"
-            className={`${!logo ? "hidden" : ""} hidden dark:block`}
+            className={`${!logo ? "hidden" : ""}`}
           />
         </Link>
 

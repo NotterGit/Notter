@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 import type { DocumentIdPageProps } from "@/config/types/public.types"
-import { createPublicTitleMetadata, getPublicDocumentMetadata } from "../../_lib/public-document-metadata"
+import { createPublicTitleMetadata, getPublicDocumentMetadata } from "@/lib/public-document-metadata"
 
 import DocumentIdPage from "../../_components/document"
 

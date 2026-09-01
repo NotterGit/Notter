@@ -16,16 +16,12 @@ export function Heading() {
 
   return (
     <section className="grid items-center px-4 py-1 md:grid-cols-2">
-      <div className="space-y-6 text-left">
+      <div className="space-y-4 text-left">
         <h1 className="text-4xl font-extrabold leading-tight sm:text-5xl md:text-6xl">
-          Новый уровень построения задач. Встречайте{" "}
-          <span className="bg-gradient-to-r from-logo-yellow to-logo-light-yellow bg-clip-text text-transparent">
-            Notter
-          </span>
+          Думайте, пишите, создавайте. Все это <span className="bg-gradient-to-r from-logo-yellow to-logo-light-yellow bg-clip-text text-transparent">Notter</span>
         </h1>
         <p className="max-w-xl text-lg text-muted-foreground">
-          Планируйте, синхронизируйте и работайте в команде в современной,
-          комфортной среде - быстро и приятно
+          Планируйте, синхронизируйте и работайте в команде в комфортной среде
         </p>
 
         <span className="space-x-2">
@@ -36,13 +32,13 @@ export function Heading() {
         </span>
       </div>
 
-      <div className="mx-4 mt-10 hidden justify-center md:mt-0 md:flex">
+      <div className="mt-6 flex justify-center md:mt-0 drop-shadow-xl drop-shadow-white/15">
         <Image
-          src={images.IMAGE.LANDING}
-          alt="lamp"
+          src={images.LANDING.HERO}
+          alt="Notter"
           width={500}
           height={500}
-          className="drop-shadow-[0_0_10px_rgba(0,0,0,0.5)] dark:drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]"
+          priority
         />
       </div>
     </section>

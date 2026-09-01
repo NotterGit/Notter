@@ -48,7 +48,7 @@ export const InstallModal = ({
           <section className="flex min-h-[320px] flex-col overflow-hidden rounded-lg border bg-muted/30">
             <div className="relative flex min-h-44 w-full items-center justify-center overflow-hidden border-b bg-background p-2">
               <Image
-                src={images.IMAGE.INSTALL_PWA}
+                src={images.ILLUSTRATIONS.INSTALL_PWA}
                 alt="Установка Notter как PWA в браузере"
                 width={354}
                 height={156}

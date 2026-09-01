@@ -21,8 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const host = headersList.get("host") || ""
   const isBeta = host.includes("dev.notter.su") || host.includes("localhost:3001")
 
-  const iconDark = isBeta ? images.IMAGE.BETA_ICON : images.IMAGE.DARK_ICON
-  const iconLight = isBeta ? images.IMAGE.BETA_ICON : images.IMAGE.LIGHT_ICON
+  const icon = isBeta ? images.ICONS.BETA : images.ICONS.DARK
 
   return {
     title: {
@@ -34,34 +33,16 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: {
       icon: [
         {
-          url: iconDark,
+          url: icon,
           type: "image/png",
-        },
-        {
-          url: iconLight,
-          type: "image/png",
-          media: "(prefers-color-scheme: light)",
-        },
-        {
-          url: iconDark,
-          type: "image/png",
-          media: "(prefers-color-scheme: dark)",
         },
       ],
       shortcut: [
         {
-          url: iconDark,
-        },
-        {
-          url: iconLight,
-          media: "(prefers-color-scheme: light)",
-        },
-        {
-          url: iconDark,
-          media: "(prefers-color-scheme: dark)",
+          url: icon,
         },
       ],
-      apple: [iconDark],
+      apple: [icon],
     },
   }
 }

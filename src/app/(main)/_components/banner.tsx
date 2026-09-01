@@ -7,7 +7,8 @@ import { toast } from "react-hot-toast"
 import { api } from "../../../../convex/_generated/api" 
 import { ConfirmModal } from "@/components/modal/confirm-modal" 
 import { Id } from "../../../../convex/_generated/dataModel" 
-import { Protect, useOrganization, useUser } from "@clerk/nextjs"
+import { useOrganization, useUser } from "@clerk/nextjs"
+import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
 import { pages } from "@/config/routing/pages.route"
 import type { BannerProps } from "@/config/types/main.types";
 
@@ -17,9 +18,15 @@ export function Banner({ documentId }: BannerProps){
   const restore = useMutation(api.document.restore) 
   const { user } = useUser()
   const { organization } = useOrganization()
+  const { isOrg, isAdmin } = useWorkspaceAdmin()
   const orgId = organization?.id !== undefined ? organization?.id as string : user?.id as string
 
   const onRemove = () => {
+    if (isOrg && !isAdmin) {
+      toast.error("Только администраторы могут удалять заметки")
+      return
+    }
+
     const promise = remove({
       id: documentId,
       userId: orgId
@@ -35,6 +42,11 @@ export function Banner({ documentId }: BannerProps){
   } 
 
   const onRestore = () => {
+    if (isOrg && !isAdmin) {
+      toast.error("Только администраторы могут восстанавливать заметки")
+      return
+    }
+
     const promise = restore({
       id: documentId,
       userId: orgId
@@ -56,14 +68,7 @@ export function Banner({ documentId }: BannerProps){
         <p className=" md:mb-0">
           Эта заметка перемещена в архив
         </p>
-        <Protect
-          condition={(check) => {
-            return check({
-              role: "org:admin"
-            }) || organization?.id === undefined
-          }}
-          fallback={<></>}
-        >
+        {isAdmin && (
           <div className="flex gap-2">
             <Button
               size="sm"
@@ -83,7 +88,7 @@ export function Banner({ documentId }: BannerProps){
               </Button>
             </ConfirmModal>
           </div>
-        </Protect>
+        )}
       </div>
     </div>
   )

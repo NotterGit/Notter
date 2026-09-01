@@ -14,10 +14,8 @@ export function ThemeIcons() {
       window.location.host === "localhost:3001"
 
     const href = isBeta
-      ? images.IMAGE.BETA_ICON
-      : resolvedTheme === "light"
-        ? images.IMAGE.LIGHT_ICON
-        : images.IMAGE.DARK_ICON
+      ? images.ICONS.BETA
+      : images.ICONS.DARK
 
     document
       .querySelectorAll<HTMLLinkElement>(

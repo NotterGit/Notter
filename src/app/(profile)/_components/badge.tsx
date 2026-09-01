@@ -3,12 +3,14 @@ import { images } from "@/config/routing/image.route";
 import type { BadgesProps } from "@/config/types/profile.types";
 
 export function Badges({profile}: BadgesProps){
+    const isOrg = profile?._id?.startsWith("org_");
+
     return (
         <>
-            {profile?.badges.notter && (
+            {!isOrg && profile?.badges?.notter && (
                 <div className="relative group select-none">
                     <Image
-                        src={images.BADGE.NOTTER}
+                        src={images.BADGES.NOTTER}
                         alt="Notter Icon"
                         width={27}
                         height={27}
@@ -20,41 +22,41 @@ export function Badges({profile}: BadgesProps){
                 </div>
             )}
 
-            {profile?.verifiedDocuments > 0 && (
+            {Boolean(profile?.verifiedDocuments && profile.verifiedDocuments > 0) && (
                 <div className="relative group select-none">
                     <Image
-                        src={images.BADGE.NOTE_VERIFIED}
-                        alt="Note Verifed Icon"
+                        src={images.BADGES.NOTE_VERIFIED}
+                        alt="Note Verified Icon"
                         width={25}
                         height={25}
                         className="transform transition-transform duration-200 hover:scale-110"
                     />
                     <span className="absolute -top-10 left-1/2 -translate-x-1/2 rounded-lg border border-white/20 bg-zinc-950/95 px-2 py-1 text-center text-xs whitespace-nowrap opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
-                    Создатель верефицированных заметок
+                    Создатель верифицированных заметок
                     </span>
                 </div>
             )}
 
-            {(profile?.badges.org_verifed || profile?.verifiedOrgs > 0) && (
+            {!isOrg && Boolean(profile?.badges?.org_verifed || (profile?.verifiedOrgs && profile.verifiedOrgs > 0)) && (
                 <div className="relative group select-none mx-0.5">
                     <Image
-                        src={images.BADGE.ORG_VERIFIED}
-                        alt="Note Verifed Icon"
+                        src={images.BADGES.ORG_VERIFIED}
+                        alt="Org Verified Icon"
                         width={28}
                         height={28}
                         className="transform transition-transform duration-200 hover:scale-110"
                     />
                     <span className="absolute -top-10 left-1/2 -translate-x-1/2 rounded-lg border border-white/20 bg-zinc-950/95 px-2 py-1 text-center text-xs whitespace-nowrap opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
-                        Владелец верефицированной команды
+                        Владелец верифицированной команды
                     </span>
                 </div>
             )}
 
-            {profile?.moderator && (
+            {!isOrg && profile?.moderator && (
                 <div className="relative group select-none mx-0.5">
                     <Image
-                        src={images.BADGE.MODERATOR}
-                        alt="Note Verifed Icon"
+                        src={images.BADGES.MODERATOR}
+                        alt="Moderator Icon"
                         width={24}
                         height={24}
                         className="transform transition-transform duration-200 hover:scale-110"
@@ -65,11 +67,11 @@ export function Badges({profile}: BadgesProps){
                 </div>
             )}
 
-            {profile?.badges.contributor && (
+            {profile?.badges?.contributor && (
                 <div className="relative group select-none">
                     <Image
-                        src={images.BADGE.CONTRIBUTOR}
-                        alt="Note Verifed Icon"
+                        src={images.BADGES.CONTRIBUTOR}
+                        alt="Contributor Icon"
                         width={28}
                         height={28}
                         className="transform transition-transform duration-200 hover:scale-110"
@@ -83,8 +85,8 @@ export function Badges({profile}: BadgesProps){
             {profile?.premium == 1 && (
                 <div className="relative group">
                     <Image
-                        src={images.BADGE.AMBER}
-                        alt="Note Verifed Icon"
+                        src={images.BADGES.AMBER}
+                        alt="Gem Amber Icon"
                         width={25}
                         height={25}
                         className="transform transition-transform duration-200 hover:scale-110"
@@ -98,8 +100,8 @@ export function Badges({profile}: BadgesProps){
             {profile?.premium == 2 && (
                 <div className="relative group select-none">
                     <Image
-                        src={images.BADGE.DIAMOND}
-                        alt="Note Verifed Icon"
+                        src={images.BADGES.DIAMOND}
+                        alt="Gem Diamond Icon"
                         width={25}
                         height={25}
                         className="transform transition-transform duration-200 hover:scale-110"
@@ -112,7 +114,7 @@ export function Badges({profile}: BadgesProps){
 
             <div className="relative group">
                 <Image
-                    src={images.BADGE.ID}
+                    src={images.BADGES.ID}
                     alt="ID Icon"
                     width={25}
                     height={25}

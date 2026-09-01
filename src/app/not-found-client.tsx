@@ -16,7 +16,7 @@ export default function NotFoundClient() {
       <div className="flex flex-col items-center gap-8 rounded-3xl border border-black/10 bg-white/70 p-8 dark:border-white/10 dark:bg-zinc-950/70 md:flex-row">
         <div className="flex-shrink-0">
           <Image
-            src={images.IMAGE.ERROR}
+            src={images.ILLUSTRATIONS.ERROR}
             width={140}
             height={200}
             alt="Notter"

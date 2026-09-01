@@ -7,6 +7,7 @@ import { useMutation } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 import { toast } from "react-hot-toast"
 import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { pages } from "@/config/routing/pages.route"
 import { images } from "@/config/routing/image.route"
@@ -20,6 +21,17 @@ export default function Dashboard() {
     const { organization } = useOrganization()
     const isOrg = organization?.id !== undefined
     const orgId = isOrg ? organization?.id as string : user?.id as string
+    
+    useEffect(() => {
+        const orgName = organization?.name || organization?.slug
+        const fullName = user?.fullName?.trim() || `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim()
+        const username = user?.username?.trim()
+        const displayName = (isOrg ? orgName : (fullName || username)) || orgName || fullName || username
+
+        if (displayName) {
+            globalThis.document.title = `${displayName} | Notter`
+        }
+    }, [isOrg, organization?.slug, organization?.name, user?.fullName, user?.firstName, user?.lastName, user?.username])
     
     const onCreate = () => {
         const promise = getCreateDocumentLimitOptions(orgId, isOrg)
@@ -53,7 +65,7 @@ export default function Dashboard() {
                     Welcome to Notter
                 </div>
                 <Image 
-                    src={images.IMAGE.EMPTY}
+                    src={images.ILLUSTRATIONS.EMPTY}
                     width={360}
                     height={360}
                     alt="Empty"
