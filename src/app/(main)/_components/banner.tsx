@@ -79,35 +79,33 @@ export function Banner({ documentId }: BannerProps){
 
     return (
     <div
-      className="flex w-full justify-center bg-transparent p-2"
+      className="mx-2 mt-2 flex w-[calc(100%-1rem)] items-center justify-between flex-col gap-3 rounded-2xl border border-rose-300/60 bg-rose-500/95 px-4 py-2 text-center text-sm text-white shadow-xl backdrop-blur md:flex-row md:text-left"
       style={{ minHeight: 40 }}
     >
-      <div className="flex w-full max-w-3xl justify-center flex-col items-center gap-3 rounded-2xl border border-rose-300/60 bg-rose-500/95 px-4 py-2 text-center text-sm text-white shadow-xl backdrop-blur md:flex-row md:text-left">
-        <p className=" md:mb-0">
-          Эта заметка перемещена в архив{remainingMs > 0 && ` (удаление через ${timeText})`}
-        </p>
-        {isAdmin && (
-          <div className="flex gap-2">
+      <p className="md:mb-0">
+        Эта заметка перемещена в архив{remainingMs > 0 && ` (удаление через ${timeText})`}
+      </p>
+      {isAdmin && (
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            size="sm"
+            onClick={onRestore}
+            variant="outline"
+            className="h-auto rounded-lg border-white/80 bg-transparent p-1 px-2 font-normal text-white transition hover:bg-white hover:text-rose-500"
+          >
+            Восстановить
+          </Button>
+          <ConfirmModal onConfirm={onRemove}>
             <Button
               size="sm"
-              onClick={onRestore}
               variant="outline"
               className="h-auto rounded-lg border-white/80 bg-transparent p-1 px-2 font-normal text-white transition hover:bg-white hover:text-rose-500"
             >
-              Восстановить
+              Удалить безвозвратно
             </Button>
-            <ConfirmModal onConfirm={onRemove}>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-auto rounded-lg border-white/80 bg-transparent p-1 px-2 font-normal text-white transition hover:bg-white hover:text-rose-500"
-              >
-                Удалить безвозвратно
-              </Button>
-            </ConfirmModal>
-          </div>
-        )}
-      </div>
+          </ConfirmModal>
+        </div>
+      )}
     </div>
   )
 } 
