@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
-import { FileIcon } from "lucide-react";
+import { FileText , Pin } from "lucide-react";
 import Image from "next/image";
-import { Pin } from "lucide-react";
 import { normalizeImageUrl } from "@/lib/image-url";
 import { api } from "../../../../convex/_generated/api";
 import { useQuery } from "convex/react";
@@ -120,7 +119,7 @@ export function DocumentList({
                           {doc.icon}
                         </span>
                       ) : (
-                        <FileIcon
+                        <FileText 
                           className={`h-5 w-5 text-muted-foreground ${doc.coverImage && "ml-1"}`}
                         />
                       )}

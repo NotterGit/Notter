@@ -7,7 +7,7 @@ export type PlanLimits = {
 }
 
 export const FREE_LIMITS: PlanLimits = {
-    documents: 75,
+    documents: 50,
     publicDocuments: 10,
     uploadMb: 1,
 }

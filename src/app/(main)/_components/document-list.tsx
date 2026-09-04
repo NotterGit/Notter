@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 import { useMutation, useQuery } from "convex/react"
-import { Archive, FileIcon, Plus } from "lucide-react"
+import { Archive, FileText , Plus } from "lucide-react"
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { useMediaQuery } from "usehooks-ts"
 import {
@@ -534,7 +534,7 @@ export function DocumentList({
             id={item.doc._id}
             onClick={() => onRedirect(item.doc._id)}
             label={item.doc.title}
-            icon={FileIcon}
+            icon={FileText }
             documentIcon={item.doc.icon}
             active={params.documentId === item.doc._id}
             level={item.level}
@@ -637,7 +637,7 @@ export function DocumentList({
                         id={item.doc._id}
                         onClick={() => onRedirect(item.doc._id)}
                         label={item.doc.title}
-                        icon={FileIcon}
+                        icon={FileText }
                         documentIcon={item.doc.icon}
                         active={params.documentId === item.doc._id}
                         level={item.level}

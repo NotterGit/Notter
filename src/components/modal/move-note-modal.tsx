@@ -9,9 +9,9 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
-  File,
   FolderRoot,
   Loader2,
+  FileText ,
   Search,
   SlashSquare,
   X,
@@ -198,7 +198,7 @@ export function MoveNoteModal() {
               {doc.icon ? (
                 <Twemoji options={{ className: "twemoji" }}>{doc.icon}</Twemoji>
               ) : (
-                <File className="h-4 w-4 text-muted-foreground" />
+                <FileText  className="h-4 w-4 text-muted-foreground" />
               )}
             </div>
 

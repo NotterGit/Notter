@@ -12,7 +12,7 @@ const getDocumentLimit = (premiumLevel?: number, isOrg?: boolean) => {
         return 1000
     }
 
-    return 75
+    return 50
 }
 
 async function assertCanCreateDocument(ctx: MutationCtx, userId: string, premiumLevel?: number, isOrg?: boolean) {
