@@ -13,9 +13,9 @@ import { useCoverImage } from "../hooks/use-cover-image"
 import { api } from "../../../convex/_generated/api" 
 import { DragAndDrop } from "../drag-and-drop" 
 import { useOrganization, useUser } from "@clerk/nextjs"
-import { uploadFile } from "../../app/api/files/file"
-import { getById as getUserById } from "../../app/api/users/user";
-import { getById as getOrgById } from "../../app/api/orgs/org";
+import { uploadFile } from "@/api/files"
+import { getUserById } from "@/api/user";
+import { getOrgById } from "@/api/org";
 import toast from "react-hot-toast"
 import { isValidConvexId } from "@/lib/convex-id"
 import { getCurrentEditTime } from "@/lib/last-edit-time"

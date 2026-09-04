@@ -53,6 +53,62 @@ export type S3UploadResponse = {
   url: string
 }
 
+export interface S3DeleteResponse {
+  deleted: boolean
+}
+
+export interface CreateUserPayload {
+  username: string
+  created?: Date | string | null
+  firstname?: string | null
+  lastname?: string | null
+  avatar?: string | null
+  documents?: number | null
+  publicDocuments?: number | null
+  verifiedDocuments?: number | null
+  mail?: string | null
+}
+
+export interface UpdateUserPayload {
+  username?: string | null
+  firstname?: string | null
+  lastname?: string | null
+  avatar?: string | null
+  privated?: boolean | null
+  pined?: string | null
+  documents?: number | null
+  publicDocuments?: number | null
+  verifiedDocuments?: number | null
+  watermark?: boolean | null
+  mail?: string | null
+}
+
+export interface CreateOrgPayload {
+  username: string | null
+  owner: string | null
+  created?: Date | string | null
+  name?: string | null
+  members?: string[] | null
+  avatar?: string | null
+  documents?: number | null
+  publicDocuments?: number | null
+  verifiedDocuments?: number | null
+}
+
+export interface UpdateOrgPayload {
+  username?: string | null
+  owner?: string | null
+  name?: string | null
+  avatar?: string | null
+  privated?: boolean | null
+  pined?: string | null
+  documents?: number | null
+  publicDocuments?: number | null
+  members?: string[] | null
+  watermark?: boolean | null
+  verifiedDocuments?: number | null
+}
+
 export type UploadFileFunction = (
   userid: string,
   documentid: string,

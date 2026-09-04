@@ -12,7 +12,7 @@ import { useOrganization, useUser } from "@clerk/nextjs"
 import { pages } from "@/config/routing/pages.route"
 import { images } from "@/config/routing/image.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
-import { createDocumentWithFallback, getCreateDocumentErrorMessage, getCreateDocumentLimitOptions } from "../../api/document-limit"
+import { createDocumentWithFallback, getCreateDocumentErrorMessage, getCreateDocumentLimitOptions } from "@/api/document-limit"
 
 export default function Dashboard() {
     const create = useMutation(api.document.create)

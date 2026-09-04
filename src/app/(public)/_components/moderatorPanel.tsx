@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { useUser } from "@clerk/nextjs";
-import { checkModerator } from "../../api/users/user";
+import { checkModerator } from "@/api/user";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Check, FileJson, Loader2, Menu, Trash, X } from "lucide-react";

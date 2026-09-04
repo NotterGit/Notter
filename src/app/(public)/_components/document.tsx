@@ -11,8 +11,8 @@ import { Cover } from "@/components/cover"
 import Error404 from "@/app/not-found"
 import { Separator } from "@/components/ui/separator"
 import { api } from "../../../../convex/_generated/api"
-import { getByUsername as getByOrgname } from "../../api/orgs/org"
-import { checkModerator, getByUsername } from "../../api/users/user"
+import { getOrgByUsername } from "@/api/org"
+import { checkModerator, getUserByUsername } from "@/api/user"
 import { ModeratorPanel } from "./moderatorPanel"
 import { pages } from "@/config/routing/pages.route"
 import type { PublicDocumentComponentProps, UserInterface } from "@/config/types/public.types"
@@ -87,8 +87,8 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
 
       const isOrg = document.userId.startsWith("org_")
       const profileData = isOrg
-        ? await getByOrgname(document.creatorName as string)
-        : await getByUsername(document.creatorName as string)
+        ? await getOrgByUsername(document.creatorName as string)
+        : await getUserByUsername(document.creatorName as string)
 
       setProfile(profileData)
 

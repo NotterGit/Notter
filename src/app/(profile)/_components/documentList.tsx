@@ -10,10 +10,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Twemoji from "react-twemoji";
 import { Id } from "../../../../convex/_generated/dataModel";
 import toast from "react-hot-toast";
-import { updateUser } from "../../api/users/user";
+import { updateUser } from "@/api/user";
 import { useUser } from "@clerk/nextjs";
 import VerifedBadge from "./verifed";
-import { updateOrg } from "../../api/orgs/org";
+import { updateOrg } from "@/api/org";
 import Link from "next/link";
 import { pages } from "@/config/routing/pages.route";
 import type { DocumentListProps } from "@/config/types/profile.types";
@@ -48,9 +48,9 @@ export function DocumentList({
       let updatedUser;
       
       if (docId === user?.pined) {
-        updatedUser = isOrg ? 
-          await updateOrg(user._id, null, null, null, null, null, "") : 
-          await updateUser(user._id, null, null, null, null, null, "");
+        updatedUser = isOrg
+          ? await updateOrg(user._id, { pined: "" })
+          : await updateUser(user._id, { pined: "" });
         if (updatedUser) {
           toast.success("Note unpinned successfully!");
           setProfile((prevProfile) => {
@@ -61,9 +61,9 @@ export function DocumentList({
           });
         }
       } else {
-        updatedUser = isOrg ? 
-          await updateOrg(user._id, null, null, null, null, null, docId) : 
-          await updateUser(user._id, null, null, null, null, null, docId);
+        updatedUser = isOrg
+          ? await updateOrg(user._id, { pined: docId })
+          : await updateUser(user._id, { pined: docId });
         if (updatedUser) {
           toast.success("Note pinned successfully!");
           setProfile((prevProfile) => {

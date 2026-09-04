@@ -8,10 +8,8 @@ import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Switch } from "@/components/ui/switch"
-import { getById as getUserById } from "../../app/api/users/user"
-import { getById as getOrgById } from "../../app/api/orgs/org"
-import { updateUser } from "../../app/api/users/user"
-import { updateOrg } from "../../app/api/orgs/org"
+import { getUserById, updateUser } from "@/api/user"
+import { getOrgById, updateOrg } from "@/api/org"
 import { pages } from "@/config/routing/pages.route"
 import { Button } from "../ui/button"
 import { useRef } from "react"
@@ -127,9 +125,9 @@ export function SettingsModal() {
 
     if (id) {
       if (isOrg) {
-        await updateOrg(id, null, null, null, null, value)
+        await updateOrg(id, { privated: value })
       } else {
-        await updateUser(id, null, null, null, null, value)
+        await updateUser(id, { privated: value })
       }
 
       return null
@@ -142,9 +140,9 @@ export function SettingsModal() {
 
     if (id) {
       if (isOrg) {
-        await updateOrg(id, null, null, null, null, null, null, null, null, null, value)
+        await updateOrg(id, { watermark: value })
       } else {
-        await updateUser(id, null, null, null, null, null, null, null, null, null, value)
+        await updateUser(id, { watermark: value })
       }
     }
   }

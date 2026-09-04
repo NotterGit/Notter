@@ -3,8 +3,8 @@ import { ConvexHttpClient } from "convex/browser"
 
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
-import { getByUsername as getByOrgname } from "@/app/api/orgs/org"
-import { getByUsername } from "@/app/api/users/user"
+import { getOrgByUsername } from "@/api/org"
+import { getUserByUsername } from "@/api/user"
 import { isValidConvexId } from "@/lib/convex-id"
 
 type PublicDocumentMetadata = {
@@ -22,8 +22,8 @@ async function getWatermark(userId: string, creatorName?: string | null) {
   }
 
   const profile = userId.startsWith("org_")
-    ? await getByOrgname(creatorName)
-    : await getByUsername(creatorName)
+    ? await getOrgByUsername(creatorName)
+    : await getUserByUsername(creatorName)
 
   return profile?.watermark ?? null
 }

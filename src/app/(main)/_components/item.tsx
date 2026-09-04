@@ -15,7 +15,7 @@ import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
 import { pages } from "@/config/routing/pages.route"
 import { formatLastEditTime, getCurrentEditTime } from "@/lib/last-edit-time"
 import type { ItemProps } from "@/config/types/main.types";
-import { createDocumentWithFallback, getCreateDocumentErrorMessage, getCreateDocumentLimitOptions } from "../../api/document-limit"
+import { createDocumentWithFallback, getCreateDocumentErrorMessage, getCreateDocumentLimitOptions } from "@/api/document-limit"
 
 export function Item({
     label, 

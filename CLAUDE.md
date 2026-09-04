@@ -19,16 +19,17 @@
 
 ## Project Structure
 - `public/` — Static assets organized by domain (`badges/`, `defaults/`, `fonts/`, `icons/`, `images/`, `landing/`, `logos/`).
+- `src/api/` — Backend REST API client (`client.ts`, `user.ts`, `org.ts`, `s3.ts`, `admin.ts`, `files.ts`, `document-limit.ts`, `image.ts`) modeled after `notter-todo`.
 - `src/app/` — Next.js 15 App Router routes.
   - `(landing)/` — Welcome and landing page.
   - `(main)/` — Primary application workspace (dashboard, document editor/viewer).
   - `(profile)/` — Profile, user, and organization settings.
   - `(public)/` — Publicly shared document views (accessible without auth).
-  - `api/` — API route endpoints.
+  - `api/image/route.ts` — S3 image proxy route handler (`/api/image`).
   - `globals.css` — Global styles (Tailwind CSS v4).
   - `manifest.ts` — Dynamic PWA manifest.
 - `src/components/` — Shared React components.
-  - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, `use-workspace-admin`, etc.).
+  - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, `use-workspace-admin`, `use-document-stats`, etc.).
   - `ui/` — Base UI components (Radix UI / custom).
 - `src/lib/` — Utilities (PWA, Desktop App helper, image URLs, plan limits).
 - `convex/` — Backend logic and Database configuration on Convex.
@@ -39,6 +40,7 @@
 ## Tech Stack & Core Features
 - **Authentication:** Clerk (`@clerk/nextjs`).
 - **Styling:** Tailwind CSS v4 with `@tailwindcss/postcss`.
+- **Backend REST API:** Centralized Axios client in `src/api/client.ts` with automatic Clerk Bearer token interceptor, `Get`/`Post`/`Put`/`Delete` helpers, typed payload objects (`UpdateUserPayload`, `CreateUserPayload`), S3 file operations, and normalized endpoint constants (`API.BACKEND.*`).
 - **Editor:** BlockNote (`@blocknote/react` and `@blocknote/mantine`).
 - **Drag & Drop:** `@hello-pangea/dnd` for hierarchical note reordering and nesting in the sidebar.
 - **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `archivedTime`, `isPinned`, `parentDocument`, `order`, `content`, `coverImage`, `icon`, `isPublished`, etc. `archiveSettings` stores `userId` and `retentionDays` (1, 7, 30 days for Amber, 90 days for Diamond).

@@ -1,13 +1,13 @@
 import type { Metadata } from "next"
 
-import { getByUsername } from "@/app/api/users/user"
+import { getUserByUsername } from "@/api/user"
 import type { UsernameProps } from "@/config/types/profile.types"
 
 import ProfilePage from "../../_components/profile-page"
 
 export async function generateMetadata({ params }: UsernameProps): Promise<Metadata> {
   const { username } = await params
-  const profile = await getByUsername(username)
+  const profile = await getUserByUsername(username)
 
   if (!profile) {
     return { title: "Page not found" }

@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Loader2, Menu, Minus, Plus } from "lucide-react";
-import { checkModerator, updateUser } from "../../api/users/user";
-import { updateOrg } from "../../api/orgs/org";
+import { checkModerator, updateUser } from "@/api/user";
+import { updateOrg } from "@/api/org";
 import {
   changeUserVerifiedOrgs,
   setOrgPremium,
@@ -13,7 +13,7 @@ import {
   setUserPremium,
   updateOrgBadge,
   updateUserBadge,
-} from "../../api/admin/admin";
+} from "@/api/admin";
 import { toast } from "react-hot-toast";
 import { Switch } from "@/components/ui/switch";
 import { useUser } from "@clerk/clerk-react";
@@ -82,8 +82,8 @@ export function ModeratorPanel({ user }: UserProps) {
       setPendingToggle("watermark");
 
       const result = isOrg
-        ? await updateOrg(user._id, null, null, null, null, null, null, null, null, null, newWatermark)
-        : await updateUser(user._id, null, null, null, null, null, null, null, null, null, newWatermark);
+        ? await updateOrg(user._id, { watermark: newWatermark })
+        : await updateUser(user._id, { watermark: newWatermark });
       if (result) {
         toast.success(`Watermark обновлен на ${newWatermark ? "включен" : "выключен"}`);
         setWatermark(newWatermark);
@@ -103,8 +103,8 @@ export function ModeratorPanel({ user }: UserProps) {
       setPendingToggle("privated");
 
       const result = isOrg
-        ? await updateOrg(user._id, null, null, null, null, newPrivated)
-        : await updateUser(user._id, null, null, null, null, newPrivated);
+        ? await updateOrg(user._id, { privated: newPrivated })
+        : await updateUser(user._id, { privated: newPrivated });
       if (result) {
         toast.success(`Профиль обновлен на ${newPrivated ? "приватный" : "публичный"}`);
         setPrivated(newPrivated);
