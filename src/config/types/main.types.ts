@@ -40,6 +40,11 @@ export interface ItemProps {
   isDragging?: boolean
   isCombineTarget?: boolean
   isArchiveTarget?: boolean
+  isSelected?: boolean
+  onSelect?: (event: React.MouseEvent) => void
+  isSelectionMode?: boolean
+  selectedCount?: number
+  isOtherSelectedDragging?: boolean
   className?: string
   draggableProps?: DraggableProvidedDraggableProps
   dragHandleProps?: DraggableProvidedDragHandleProps | null

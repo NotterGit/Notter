@@ -51,6 +51,8 @@ export function DocumentList({
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [draggingDocId, setDraggingDocId] = useState<string | null>(null)
   const [isMounted, setIsMounted] = useState(false)
+  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set())
+  const [lastSelectedDocId, setLastSelectedDocId] = useState<string | null>(null)
 
   const orgId = organization?.id !== undefined ? organization.id : (user?.id as string)
 
@@ -77,9 +79,75 @@ export function DocumentList({
     return buildChildrenMap(documents)
   }, [documents])
 
+  const draggingDocIds = useMemo(() => {
+    if (!draggingDocId) return null
+    if (selectedDocIds.has(draggingDocId)) {
+      return selectedDocIds
+    }
+    return draggingDocId
+  }, [draggingDocId, selectedDocIds])
+
   const visibleItems = useMemo(() => {
-    return flattenTree("root", level, childrenMap, expanded, draggingDocId)
-  }, [childrenMap, expanded, level, draggingDocId])
+    return flattenTree("root", level, childrenMap, expanded, draggingDocIds)
+  }, [childrenMap, expanded, level, draggingDocIds])
+
+  const onSelect = (documentId: string, event?: React.MouseEvent) => {
+    if (event?.shiftKey && lastSelectedDocId && lastSelectedDocId !== documentId) {
+      const lastIndex = visibleItems.findIndex((item) => item.doc._id === lastSelectedDocId)
+      const currentIndex = visibleItems.findIndex((item) => item.doc._id === documentId)
+
+      if (lastIndex !== -1 && currentIndex !== -1) {
+        const start = Math.min(lastIndex, currentIndex)
+        const end = Math.max(lastIndex, currentIndex)
+        const rangeIds = visibleItems.slice(start, end + 1).map((item) => item.doc._id)
+
+        setSelectedDocIds((prev) => {
+          const next = new Set(prev)
+          for (const id of rangeIds) {
+            next.add(id)
+          }
+          return next
+        })
+        setLastSelectedDocId(documentId)
+        return
+      }
+    }
+
+    setSelectedDocIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(documentId)) {
+        next.delete(documentId)
+      } else {
+        next.add(documentId)
+      }
+      return next
+    })
+    setLastSelectedDocId(documentId)
+  }
+
+  const onSelectAll = () => {
+    if (!visibleItems.length) return
+    const allIds = visibleItems.map((item) => item.doc._id)
+    setSelectedDocIds(new Set(allIds))
+  }
+
+  const onClearSelection = () => {
+    setSelectedDocIds(new Set())
+    setLastSelectedDocId(null)
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedDocIds.size > 0) {
+        onClearSelection()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [selectedDocIds.size])
 
   const onDragStart = (start: DragStart) => {
     setDraggingDocId(start.draggableId)
@@ -91,79 +159,117 @@ export function DocumentList({
 
     if (!documents) return
 
-    if (destination?.droppableId === "archive-drop-target") {
-      const docId = draggableId as Id<"documents">
-      const draggedDoc = documents.find((d) => d._id === docId)
-      if (!draggedDoc) return
+    const isSelectionDrag = selectedDocIds.has(draggableId)
+    const movingIds = isSelectionDrag
+      ? (Array.from(selectedDocIds) as Id<"documents">[])
+      : [draggableId as Id<"documents">]
 
+    // 1. Handled dropping to archive
+    if (destination?.droppableId === "archive-drop-target") {
       if (isOrg && !isAdmin) {
         toast.error("Только администраторы могут архивировать заметки")
         return
       }
 
-      void update({
-        id: docId,
-        isPublished: false,
-        userId: orgId,
-        lastEditor: user?.username as string,
-        lastEditTime: getCurrentEditTime(),
-      })
+      const movingDocs = documents.filter((d) => movingIds.includes(d._id))
+      if (!movingDocs.length) return
 
-      const promise = archive({
-        id: docId,
-        userId: orgId,
-      }).then(() => {
-        const currentDocId = typeof params?.documentId === "string" ? params.documentId : undefined
-        if (currentDocId && (currentDocId === docId || isDescendant(docId, currentDocId, documents))) {
+      for (const doc of movingDocs) {
+        void update({
+          id: doc._id,
+          isPublished: false,
+          userId: orgId,
+          lastEditor: user?.username as string,
+          lastEditTime: getCurrentEditTime(),
+        })
+      }
+
+      const promise = Promise.all(
+        movingDocs.map((doc) =>
+          archive({
+            id: doc._id,
+            userId: orgId,
+          })
+        )
+      ).then(() => {
+        const currentDocId =
+          typeof params?.documentId === "string" ? params.documentId : undefined
+        if (
+          currentDocId &&
+          (movingIds.includes(currentDocId as Id<"documents">) ||
+            movingIds.some((id) => isDescendant(id, currentDocId, documents)))
+        ) {
           router.push(pages.DASHBOARD())
         }
+        onClearSelection()
       })
 
+      const count = movingDocs.length
       toast.promise(promise, {
-        loading: "Перемещаем в архив...",
-        success: "Заметка перемещена в архив!",
+        loading: count > 1 ? "Перемещаем заметки в архив..." : "Перемещаем в архив...",
+        success:
+          count > 1
+            ? `Заметки перемещены в архив (${count})!`
+            : "Заметка перемещена в архив!",
         error: "Не удалось переместить в архив",
       })
       return
     }
 
+    // 2. Handled nesting (combine onto another note)
     if (combine) {
       const targetParentId = combine.draggableId as Id<"documents">
 
-      if (targetParentId === draggableId) {
+      if (movingIds.includes(targetParentId)) {
         toast.error("Нельзя переместить заметку внутрь самой себя")
         return
       }
 
-      if (isDescendant(draggableId, targetParentId, documents)) {
+      if (movingIds.some((id) => isDescendant(id, targetParentId, documents))) {
         toast.error("Нельзя переместить заметку внутрь её дочерних заметок")
         return
       }
 
-      const draggedDoc = documents.find((d) => d._id === draggableId)
-      if (!draggedDoc) return
+      const movingDocs = documents.filter((d) => movingIds.includes(d._id))
+      if (!movingDocs.length) return
 
-      const sourceParentId = draggedDoc.parentDocument
-        ? (draggedDoc.parentDocument as Id<"documents">)
-        : undefined
-
-      const sourceSiblings = (childrenMap.get(sourceParentId ?? "root") || [])
-        .filter((d) => d._id !== draggableId)
-
-      const sourceUpdates = sourceSiblings.map((doc, index) => ({
-        id: doc._id,
-        order: index,
-        parentDocument: sourceParentId,
-      }))
-
-      const targetSiblings = (childrenMap.get(targetParentId) || [])
-        .filter((d) => d._id !== draggableId)
-
-      const movedItemUpdate = {
-        id: draggableId as Id<"documents">,
-        order: targetSiblings.length,
-        parentDocument: targetParentId,
+      // Source updates for all affected parents
+      const sourceParentKeys = new Set<string>()
+      for (const doc of movingDocs) {
+        const pKey = doc.parentDocument ? (doc.parentDocument as string) : "root"
+        if (pKey !== targetParentId) {
+          sourceParentKeys.add(pKey)
+        }
       }
+
+      let sourceUpdates: Array<{
+        id: Id<"documents">
+        order: number
+        parentDocument?: Id<"documents">
+      }> = []
+
+      for (const pKey of sourceParentKeys) {
+        const pId = pKey === "root" ? undefined : (pKey as Id<"documents">)
+        const siblings = (childrenMap.get(pKey) || []).filter(
+          (d) => !movingIds.includes(d._id)
+        )
+        const updates = siblings.map((doc, index) => ({
+          id: doc._id,
+          order: index,
+          parentDocument: pId,
+        }))
+        sourceUpdates = [...sourceUpdates, ...updates]
+      }
+
+      const targetSiblings = (childrenMap.get(targetParentId) || []).filter(
+        (d) => !movingIds.includes(d._id)
+      )
+
+      const targetUpdates = movingDocs.map((doc, index) => ({
+        id: doc._id,
+        order: targetSiblings.length + index,
+        parentDocument: targetParentId,
+      }))
 
       setExpanded((prev) => ({
         ...prev,
@@ -172,14 +278,17 @@ export function DocumentList({
 
       const promise = reorder({
         userId: orgId,
-        items: [...sourceUpdates, movedItemUpdate],
+        items: [...sourceUpdates, ...targetUpdates],
         lastEditor: user?.username as string,
         lastEditTime: getCurrentEditTime(),
+      }).then(() => {
+        onClearSelection()
       })
 
+      const count = movingDocs.length
       toast.promise(promise, {
-        loading: "Перемещение внутрь заметки...",
-        success: "Заметка перемещена внутрь",
+        loading: count > 1 ? "Перемещение заметок внутрь..." : "Перемещение внутрь заметки...",
+        success: count > 1 ? `Заметки перемещены внутрь (${count})` : "Заметка перемещена внутрь",
         error: "Не удалось переместить заметку",
       })
       return
@@ -190,94 +299,185 @@ export function DocumentList({
       return
     }
 
-    if (destination.index === source.index) {
+    if (destination.index === source.index && !isSelectionDrag) {
       return
     }
 
-    const draggedDoc = documents.find((d) => d._id === draggableId)
-    if (!draggedDoc) return
+    if (movingIds.length === 1) {
+      const singleId = movingIds[0]
+      const draggedDoc = documents.find((d) => d._id === singleId)
+      if (!draggedDoc) return
 
+      const { targetParentId, targetOrder } = getTargetPlacement(
+        singleId,
+        destination.index,
+        visibleItems,
+        childrenMap
+      )
+
+      if (targetParentId === singleId) {
+        toast.error("Нельзя переместить заметку внутрь самой себя")
+        return
+      }
+
+      if (isDescendant(singleId, targetParentId, documents)) {
+        toast.error("Нельзя переместить заметку внутрь её дочерних заметок")
+        return
+      }
+
+      const sourceParentId = draggedDoc.parentDocument
+        ? (draggedDoc.parentDocument as Id<"documents">)
+        : undefined
+
+      const isSameParent = sourceParentId === targetParentId
+
+      const sourceSiblings = (childrenMap.get(sourceParentId ?? "root") || [])
+        .filter((d) => d._id !== singleId)
+
+      let itemsToUpdate: Array<{
+        id: Id<"documents">
+        order: number
+        parentDocument?: Id<"documents">
+      }> = []
+
+      if (isSameParent) {
+        const newSiblings = Array.from(sourceSiblings)
+        const clampedOrder = Math.max(0, Math.min(targetOrder, newSiblings.length))
+        newSiblings.splice(clampedOrder, 0, draggedDoc)
+
+        itemsToUpdate = newSiblings.map((doc, index) => ({
+          id: doc._id,
+          order: index,
+          parentDocument: sourceParentId,
+        }))
+      } else {
+        const sourceUpdates = sourceSiblings.map((doc, index) => ({
+          id: doc._id,
+          order: index,
+          parentDocument: sourceParentId,
+        }))
+
+        const targetSiblings = (childrenMap.get(targetParentId ?? "root") || [])
+          .filter((d) => d._id !== singleId)
+        const clampedOrder = Math.max(0, Math.min(targetOrder, targetSiblings.length))
+        targetSiblings.splice(clampedOrder, 0, draggedDoc)
+
+        const targetUpdates = targetSiblings.map((doc, index) => ({
+          id: doc._id,
+          order: index,
+          parentDocument: targetParentId,
+        }))
+
+        itemsToUpdate = [...sourceUpdates, ...targetUpdates]
+
+        if (targetParentId) {
+          setExpanded((prev) => ({
+            ...prev,
+            [targetParentId]: true,
+          }))
+        }
+      }
+
+      const promise = reorder({
+        userId: orgId,
+        items: itemsToUpdate,
+        lastEditor: user?.username as string,
+        lastEditTime: getCurrentEditTime(),
+      }).then(() => {
+        onClearSelection()
+      })
+
+      toast.promise(promise, {
+        loading: "Перемещение заметки...",
+        success: "Порядок заметок обновлен",
+        error: "Не удалось переместить заметку",
+      })
+      return
+    }
+
+    // Multi-item reordering between notes
+    const movingDocs = documents.filter((d) => movingIds.includes(d._id))
+    if (!movingDocs.length) return
+
+    const movingIdSet = new Set(movingIds)
     const { targetParentId, targetOrder } = getTargetPlacement(
-      draggableId,
+      movingIdSet,
       destination.index,
       visibleItems,
       childrenMap
     )
 
-    if (targetParentId === draggableId) {
-      toast.error("Нельзя переместить заметку внутрь самой себя")
+    if (targetParentId && movingIdSet.has(targetParentId)) {
+      toast.error("Нельзя переместить заметки внутрь себя")
       return
     }
 
-    if (isDescendant(draggableId, targetParentId, documents)) {
-      toast.error("Нельзя переместить заметку внутрь её дочерних заметок")
+    if (movingIds.some((id) => isDescendant(id, targetParentId, documents))) {
+      toast.error("Нельзя переместить заметки внутрь их дочерних заметок")
       return
     }
 
-    const sourceParentId = draggedDoc.parentDocument
-      ? (draggedDoc.parentDocument as Id<"documents">)
-      : undefined
+    const sourceParentKeys = new Set<string>()
+    for (const doc of movingDocs) {
+      const pKey = doc.parentDocument ? (doc.parentDocument as string) : "root"
+      sourceParentKeys.add(pKey)
+    }
 
-    const isSameParent = sourceParentId === targetParentId
-
-    const sourceSiblings = (childrenMap.get(sourceParentId ?? "root") || [])
-      .filter((d) => d._id !== draggableId)
-
-    let itemsToUpdate: Array<{
+    let sourceUpdates: Array<{
       id: Id<"documents">
       order: number
       parentDocument?: Id<"documents">
     }> = []
 
-    if (isSameParent) {
-      const newSiblings = Array.from(sourceSiblings)
-      const clampedOrder = Math.max(0, Math.min(targetOrder, newSiblings.length))
-      newSiblings.splice(clampedOrder, 0, draggedDoc)
+    for (const pKey of sourceParentKeys) {
+      const pId = pKey === "root" ? undefined : (pKey as Id<"documents">)
+      if (pId === targetParentId) continue
 
-      itemsToUpdate = newSiblings.map((doc, index) => ({
+      const siblings = (childrenMap.get(pKey) || []).filter(
+        (d) => !movingIdSet.has(d._id)
+      )
+      const updates = siblings.map((doc, index) => ({
         id: doc._id,
         order: index,
-        parentDocument: sourceParentId,
+        parentDocument: pId,
       }))
-    } else {
-      const sourceUpdates = sourceSiblings.map((doc, index) => ({
-        id: doc._id,
-        order: index,
-        parentDocument: sourceParentId,
+      sourceUpdates = [...sourceUpdates, ...updates]
+    }
+
+    const targetParentKey = targetParentId ?? "root"
+    const targetSiblings = (childrenMap.get(targetParentKey) || []).filter(
+      (d) => !movingIdSet.has(d._id)
+    )
+    const newTargetSiblings = Array.from(targetSiblings)
+    const clampedOrder = Math.max(0, Math.min(targetOrder, newTargetSiblings.length))
+    newTargetSiblings.splice(clampedOrder, 0, ...movingDocs)
+
+    const targetUpdates = newTargetSiblings.map((doc, index) => ({
+      id: doc._id,
+      order: index,
+      parentDocument: targetParentId,
+    }))
+
+    if (targetParentId) {
+      setExpanded((prev) => ({
+        ...prev,
+        [targetParentId]: true,
       }))
-
-      const targetSiblings = (childrenMap.get(targetParentId ?? "root") || [])
-        .filter((d) => d._id !== draggableId)
-      const clampedOrder = Math.max(0, Math.min(targetOrder, targetSiblings.length))
-      targetSiblings.splice(clampedOrder, 0, draggedDoc)
-
-      const targetUpdates = targetSiblings.map((doc, index) => ({
-        id: doc._id,
-        order: index,
-        parentDocument: targetParentId,
-      }))
-
-      itemsToUpdate = [...sourceUpdates, ...targetUpdates]
-
-      if (targetParentId) {
-        setExpanded((prev) => ({
-          ...prev,
-          [targetParentId]: true,
-        }))
-      }
     }
 
     const promise = reorder({
       userId: orgId,
-      items: itemsToUpdate,
+      items: [...sourceUpdates, ...targetUpdates],
       lastEditor: user?.username as string,
       lastEditTime: getCurrentEditTime(),
+    }).then(() => {
+      onClearSelection()
     })
 
     toast.promise(promise, {
-      loading: "Перемещение заметки...",
-      success: "Порядок заметок обновлен",
-      error: "Не удалось переместить заметку",
+      loading: "Перемещение заметок...",
+      success: `Порядок заметок обновлен (${movingDocs.length})`,
+      error: "Не удалось переместить заметки",
     })
   }
 
@@ -297,9 +497,37 @@ export function DocumentList({
     )
   }
 
+  const isSelectionMode = selectedDocIds.size > 0
+
   if (!isMounted) {
     return (
       <>
+        {isSelectionMode && (
+          <div className="mb-2 flex items-center justify-between gap-1.5 rounded-xl border border-logo-yellow/30 bg-logo-yellow/10 px-2 py-1.5 text-xs backdrop-blur-md dark:border-logo-yellow/20 dark:bg-logo-yellow/15 animate-in fade-in slide-in-from-top-1 duration-150">
+            <div className="flex items-center gap-1.5 font-medium text-foreground">
+              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-logo-yellow px-1 text-[10px] font-bold text-zinc-950">
+                {selectedDocIds.size}
+              </span>
+              <span className="text-[11px]">Выбрано</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={onSelectAll}
+                className="rounded-md px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground transition hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
+              >
+                Все
+              </button>
+              <button
+                type="button"
+                onClick={onClearSelection}
+                className="rounded-md px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground transition hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
+              >
+                Снять
+              </button>
+            </div>
+          </div>
+        )}
         {visibleItems.map((item) => (
           <Item
             key={item.doc._id}
@@ -318,6 +546,9 @@ export function DocumentList({
             createdAt={item.doc._creationTime}
             verified={item.doc.verifed}
             isPinned={item.doc.isPinned}
+            isSelected={selectedDocIds.has(item.doc._id)}
+            onSelect={(e) => onSelect(item.doc._id, e)}
+            isSelectionMode={isSelectionMode}
           />
         ))}
         {onCreateDocument && (
@@ -340,6 +571,33 @@ export function DocumentList({
 
   return (
     <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
+      {isSelectionMode && (
+        <div className="mb-2 flex items-center justify-between gap-1.5 rounded-xl border border-logo-yellow/30 bg-logo-yellow/10 px-2 py-1.5 text-xs backdrop-blur-md dark:border-logo-yellow/20 dark:bg-logo-yellow/15 animate-in fade-in slide-in-from-top-1 duration-150">
+          <div className="flex items-center gap-1.5 font-medium text-foreground">
+            <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-logo-yellow px-1 text-[10px] font-bold text-zinc-950">
+              {selectedDocIds.size}
+            </span>
+            <span className="text-[11px]">Выбрано</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={onSelectAll}
+              className="rounded-md px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground transition hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
+            >
+              Все
+            </button>
+            <button
+              type="button"
+              onClick={onClearSelection}
+              className="rounded-md px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground transition hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
+            >
+              Снять
+            </button>
+          </div>
+        </div>
+      )}
+
       <Droppable droppableId="document-tree-root" type="document" isCombineEnabled>
         {(provided, snapshot) => (
           <div
@@ -393,6 +651,20 @@ export function DocumentList({
                         isPinned={item.doc.isPinned}
                         isDragging={snapshot.isDragging}
                         isCombineTarget={Boolean(snapshot.combineTargetFor)}
+                        isSelected={selectedDocIds.has(item.doc._id)}
+                        onSelect={(e) => onSelect(item.doc._id, e)}
+                        isSelectionMode={isSelectionMode}
+                        selectedCount={
+                          selectedDocIds.has(draggingDocId ?? "")
+                            ? selectedDocIds.size
+                            : (selectedDocIds.has(item.doc._id) ? selectedDocIds.size : undefined)
+                        }
+                        isOtherSelectedDragging={Boolean(
+                          draggingDocId &&
+                          selectedDocIds.has(draggingDocId) &&
+                          selectedDocIds.has(item.doc._id) &&
+                          draggingDocId !== item.doc._id
+                        )}
                         dragHandleProps={provided.dragHandleProps}
                       />
                     </div>
@@ -429,6 +701,7 @@ export function DocumentList({
                     label={snapshot.isDraggingOver ? "Переместить в архив" : "Архив"}
                     icon={Archive}
                     isArchiveTarget={snapshot.isDraggingOver}
+                    selectedCount={selectedDocIds.has(draggingDocId ?? "") ? selectedDocIds.size : undefined}
                   />
                 </div>
               </PopoverTrigger>

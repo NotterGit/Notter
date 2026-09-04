@@ -1,7 +1,7 @@
 "use client"
 
 import Twemoji from "react-twemoji"
-import { Archive, ArrowRight, Calendar, ChevronDown, ChevronRight, History, LucideIcon, MoreHorizontal, Pin, PinOff, Plus, Trash } from "lucide-react"
+import { Archive, ArrowRight, Calendar, Check, ChevronDown, ChevronRight, History, LucideIcon, MoreHorizontal, Pin, PinOff, Plus, Trash } from "lucide-react"
 import { Id } from "../../../../convex/_generated/dataModel"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -38,6 +38,11 @@ export function Item({
     isDragging,
     isCombineTarget,
     isArchiveTarget,
+    isSelected,
+    onSelect,
+    isSelectionMode,
+    selectedCount,
+    isOtherSelectedDragging,
     className,
     draggableProps,
     dragHandleProps,
@@ -149,12 +154,45 @@ export function Item({
             style={{paddingLeft: level ? `${(level * 12) + 12}px` : "12px"}} 
             className={cn(`group mb-0.5 flex min-h-[34px] w-full items-center rounded-xl py-1.5 pr-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10 select-none`,
             active && "bg-gradient-to-r from-logo-yellow/20 to-logo-cyan/20 text-foreground shadow-sm",
+            isSelected && "bg-logo-yellow/15 text-foreground ring-1 ring-logo-yellow/40",
+            isOtherSelectedDragging && "opacity-40 ring-1 ring-dashed ring-logo-yellow/40",
             isDragging && "bg-white/95 dark:bg-zinc-900/95 shadow-xl ring-2 ring-logo-yellow/40 text-foreground",
             isCombineTarget && "bg-logo-yellow/20 dark:bg-logo-yellow/25 ring-2 ring-logo-yellow shadow-lg text-foreground border-logo-yellow/50",
             isArchiveTarget && "bg-red-500/15 dark:bg-red-500/25 ring-2 ring-red-500 text-red-600 dark:text-red-400 font-semibold shadow-lg",
             className
             )}
         >
+            {!!id && onSelect && (
+                <div
+                    className={cn(
+                        "flex items-center overflow-hidden shrink-0 transition-all duration-200 ease-in-out cursor-pointer",
+                        isSelected
+                            ? "w-5 opacity-100"
+                            : "w-0 opacity-0 group-hover:w-5 group-hover:opacity-100"
+                    )}
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        onSelect(e)
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    title={isSelected ? "Снять выбор" : "Выбрать заметку"}
+                >
+                    <div 
+                        role="checkbox" 
+                        aria-checked={isSelected}
+                        className={cn(
+                            "flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border transition-all duration-150",
+                            isSelected
+                                ? "border-logo-yellow bg-logo-yellow text-zinc-950 shadow-sm ring-1 ring-logo-yellow/50"
+                                : "border-black/40 dark:border-white/40 hover:border-logo-yellow hover:scale-110 bg-background/50"
+                        )}
+                    >
+                        {isSelected && (
+                            <Check className="h-2.5 w-2.5 stroke-[3]" />
+                        )}
+                    </div>
+                </div>
+            )}
             
             {!!id && (
                 <div 
@@ -188,13 +226,18 @@ export function Item({
 
             {isCombineTarget && (
                 <span className="ml-1.5 shrink-0 rounded-md bg-logo-yellow/30 px-1.5 py-0.5 text-[10px] font-bold text-foreground">
-                    Вложить
+                    {selectedCount && selectedCount > 1 ? `Вложить (${selectedCount})` : "Вложить"}
                 </span>
             )}
             {isArchiveTarget && (
                 <span className="ml-1.5 shrink-0 rounded-md bg-red-500/20 px-1.5 py-0.5 text-[10px] font-bold text-red-600 dark:text-red-400">
-                    В архив
+                    {selectedCount && selectedCount > 1 ? `В архив (${selectedCount})` : "В архив"}
                 </span>
+            )}
+            {isDragging && selectedCount && selectedCount > 1 && (
+                <div className="absolute -top-1.5 -right-1.5 z-50 flex h-5 min-w-5 items-center justify-center rounded-full bg-logo-yellow px-1.5 text-[10px] font-bold text-zinc-950 shadow-md ring-2 ring-white dark:ring-zinc-950">
+                    {selectedCount}
+                </div>
             )}
             
 

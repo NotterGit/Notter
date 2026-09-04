@@ -53,7 +53,7 @@ export function flattenTree(
   level: number,
   childrenMap: Map<string, Doc<"documents">[]>,
   expanded: Record<string, boolean>,
-  draggingDocId: string | null
+  draggingDocId: string | null | Set<string>
 ): FlatTreeItem[] {
   const children = childrenMap.get(parentId) || []
   const result: FlatTreeItem[] = []
@@ -62,7 +62,10 @@ export function flattenTree(
     const docChildren = childrenMap.get(doc._id) || []
     const hasChildren = docChildren.length > 0
     const isDocExpanded = Boolean(expanded[doc._id])
-    const isBeingDragged = draggingDocId === doc._id
+    const isBeingDragged =
+      draggingDocId instanceof Set
+        ? draggingDocId.has(doc._id)
+        : draggingDocId === doc._id
 
     result.push({
       doc,
@@ -83,12 +86,15 @@ export function flattenTree(
 }
 
 export function getTargetPlacement(
-  draggedDocId: string,
+  draggedDocId: string | Set<string>,
   destIndex: number,
   visibleItems: FlatTreeItem[],
   childrenMap: Map<string, Doc<"documents">[]>
 ): { targetParentId?: Id<"documents">; targetOrder: number } {
-  const remaining = visibleItems.filter((item) => item.doc._id !== draggedDocId)
+  const isExcluded = (id: string) =>
+    draggedDocId instanceof Set ? draggedDocId.has(id) : id === draggedDocId
+
+  const remaining = visibleItems.filter((item) => !isExcluded(item.doc._id))
 
   if (destIndex === 0) {
     const first = remaining[0]
@@ -101,7 +107,7 @@ export function getTargetPlacement(
   if (destIndex >= remaining.length) {
     const last = remaining[remaining.length - 1]
     const parentIdKey = last?.parentId ?? "root"
-    const siblings = (childrenMap.get(parentIdKey) || []).filter((d) => d._id !== draggedDocId)
+    const siblings = (childrenMap.get(parentIdKey) || []).filter((d) => !isExcluded(d._id))
     return {
       targetParentId: last?.parentId,
       targetOrder: siblings.length,
@@ -120,7 +126,7 @@ export function getTargetPlacement(
 
   if (next) {
     const parentIdKey = next.parentId ?? "root"
-    const siblings = (childrenMap.get(parentIdKey) || []).filter((d) => d._id !== draggedDocId)
+    const siblings = (childrenMap.get(parentIdKey) || []).filter((d) => !isExcluded(d._id))
     const nextSiblingIndex = siblings.findIndex((d) => d._id === next.doc._id)
     const targetOrder = nextSiblingIndex !== -1 ? nextSiblingIndex : siblings.length
     return {
@@ -130,7 +136,7 @@ export function getTargetPlacement(
   }
 
   const parentIdKey = prev?.parentId ?? "root"
-  const siblings = (childrenMap.get(parentIdKey) || []).filter((d) => d._id !== draggedDocId)
+  const siblings = (childrenMap.get(parentIdKey) || []).filter((d) => !isExcluded(d._id))
   const prevSiblingIndex = siblings.findIndex((d) => d._id === prev.doc._id)
   return {
     targetParentId: prev?.parentId,
