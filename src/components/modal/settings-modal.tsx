@@ -15,9 +15,27 @@ import { updateOrg } from "../../app/api/orgs/org"
 import { pages } from "@/config/routing/pages.route"
 import { Button } from "../ui/button"
 import { useRef } from "react"
-import { LogOut, Settings, User } from "lucide-react"
+import { Check, ChevronDown, LogOut, Settings, User } from "lucide-react"
 import { isDesktopApp } from "@/lib/desktop-app"
 import { VersionBadge } from "../version-badge"
+import { cn } from "@/lib/utils"
+import { useMutation, useQuery } from "convex/react"
+import { api } from "../../../convex/_generated/api"
+import { toast } from "react-hot-toast"
+import Image from "next/image"
+import { images } from "@/config/routing/image.route"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  ARCHIVE_RETENTION_OPTIONS,
+  DEFAULT_RETENTION_DAYS,
+  isArchiveRetentionAllowed,
+  pluralize,
+} from "@/lib/archive"
 
 const readRedirectPreference = () => {
   if (typeof window === "undefined") return false
@@ -46,6 +64,44 @@ export function SettingsModal() {
   const [isDesktop, setIsDesktop] = useState<boolean>(false)
   const [userData, setUserData] = useState<any>(null)
   const id = isOrg ? organization?.id : user?.id
+
+  const canEdit = (userData?.owner === user?.id || isAdmin) || !isOrg
+  const archiveSettings = useQuery(
+    api.document.getArchiveSettings,
+    id ? { userId: id } : "skip"
+  )
+  const setArchiveRetention = useMutation(api.document.setArchiveRetention)
+  const [retentionDays, setRetentionDays] = useState<number>(DEFAULT_RETENTION_DAYS)
+
+  useEffect(() => {
+    if (archiveSettings?.retentionDays !== undefined) {
+      setRetentionDays(archiveSettings.retentionDays)
+    }
+  }, [archiveSettings?.retentionDays])
+
+  const handleRetentionChange = async (days: number) => {
+    if (!canEdit) return
+
+    const premium = userData?.premium ?? 0
+    if (!isArchiveRetentionAllowed(days, premium)) {
+      return
+    }
+
+    setRetentionDays(days)
+
+    if (id) {
+      try {
+        await setArchiveRetention({
+          userId: id,
+          retentionDays: days,
+          premiumLevel: premium,
+        })
+        toast.success(`Автоочистка архива: ${days} ${pluralize(days, "день", "дня", "дней")}`)
+      } catch {
+        toast.error("Не удалось обновить настройки архива")
+      }
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -236,6 +292,82 @@ export function SettingsModal() {
               checked={watermark}
               onCheckedChange={handleWatermarkToggle}
             />
+          </div>
+        )}
+
+        {canEdit && (
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col gap-y-1">
+              <Label>Очистка архива</Label>
+              <span className="text-[0.8rem] text-muted-foreground max-w-[320px]">
+                Автоматически удалять заметки из архива через выбранный срок
+              </span>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 px-3 text-xs font-normal shrink-0 border-border/70 hover:bg-black/5 dark:hover:bg-white/10"
+                >
+                  <span>{retentionDays} {pluralize(retentionDays, "день", "дня", "дней")}</span>
+                  <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {ARCHIVE_RETENTION_OPTIONS.map((option) => {
+                  const isAllowed = isArchiveRetentionAllowed(option.days, userData?.premium ?? 0)
+                  const isSelected = retentionDays === option.days
+
+                  return (
+                    <DropdownMenuItem
+                      key={option.days}
+                      disabled={!isAllowed}
+                      onClick={() => {
+                        if (isAllowed) {
+                          handleRetentionChange(option.days)
+                        }
+                      }}
+                      className={cn(
+                        "flex items-center justify-between gap-2 text-xs py-2",
+                        !isAllowed ? "opacity-40 cursor-not-allowed select-none" : "cursor-pointer"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>{option.days} {pluralize(option.days, "день", "дня", "дней")}</span>
+                        {option.gemName === "Amber" && (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-500 border border-amber-500/20">
+                            <Image
+                              src={images.BADGES.AMBER}
+                              alt="Amber"
+                              width={12}
+                              height={12}
+                              className="shrink-0"
+                            />
+                            Amber
+                          </span>
+                        )}
+                        {option.gemName === "Diamond" && (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-cyan-500/10 px-1.5 py-0.5 text-[10px] font-medium text-cyan-500 border border-cyan-500/20">
+                            <Image
+                              src={images.BADGES.DIAMOND}
+                              alt="Diamond"
+                              width={12}
+                              height={12}
+                              className="shrink-0"
+                            />
+                            Diamond
+                          </span>
+                        )}
+                      </div>
+                      {isSelected && (
+                        <Check className="h-3.5 w-3.5 text-primary ml-auto" />
+                      )}
+                    </DropdownMenuItem>
+                  )
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
 

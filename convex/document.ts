@@ -50,6 +50,8 @@ export const archive = mutation({
             throw new Error("401")
         }
 
+        const now = new Date().toISOString()
+
         const recursiveArchive = async (documentId: Id<"documents">) => {
             const children = await ctx.db.query("documents").withIndex("by_user_parent", (q) => (
                 q.eq("userId", args.userId).eq("parentDocument", documentId)
@@ -57,7 +59,8 @@ export const archive = mutation({
 
             for(const child of children){
                 await ctx.db.patch(child._id, {
-                    isAcrhived: true
+                    isAcrhived: true,
+                    archivedTime: now
                 })
 
                 await recursiveArchive(child._id)
@@ -65,10 +68,36 @@ export const archive = mutation({
         }
 
         const document = await ctx.db.patch(args.id, {
-            isAcrhived: true
+            isAcrhived: true,
+            archivedTime: now
         })
 
         await recursiveArchive(args.id)
+
+        // Clean up any already expired documents for this user
+        const archiveSetting = await ctx.db
+            .query("archiveSettings")
+            .withIndex("by_user", (q) => q.eq("userId", args.userId))
+            .first()
+
+        const retentionDays = archiveSetting?.retentionDays ?? 7
+        const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000
+
+        const expiredDocs = await ctx.db
+            .query("documents")
+            .withIndex("by_user", (q) => q.eq("userId", args.userId))
+            .filter((q) => q.eq(q.field("isAcrhived"), true))
+            .collect()
+
+        for (const doc of expiredDocs) {
+            if (doc._id === args.id) continue
+            const docTime = doc.archivedTime
+                ? new Date(doc.archivedTime).getTime()
+                : (doc.lastEditTime ? new Date(doc.lastEditTime).getTime() : doc._creationTime)
+            if (docTime <= cutoff) {
+                await ctx.db.delete(doc._id)
+            }
+        }
 
         return document
     }
@@ -213,7 +242,20 @@ export const getTrash = query({
             .order("desc")
             .collect()
 
-        return documents
+        const setting = await ctx.db
+            .query("archiveSettings")
+            .withIndex("by_user", (q) => q.eq("userId", args.userId))
+            .first()
+
+        const retentionDays = setting?.retentionDays ?? 7
+        const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000
+
+        return documents.filter((doc) => {
+            const docTime = doc.archivedTime
+                ? new Date(doc.archivedTime).getTime()
+                : (doc.lastEditTime ? new Date(doc.lastEditTime).getTime() : doc._creationTime)
+            return docTime > cutoff
+        })
     }
 })
 
@@ -249,7 +291,8 @@ export const restore = mutation({
         
             for (const child of children) {
                 await ctx.db.patch(child._id, {
-                    isAcrhived: false
+                    isAcrhived: false,
+                    archivedTime: undefined,
                 })
         
                 await recursiveRestore(child._id)
@@ -257,7 +300,8 @@ export const restore = mutation({
         }
 
         const options: Partial<Doc<"documents">> = {
-            isAcrhived: false
+            isAcrhived: false,
+            archivedTime: undefined,
         }
 
         if(existingDocument.parentDocument){
@@ -462,6 +506,7 @@ export const update = mutation({
       shortId: v.optional(v.string()),
       verifed: v.optional(v.boolean()),
       isAcrhived: v.optional(v.boolean()),
+      archivedTime: v.optional(v.string()),
       isPinned: v.optional(v.boolean()),
       order: v.optional(v.number())
     },
@@ -497,6 +542,14 @@ export const update = mutation({
       if (rest.parentDocument === null) {
         rest.parentDocument = undefined
         args.parentDocument = undefined
+      }
+
+      if (rest.isAcrhived !== undefined) {
+        if (rest.isAcrhived) {
+          rest.archivedTime = rest.archivedTime ?? new Date().toISOString()
+        } else {
+          rest.archivedTime = undefined
+        }
       }
       
       const document = await ctx.db.patch(args.id, {
@@ -640,3 +693,130 @@ export const reorder = mutation({
     }
   }
 })
+
+export const getArchiveSettings = query({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identify = await ctx.auth.getUserIdentity()
+
+    if (!identify) {
+      return { retentionDays: 7 }
+    }
+
+    const settings = await ctx.db
+      .query("archiveSettings")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first()
+
+    return {
+      retentionDays: settings?.retentionDays ?? 7,
+    }
+  },
+})
+
+export const setArchiveRetention = mutation({
+  args: {
+    userId: v.string(),
+    retentionDays: v.number(),
+    premiumLevel: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+
+    if (!identity) {
+      throw new Error("Not authenticated")
+    }
+
+    const validDays = [1, 7, 30, 90]
+    if (!validDays.includes(args.retentionDays)) {
+      throw new Error("Invalid retention days")
+    }
+
+    const premium = args.premiumLevel ?? 0
+    if (args.retentionDays === 90 && premium < 2) {
+      throw new Error("Diamond plan required for 90 days retention")
+    }
+    if (args.retentionDays === 30 && premium < 1) {
+      throw new Error("Amber plan required for 30 days retention")
+    }
+
+    const existing = await ctx.db
+      .query("archiveSettings")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first()
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        retentionDays: args.retentionDays,
+      })
+    } else {
+      await ctx.db.insert("archiveSettings", {
+        userId: args.userId,
+        retentionDays: args.retentionDays,
+      })
+    }
+
+    const cutoff = Date.now() - args.retentionDays * 24 * 60 * 60 * 1000
+    const archivedDocs = await ctx.db
+      .query("documents")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.eq(q.field("isAcrhived"), true))
+      .collect()
+
+    let cleaned = 0
+    for (const doc of archivedDocs) {
+      const docTime = doc.archivedTime
+        ? new Date(doc.archivedTime).getTime()
+        : (doc.lastEditTime ? new Date(doc.lastEditTime).getTime() : doc._creationTime)
+      if (docTime <= cutoff) {
+        await ctx.db.delete(doc._id)
+        cleaned++
+      }
+    }
+
+    return { success: true, retentionDays: args.retentionDays, cleaned }
+  },
+})
+
+export const cleanExpiredTrash = mutation({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+
+    if (!identity) {
+      throw new Error("Not authenticated")
+    }
+
+    const settings = await ctx.db
+      .query("archiveSettings")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first()
+
+    const retentionDays = settings?.retentionDays ?? 7
+    const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000
+
+    const archivedDocs = await ctx.db
+      .query("documents")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.eq(q.field("isAcrhived"), true))
+      .collect()
+
+    let cleaned = 0
+    for (const doc of archivedDocs) {
+      const docTime = doc.archivedTime
+        ? new Date(doc.archivedTime).getTime()
+        : (doc.lastEditTime ? new Date(doc.lastEditTime).getTime() : doc._creationTime)
+      if (docTime <= cutoff) {
+        await ctx.db.delete(doc._id)
+        cleaned++
+      }
+    }
+
+    return { cleaned, retentionDays }
+  },
+})
+

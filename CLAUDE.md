@@ -32,8 +32,8 @@
   - `ui/` — Base UI components (Radix UI / custom).
 - `src/lib/` — Utilities (PWA, Desktop App helper, image URLs, plan limits).
 - `convex/` — Backend logic and Database configuration on Convex.
-  - `schema.ts` — Database schema (defines `documents` table).
-  - `document.ts` — Queries and mutations for document CRUD.
+  - `schema.ts` — Database schema (defines `documents` and `archiveSettings` tables).
+  - `document.ts` — Queries and mutations for document CRUD and archive auto-cleanup.
   - `rateLimits.ts` — API rate limiter implementation.
 
 ## Tech Stack & Core Features
@@ -41,10 +41,11 @@
 - **Styling:** Tailwind CSS v4 with `@tailwindcss/postcss`.
 - **Editor:** BlockNote (`@blocknote/react` and `@blocknote/mantine`).
 - **Drag & Drop:** `@hello-pangea/dnd` for hierarchical note reordering and nesting in the sidebar.
-- **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `isPinned`, `parentDocument`, `order`, `content`, `coverImage`, `icon`, `isPublished`, etc.
+- **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `archivedTime`, `isPinned`, `parentDocument`, `order`, `content`, `coverImage`, `icon`, `isPublished`, etc. `archiveSettings` stores `userId` and `retentionDays` (1, 7, 30 days for Amber, 90 days for Diamond).
 - **Convex Indexes:**
-  - `by_user`: `["userId"]`
-  - `by_user_parent`: `["userId", "parentDocument"]`
+  - `documents.by_user`: `["userId"]`
+  - `documents.by_user_parent`: `["userId", "parentDocument"]`
+  - `archiveSettings.by_user`: `["userId"]`
 - **Desktop Packaging:** Pake-cli integration for packaging web app into lightweight desktop builds.
 
 ## Coding Guidelines
