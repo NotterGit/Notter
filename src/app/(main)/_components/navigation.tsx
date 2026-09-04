@@ -1,7 +1,8 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, PlusCircle, Search, Settings2 } from "lucide-react"
+import { Check, ChevronsLeft, Download, File, MenuIcon, MonitorSmartphoneIcon, Search, Settings2 } from "lucide-react"
+
 import { useParams, useRouter } from "next/navigation"
 import { ElementRef, useEffect, useRef, useState } from "react"
 import { useMediaQuery } from 'usehooks-ts'
@@ -278,7 +279,8 @@ export function Navigation() {
                                 }} />
                             </>
                         ) : null}
-                        <Item onClick={handleCreate} label="Новая заметка" icon={PlusCircle} />
+                        <Item onClick={handleCreate} label="Новая заметка" icon={File} />
+
                     </div>
 
                     <div className="mt-2 px-2">

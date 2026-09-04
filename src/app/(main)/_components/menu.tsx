@@ -12,12 +12,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Archive, Calendar, Download, History, MoreHorizontal, Pin, PinOff, Undo, Upload } from "lucide-react";
+import { Archive, Calendar, Download, FolderInput, History, MoreHorizontal, Pin, PinOff, Undo, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { api } from "../../../../convex/_generated/api";
 import { useEffect, useState } from "react";
+import { useMoveNote } from "@/components/hooks/use-move-note";
+
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/ui/shadcn-io/dropzone";
 import { getOrgById as getOrg } from "@/api/org";
 import { getUserById as getUser } from "@/api/user";
@@ -42,6 +44,12 @@ export function Menu({ documentId }: MenuProps) {
 
   const [openModal, setOpenModal] = useState(false);
   const [profile, setProfile] = useState<User | Org | null>(null)
+  const moveNote = useMoveNote();
+
+  const onMove = () => {
+    if (!documentId) return;
+    moveNote.onOpen(documentId);
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -209,6 +217,17 @@ export function Menu({ documentId }: MenuProps) {
         </DropdownMenuItem>
 
         <DropdownMenuSeparator className="my-1" />
+
+        <DropdownMenuItem
+          onClick={onMove}
+          className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10"
+        >
+          <FolderInput className="h-4 w-4 text-muted-foreground" />
+          Переместить
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator className="my-1" />
+
 
         {isAdmin && (
           <>

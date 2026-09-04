@@ -820,3 +820,81 @@ export const cleanExpiredTrash = mutation({
   },
 })
 
+export const move = mutation({
+  args: {
+    id: v.id("documents"),
+    parentDocument: v.optional(v.union(v.id("documents"), v.null())),
+    userId: v.string(),
+    lastEditor: v.optional(v.string()),
+    lastEditTime: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+
+    if (!identity) {
+      throw new Error("Not authenticated")
+    }
+
+    const existing = await ctx.db.get(args.id)
+
+    if (!existing) {
+      throw new Error("Document not found")
+    }
+
+    if (existing.userId !== args.userId) {
+      throw new Error("Unauthorized")
+    }
+
+    const targetParentId = args.parentDocument ? args.parentDocument : undefined
+
+    if (targetParentId === args.id) {
+      throw new Error("Cannot move note into itself")
+    }
+
+    if (targetParentId) {
+      let current: Id<"documents"> | undefined = targetParentId
+      const visited = new Set<string>()
+      while (current) {
+        if (current === args.id) {
+          throw new Error("Cannot move note into its descendant")
+        }
+        if (visited.has(current)) break
+        visited.add(current)
+        const pDoc: Doc<"documents"> | null = await ctx.db.get(current)
+        current = pDoc?.parentDocument ? (pDoc.parentDocument as Id<"documents">) : undefined
+      }
+    }
+
+    const siblings = await ctx.db
+      .query("documents")
+      .withIndex("by_user_parent", (q) =>
+        q.eq("userId", args.userId).eq("parentDocument", targetParentId)
+      )
+      .filter((q) => q.eq(q.field("isAcrhived"), false))
+      .collect()
+
+
+    const validSiblings = siblings.filter((d) => d._id !== args.id)
+    const newOrder = validSiblings.length
+
+    if (!targetParentId) {
+      const { parentDocument: _, ...restDoc } = existing
+      await ctx.db.replace(args.id, {
+        ...restDoc,
+        order: newOrder,
+        ...(args.lastEditor ? { lastEditor: args.lastEditor } : {}),
+        ...(args.lastEditTime ? { lastEditTime: args.lastEditTime } : {}),
+      })
+    } else {
+      await ctx.db.patch(args.id, {
+        parentDocument: targetParentId,
+        order: newOrder,
+        ...(args.lastEditor ? { lastEditor: args.lastEditor } : {}),
+        ...(args.lastEditTime ? { lastEditTime: args.lastEditTime } : {}),
+      })
+    }
+
+    return args.id
+  },
+})
+

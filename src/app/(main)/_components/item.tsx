@@ -1,7 +1,7 @@
 "use client"
 
 import Twemoji from "react-twemoji"
-import { Archive, ArrowRight, Calendar, Check, ChevronDown, ChevronRight, History, LucideIcon, MoreHorizontal, Pin, PinOff, Plus, Trash } from "lucide-react"
+import { Archive, ArrowRight, Calendar, Check, ChevronDown, ChevronRight, FolderInput, History, LucideIcon, MoreHorizontal, Pin, PinOff, Plus, Trash } from "lucide-react"
 import { Id } from "../../../../convex/_generated/dataModel"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -12,7 +12,9 @@ import { api } from "../../../../convex/_generated/api"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
+import { useMoveNote } from "@/components/hooks/use-move-note"
 import { pages } from "@/config/routing/pages.route"
+
 import { formatLastEditTime, getCurrentEditTime } from "@/lib/last-edit-time"
 import type { ItemProps } from "@/config/types/main.types";
 import { createDocumentWithFallback, getCreateDocumentErrorMessage, getCreateDocumentLimitOptions } from "@/api/document-limit"
@@ -56,6 +58,15 @@ export function Item({
     const { organization } = useOrganization()
     const { isOrg, isAdmin } = useWorkspaceAdmin()
     const orgId = isOrg ? organization?.id as string : user?.id as string
+    const moveNote = useMoveNote()
+
+    const onMove = (
+        event: React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+        event.stopPropagation()
+        if (!id) return
+        moveNote.onOpen(id)
+    }
 
     const onTogglePin = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>
@@ -283,6 +294,12 @@ export function Item({
                                 )}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="my-1"/>
+                            <DropdownMenuItem onClick={onMove} className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10">
+                                <FolderInput className="h-4 w-4 text-muted-foreground"/>
+                                Переместить
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="my-1"/>
+
                             {isAdmin && (
                                 <>
                                     <DropdownMenuItem onClick={onArchive} className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10">
