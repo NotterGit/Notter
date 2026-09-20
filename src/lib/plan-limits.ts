@@ -25,3 +25,14 @@ export const getPlanLimitsByTier = (isOrg = false) => ({
     amber: isOrg ? AMBER_TEAM_LIMITS : AMBER_PERSONAL_LIMITS,
     diamond: DIAMOND_LIMITS,
 })
+
+export const getMaxArchiveRetentionDays = (premiumLevel: PremiumLevel = 0): number => {
+    if (premiumLevel >= 2) return 90
+    if (premiumLevel === 1) return 30
+    return 7
+}
+
+export const isArchiveRetentionAllowed = (days: number, premiumLevel: PremiumLevel = 0): boolean => {
+    return days <= getMaxArchiveRetentionDays(premiumLevel)
+}
+

@@ -59,7 +59,8 @@ export function Premium() {
           features={[
             `До ${limits.free.documents} заметок`,
             `До ${limits.free.publicDocuments} публичных заметок`,
-            `Загрузка изображений до ${limits.free.uploadMb} МБ`
+            `Загрузка изображений до ${limits.free.uploadMb} МБ`,
+            "Хранение в архиве до 7 дней"
           ]}
           btn={false}
         />
@@ -72,6 +73,7 @@ export function Premium() {
           features={[
             "Сокращенные ссылки для публичных заметок",
             "Уникальный значок в профиле",
+            "Хранение в архиве до 30 дней",
             `До ${limits.amber.documents} заметок`,
             `До ${limits.amber.publicDocuments} публичных заметок`,
             `Загрузка изображений до ${limits.amber.uploadMb} МБ`
@@ -84,6 +86,7 @@ export function Premium() {
           icon={images.BADGES.DIAMOND}
           features={[
             "Все преимущества Amber",
+            "Хранение в архиве до 90 дней",
             "Кастомные ссылки",
             "Отключение упоминаний Notter",
             "Скачивание/Загрузка заметок в JSON",
@@ -123,6 +126,12 @@ export function Premium() {
               <TableCell>{limits.free.uploadMb} МБ</TableCell>
               <TableCell className="font-medium text-yellow-400">{limits.amber.uploadMb} МБ</TableCell>
               <TableCell className="font-medium text-cyan-500">{limits.diamond.uploadMb} МБ</TableCell>
+            </TableRow>
+            <TableRow className="border-border/40">
+              <TableCell className="font-medium">Хранение заметок в архиве</TableCell>
+              <TableCell>До 7 дней</TableCell>
+              <TableCell className="font-medium text-yellow-400">До 30 дней</TableCell>
+              <TableCell className="font-medium text-cyan-500">До 90 дней</TableCell>
             </TableRow>
             <TableRow className="border-border/40">
               <TableCell className="font-medium">Значок в профиле</TableCell>

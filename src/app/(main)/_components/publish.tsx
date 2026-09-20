@@ -10,8 +10,8 @@ import { Hint } from "@/components/ui/hint"
 import { useOrigin } from "../../../components/hooks/use-origin"
 import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
 import { useOrganization, useUser } from "@clerk/nextjs"
-import { getById as getUserByID, updateUser } from "../../api/users/user"
-import { getById as getOrgByID, updateOrg } from "../../api/orgs/org"
+import { getUserById, updateUser } from "@/api/user"
+import { getOrgById, updateOrg } from "@/api/org"
 import type { PublishProps } from "@/config/types/main.types"
 import type { Org, User } from "@/config/types/api.types"
 import Link from "next/link"
@@ -49,7 +49,7 @@ export function Publish({ initialData }: PublishProps) {
 
   const fetchUserData = async () => {
     if (!orgId) return
-    const u = isOrg ? await getOrgByID(orgId) : await getUserByID(orgId)
+    const u = isOrg ? await getOrgById(orgId) : await getUserById(orgId)
     if (u) {
       setUserData(u)
       setPublicDocumentLimit(getPublicDocumentLimit(u.premium, isOrg))
@@ -204,9 +204,9 @@ export function Publish({ initialData }: PublishProps) {
 
     if (userData?.pined === initialData._id) {
       if (isOrg) {
-        await updateOrg(orgId, null, null, null, null, null, "")
+        await updateOrg(orgId, { pined: "" })
       } else {
-        await updateUser(orgId, null, null, null, null, null, "")
+        await updateUser(orgId, { pined: "" })
       }
     }
 

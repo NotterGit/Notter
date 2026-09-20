@@ -15,8 +15,8 @@ import { ChevronRight, Check } from "lucide-react"
 import Image from "next/image"
 import { images } from "@/config/routing/image.route"
 import { normalizeImageUrl } from "@/lib/image-url"
-import { getById as getUserById } from "../../api/users/user"
-import { getById as getOrgById } from "../../api/orgs/org"
+import { getUserById } from "@/api/user"
+import { getOrgById } from "@/api/org"
 import { useEffect, useState } from "react"
 
 export function UserItem(){

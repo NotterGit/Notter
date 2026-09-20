@@ -10,7 +10,7 @@ import { Skeleton } from "./ui/skeleton"
 import { api } from "../../convex/_generated/api" 
 import { useCoverImage } from "./hooks/use-cover-image" 
 import { useOrganization, useUser } from "@clerk/nextjs"
-import { deleteFile } from "../app/api/files/file"
+import { deleteFile } from "@/api/files"
 import { normalizeImageUrl } from "@/lib/image-url"
 import type { CoverImageProps } from "@/config/types/components.types";
 import toast from "react-hot-toast"

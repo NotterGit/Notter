@@ -10,6 +10,7 @@ export default defineSchema({
         shortId: v.string(),
         isShort: v.optional(v.boolean()),
         isAcrhived: v.boolean(),
+        archivedTime: v.optional(v.string()),
         isPinned: v.optional(v.boolean()),
         parentDocument: v.optional(v.union(v.id("documents"), v.null())),
         content: v.optional(v.string()),
@@ -23,5 +24,10 @@ export default defineSchema({
         order: v.optional(v.number()),
     })
     .index("by_user", ["userId"])
-    .index("by_user_parent", ["userId", "parentDocument"])
+    .index("by_user_parent", ["userId", "parentDocument"]),
+    archiveSettings: defineTable({
+        userId: v.string(),
+        retentionDays: v.number(),
+    })
+    .index("by_user", ["userId"]),
 })

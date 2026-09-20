@@ -7,10 +7,10 @@ import { useCreateBlockNote } from "@blocknote/react"
 import { BlockNoteView } from "@blocknote/mantine"
 import { useTheme } from "next-themes" 
 import { useOrganization, useUser } from "@clerk/nextjs"
-import { getById as getUserById } from "../app/api/users/user"
-import { getById as getOrgById } from "../app/api/orgs/org"
+import { getUserById } from "@/api/user"
+import { getOrgById } from "@/api/org"
 import toast from "react-hot-toast"
-import { uploadFile as uploadFileOnServer } from "../app/api/files/file"
+import { uploadFile as uploadFileOnServer } from "@/api/files"
 import type { EditorProps } from "@/config/types/components.types";
 import type { ClipboardEvent } from "react";
 import { normalizeContentUrls } from "@/lib/image-url"

@@ -1,14 +1,15 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, PlusCircle, Search, Settings2 } from "lucide-react"
+import { Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, FileText , Search, Settings2 } from "lucide-react"
+
 import { useParams, useRouter } from "next/navigation"
 import { ElementRef, useEffect, useRef, useState } from "react"
 import { useMediaQuery } from 'usehooks-ts'
 import { useMutation } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
-import { getById as getUserById } from "../../api/users/user"
-import { getById as getOrgById } from "../../api/orgs/org"
+import { getUserById } from "@/api/user"
+import { getOrgById } from "@/api/org"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "react-hot-toast"
@@ -23,7 +24,7 @@ import { Navbar } from "./navbar"
 import Link from "next/link"
 import { pages } from "@/config/routing/pages.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
-import { createDocumentWithFallback, getCreateDocumentErrorMessage } from "../../api/document-limit"
+import { createDocumentWithFallback, getCreateDocumentErrorMessage } from "@/api/document-limit"
 import { getPlanLimits } from "@/lib/plan-limits"
 import type { BeforeInstallPromptEvent } from "@/config/types/components.types"
 import {
@@ -278,7 +279,8 @@ export function Navigation() {
                                 }} />
                             </>
                         ) : null}
-                        <Item onClick={handleCreate} label="Новая заметка" icon={PlusCircle} />
+                        <Item onClick={handleCreate} label="Новая заметка" icon={FileText } />
+
                     </div>
 
                     <div className="mt-2 px-2">

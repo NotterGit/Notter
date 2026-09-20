@@ -18,3 +18,10 @@ export type SettingsStore = {
   onOpen: () => void
   onClose: () => void
 }
+
+export type MoveNoteStore = {
+  isOpen: boolean
+  documentId?: string
+  onOpen: (documentId: string) => void
+  onClose: () => void
+}

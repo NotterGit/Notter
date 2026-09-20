@@ -13,6 +13,11 @@ const CoverImageModal = dynamic(
   { ssr: false }
 )
 
+const MoveNoteModal = dynamic(
+  () => import("../modal/move-note-modal").then((mod) => mod.MoveNoteModal),
+  { ssr: false }
+)
+
 export function ModalProvider(){
   const [isMounted, setIsMounted] = useState(false)
 
@@ -26,6 +31,8 @@ export function ModalProvider(){
     <>
       <SettingsModal />
       <CoverImageModal />
+      <MoveNoteModal />
     </>
   )
 }
+

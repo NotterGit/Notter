@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { File } from "lucide-react"
+import { FileText  } from "lucide-react"
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
 import { useRouter } from "next/navigation"
@@ -91,7 +91,7 @@ export function SearchCommand() {
                   {document.icon ? (
                     <p className="mr-2 text-[1.125rem]">{document.icon}</p>
                   ) : (
-                    <File className="mr-2 h-4 w-4" />
+                    <FileText  className="mr-2 h-4 w-4" />
                   )}
                 </Twemoji>
                 <span>{document.title}</span>

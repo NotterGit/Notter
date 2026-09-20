@@ -1,32 +1,36 @@
-export const apiRoutes = {
-	FILES: {
-		UPLOAD: "/files/upload",
-		BY_USER: (userid: string) => `/files/user/${userid}`,
-		DELETE: "/files/delete",
-	},
-	USERS: {
-		ADD: (_id: string) => `/users/add/${_id}`,
-		BY_USERNAME: (username: string) => `/users/by_username/${username}`,
-		BY_ID: (_id: string) => `/users/by_id/${_id}`,
-		UPDATE: (_id: string) => `/users/update/${_id}`,
-		MODERATOR: (_id: string) => `/users/${_id}/moderator`,
-	},
-	ORGS: {
-		ADD: (_id: string) => `/orgs/add/${_id}`,
-		BY_USERNAME: (username: string) => `/orgs/by_username/${username}`,
-		BY_ID: (_id: string) => `/orgs/by_id/${_id}`,
-		UPDATE: (_id: string) => `/orgs/update/${_id}`,
-	},
-	ADMIN: {
-		USERS: {
-			PREMIUM: (_id: string) => `/admin/users/${_id}/premium`,
-			MODERATOR: (_id: string) => `/admin/users/${_id}/moderator`,
-			BADGE: (_id: string) => `/admin/users/${_id}/badge`,
-			VERIFIED_ORGS: (_id: string) => `/admin/users/${_id}/verified_orgs`,
-		},
-		ORGS: {
-			PREMIUM: (_id: string) => `/admin/orgs/${_id}/premium`,
-			BADGE: (_id: string) => `/admin/orgs/${_id}/badge`,
-		},
-	},
-};
+export const API = {
+  BACKEND: {
+    FILES: {
+      UPLOAD: "files/upload",
+      BY_USER: (userid: string) => `files/user/${userid}`,
+      DELETE: "files/delete",
+    },
+    USERS: {
+      ADD: (_id: string) => `users/add/${_id}`,
+      BY_USERNAME: (username: string) => `users/by_username/${username}`,
+      BY_ID: (_id: string) => `users/by_id/${_id}`,
+      UPDATE: (_id: string) => `users/update/${_id}`,
+      MODERATOR: (_id: string) => `users/${_id}/moderator`,
+    },
+    ORGS: {
+      ADD: (_id: string) => `orgs/add/${_id}`,
+      BY_USERNAME: (username: string) => `orgs/by_username/${username}`,
+      BY_ID: (_id: string) => `orgs/by_id/${_id}`,
+      UPDATE: (_id: string) => `orgs/update/${_id}`,
+    },
+    ADMIN: {
+      USERS: {
+        PREMIUM: (_id: string) => `admin/users/${_id}/premium`,
+        MODERATOR: (_id: string) => `admin/users/${_id}/moderator`,
+        BADGE: (_id: string) => `admin/users/${_id}/badge`,
+        VERIFIED_ORGS: (_id: string) => `admin/users/${_id}/verified_orgs`,
+      },
+      ORGS: {
+        PREMIUM: (_id: string) => `admin/orgs/${_id}/premium`,
+        BADGE: (_id: string) => `admin/orgs/${_id}/badge`,
+      },
+    },
+  },
+} as const;
+
+export const apiRoutes = API.BACKEND;
