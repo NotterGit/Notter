@@ -15,6 +15,53 @@ const getDocumentLimit = (premiumLevel?: number, isOrg?: boolean) => {
     return 50
 }
 
+const getPublicDocumentLimit = (premiumLevel?: number, isOrg?: boolean) => {
+    if (premiumLevel === 1) return isOrg ? 250 : 100
+    if (premiumLevel === 2) return 1000
+    return 10
+}
+
+export const getWorkspaceLimits = query({
+    args: { userId: v.string() },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity()
+        if (!identity) return null
+
+        const documents = await ctx.db.query("documents")
+            .withIndex("by_user", (q) => q.eq("userId", args.userId))
+            .collect()
+        const plan = await ctx.db.query("workspace")
+            .withIndex("by_user", (q) => q.eq("userId", args.userId))
+            .first()
+        const premiumLevel = plan?.premiumLevel ?? 0
+        const isOrg = plan?.isOrg ?? false
+
+        return {
+            documentCount: documents.length,
+            publicDocumentCount: documents.filter((document) => document.isPublished).length,
+            premiumLevel,
+            documentLimit: getDocumentLimit(premiumLevel, isOrg),
+            publicDocumentLimit: getPublicDocumentLimit(premiumLevel, isOrg),
+        }
+    },
+})
+
+export const syncWorkspacePlan = mutation({
+    args: { userId: v.string(), premiumLevel: v.number(), isOrg: v.boolean() },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity()
+        if (!identity || (identity.subject !== args.userId && identity.orgId !== args.userId)) throw new Error("Unauthorized")
+        const existing = await ctx.db.query("workspace")
+            .withIndex("by_user", (q) => q.eq("userId", args.userId))
+            .first()
+        if (existing) {
+            await ctx.db.patch(existing._id, { premiumLevel: args.premiumLevel, isOrg: args.isOrg })
+        } else {
+            await ctx.db.insert("workspace", args)
+        }
+    },
+})
+
 async function assertCanCreateDocument(ctx: MutationCtx, userId: string, premiumLevel?: number, isOrg?: boolean) {
     const documents = await ctx.db
         .query("documents")
@@ -203,7 +250,10 @@ export const create = mutation({
             throw new Error("Not authenticated")
         }
 
-        await assertCanCreateDocument(ctx, args.userId, args.premiumLevel, args.isOrg)
+        const workspacePlan = await ctx.db.query("workspace")
+            .withIndex("by_user", (q) => q.eq("userId", args.userId))
+            .first()
+        await assertCanCreateDocument(ctx, args.userId, workspacePlan?.premiumLevel, workspacePlan?.isOrg)
 
         const document = await ctx.db.insert("documents", {
             title: args.title,
@@ -527,6 +577,19 @@ export const update = mutation({
       
       if (existingDocument.userId !== args.userId) {
         throw new Error("Unauthorized")
+      }
+
+      if (args.isPublished === true && !existingDocument.isPublished) {
+        const documents = await ctx.db.query("documents")
+          .withIndex("by_user", (q) => q.eq("userId", args.userId))
+          .collect()
+        const plan = await ctx.db.query("workspace")
+          .withIndex("by_user", (q) => q.eq("userId", args.userId))
+          .first()
+        const publicLimit = getPublicDocumentLimit(plan?.premiumLevel, plan?.isOrg)
+        if (documents.filter((document) => document.isPublished).length >= publicLimit) {
+          throw new Error(`Public document limit reached:${publicLimit}`)
+        }
       }
 
       if (args.shortId) {

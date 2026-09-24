@@ -12,7 +12,7 @@ import { useOrganization, useUser } from "@clerk/nextjs"
 import { pages } from "@/config/routing/pages.route"
 import { images } from "@/config/routing/image.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
-import { createDocumentWithFallback, getCreateDocumentErrorMessage, getCreateDocumentLimitOptions } from "@/api/document-limit"
+import { createDocumentWithFallback, getCreateDocumentErrorMessage } from "@/api/document-limit"
 
 export default function Dashboard() {
     const create = useMutation(api.document.create)
@@ -34,15 +34,13 @@ export default function Dashboard() {
     }, [isOrg, organization?.slug, organization?.name, user?.fullName, user?.firstName, user?.lastName, user?.username])
     
     const onCreate = () => {
-        const promise = getCreateDocumentLimitOptions(orgId, isOrg)
-            .then((limitOptions) => createDocumentWithFallback(create, { 
+        const promise = createDocumentWithFallback(create, { 
                 title: "Новая заметка",
                 userId: orgId,
                 creatorName: isOrg ? organization?.slug as string : user?.username as string,
                 lastEditor: user?.username as string,
                 lastEditTime: getCurrentEditTime(),
-                ...limitOptions,
-            }))
+            })
             .then((documentId) => {
                 router.push(pages.DASHBOARD(documentId));
                 return documentId

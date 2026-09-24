@@ -18,7 +18,6 @@ import Link from "next/link"
 import { IframeModal } from "./iframe-modal"
 import { pages } from "@/config/routing/pages.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
-import { getPublicDocumentLimit } from "@/lib/plan-limits"
 
 export function Publish({ initialData }: PublishProps) {
   const origin = useOrigin()
@@ -31,7 +30,6 @@ export function Publish({ initialData }: PublishProps) {
 
   const [copied, setCopied] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [publicDocumentLimit, setPublicDocumentLimit] = useState<number>(getPublicDocumentLimit(0, isOrg))
   const [userData, setUserData] = useState<User | Org | null>(null)
 
   const [isShortUrl, setIsShortUrl] = useState<boolean>(Boolean(initialData.isShort))
@@ -43,17 +41,14 @@ export function Publish({ initialData }: PublishProps) {
     setIsShortUrl(Boolean(initialData.isShort))
   }, [initialData.isShort])
 
-  const currentPublicDocuments = useQuery(api.document.getPublicDocumentCount, {
-    userId: orgId,
-  })
+  const workspaceLimits = useQuery(api.document.getWorkspaceLimits, orgId ? { userId: orgId } : "skip")
+  const currentPublicDocuments = workspaceLimits?.publicDocumentCount
+  const publicDocumentLimit = workspaceLimits?.publicDocumentLimit ?? 10
 
   const fetchUserData = async () => {
     if (!orgId) return
     const u = isOrg ? await getOrgById(orgId) : await getUserById(orgId)
-    if (u) {
-      setUserData(u)
-      setPublicDocumentLimit(getPublicDocumentLimit(u.premium, isOrg))
-    }
+    if (u) setUserData(u)
   }
 
   useEffect(() => {
@@ -165,7 +160,7 @@ export function Publish({ initialData }: PublishProps) {
       return
     }
 
-    if (currentPublicDocuments !== undefined && (currentPublicDocuments as number) >= publicDocumentLimit) {
+    if (currentPublicDocuments !== undefined && currentPublicDocuments >= publicDocumentLimit) {
       toast.error(`Вы достигли лимита на публикацию в ${publicDocumentLimit} публичных заметок`)
       return
     }

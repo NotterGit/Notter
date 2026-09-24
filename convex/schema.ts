@@ -30,4 +30,10 @@ export default defineSchema({
         retentionDays: v.number(),
     })
     .index("by_user", ["userId"]),
+    workspace: defineTable({
+        userId: v.string(),
+        premiumLevel: v.number(),
+        isOrg: v.boolean(),
+    })
+    .index("by_user", ["userId"]),
 })

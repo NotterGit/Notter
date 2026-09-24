@@ -17,7 +17,7 @@ import { pages } from "@/config/routing/pages.route"
 
 import { formatLastEditTime, getCurrentEditTime } from "@/lib/last-edit-time"
 import type { ItemProps } from "@/config/types/main.types";
-import { createDocumentWithFallback, getCreateDocumentErrorMessage, getCreateDocumentLimitOptions } from "@/api/document-limit"
+import { createDocumentWithFallback, getCreateDocumentErrorMessage } from "@/api/document-limit"
 
 export function Item({
     label, 
@@ -129,16 +129,14 @@ export function Item({
         event.stopPropagation();
         if (!id) return;
     
-        const promise = getCreateDocumentLimitOptions(orgId, isOrg)
-            .then((limitOptions) => createDocumentWithFallback(create, {
+        const promise = createDocumentWithFallback(create, {
                 title: "Новая заметка",
                 parentDocument: id,
                 userId: orgId,
                 lastEditor: user?.username as string,
                 creatorName: isOrg ? organization?.slug ?? "" : user?.username ?? "",
                 lastEditTime: getCurrentEditTime(),
-                ...limitOptions,
-            })).then((documentId) => {
+            }).then((documentId) => {
             if (!expanded) {
                 onExpand?.()
             }

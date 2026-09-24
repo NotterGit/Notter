@@ -6,10 +6,8 @@ import { Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, FileTex
 import { useParams, useRouter } from "next/navigation"
 import { ElementRef, useEffect, useRef, useState } from "react"
 import { useMediaQuery } from 'usehooks-ts'
-import { useMutation } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
-import { getUserById } from "@/api/user"
-import { getOrgById } from "@/api/org"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "react-hot-toast"
@@ -25,7 +23,6 @@ import Link from "next/link"
 import { pages } from "@/config/routing/pages.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
 import { createDocumentWithFallback, getCreateDocumentErrorMessage } from "@/api/document-limit"
-import { getPlanLimits } from "@/lib/plan-limits"
 import type { BeforeInstallPromptEvent } from "@/config/types/components.types"
 import {
     getIsPwaInstalled,
@@ -76,10 +73,7 @@ export function Navigation() {
     const [isResetting, setIsResetting] = useState(false)
     const [isCollapsed, setIsCollapsed] = useState(isMobile)
 
-    const [documentCount, setDocumentCount] = useState<number>(0)
-    const [documentPublicCount, setDocumentPublicCount] = useState<number>(0)
-    const [premiumLevel, setPremiumLevel] = useState<number>(0)
-    const [isLimitsLoading, setIsLimitsLoading] = useState<boolean>(true)
+    const limits = useQuery(api.document.getWorkspaceLimits, orgId ? { userId: orgId } : "skip")
     const [promptInstall, setPromptInstall] = useState<BeforeInstallPromptEvent | null>(null)
     const [isInstalled, setIsInstalled] = useState(false)
     const [isInstallModalOpen, setIsInstallModalOpen] = useState(false)
@@ -103,56 +97,16 @@ export function Navigation() {
     }, [])
 
     useEffect(() => {
-        let isMounted = true
-
-        const fetchData = async () => {
-            setIsLimitsLoading(true)
-
-            try {
-                if (isOrg && organization?.id) {
-                    const orgData = await getOrgById(organization.id)
-                    if (orgData && isMounted) {
-                        setDocumentCount(orgData.documents || 0)
-                        setDocumentPublicCount(orgData.publicDocuments || 0)
-                        setPremiumLevel(orgData.premium || 0)
-                    }
-                    return
-                }
-
-                if (!isOrg && user?.id) {
-                    const userData = await getUserById(user.id)
-                    if (userData && isMounted) {
-                        setDocumentCount(userData.documents || 0)
-                        setDocumentPublicCount(userData.publicDocuments || 0)
-                        setPremiumLevel(userData.premium || 0)
-                    }
-                }
-            } catch {
-
-            } finally {
-                if (isMounted) {
-                    setIsLimitsLoading((isOrg && !organization?.id) || (!isOrg && !user?.id))
-                }
-            }
-        }
-
-        fetchData()
-
-        return () => {
-            isMounted = false
-        }
-    }, [isOrg, organization?.id, user?.id])
-
-    useEffect(() => {
         if (isMobile && params.documentId) {
             collapse()
         }
     }, [isMobile, params.documentId])
 
-    const { 
-        documents: documentLimit, 
-        publicDocuments: publicDocumentLimit 
-    } = getPlanLimits(premiumLevel, isOrg)
+    const documentCount = limits?.documentCount ?? 0
+    const documentPublicCount = limits?.publicDocumentCount ?? 0
+    const documentLimit = limits?.documentLimit ?? 50
+    const publicDocumentLimit = limits?.publicDocumentLimit ?? 10
+    const isLimitsLoading = limits === undefined
 
     const documentProgress = (documentCount / documentLimit) * 100
     const publicDocumentProgress = (documentPublicCount / publicDocumentLimit) * 100
@@ -170,8 +124,6 @@ export function Navigation() {
             lastEditor: user?.username as string,
             creatorName: isOrg ? organization?.slug as string : user?.username as string,
             lastEditTime: getCurrentEditTime(),
-            premiumLevel,
-            isOrg,
         })
             .then((documentId) => {
                 router.push(pages.DASHBOARD(documentId))
