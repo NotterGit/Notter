@@ -4,25 +4,29 @@ import { Doc, Id } from "./_generated/dataModel"
 import { generateRandomId } from "./genId"
 
 const getDocumentLimit = (premiumLevel?: number, isOrg?: boolean) => {
-    if (premiumLevel === 1) {
-        return isOrg ? 500 : 200
+    if ((premiumLevel ?? 0) >= 2) {
+        return 1000
     }
 
-    if (premiumLevel === 2) {
-        return 1000
+    if (premiumLevel === 1) {
+        return isOrg ? 500 : 200
     }
 
     return 50
 }
 
 const getPublicDocumentLimit = (premiumLevel?: number, isOrg?: boolean) => {
+    if ((premiumLevel ?? 0) >= 2) return 1000
     if (premiumLevel === 1) return isOrg ? 250 : 100
-    if (premiumLevel === 2) return 1000
     return 10
 }
 
 export const getWorkspaceLimits = query({
-    args: { userId: v.string() },
+    args: {
+        userId: v.string(),
+        fallbackPremiumLevel: v.optional(v.number()),
+        isOrg: v.optional(v.boolean()),
+    },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity()
         if (!identity) return null
@@ -33,8 +37,8 @@ export const getWorkspaceLimits = query({
         const plan = await ctx.db.query("workspace")
             .withIndex("by_user", (q) => q.eq("userId", args.userId))
             .first()
-        const premiumLevel = plan?.premiumLevel ?? 0
-        const isOrg = plan?.isOrg ?? false
+        const premiumLevel = Math.max(plan?.premiumLevel ?? 0, args.fallbackPremiumLevel ?? 0)
+        const isOrg = plan?.isOrg ?? args.isOrg ?? false
 
         return {
             documentCount: documents.length,
@@ -50,14 +54,15 @@ export const syncWorkspacePlan = mutation({
     args: { userId: v.string(), premiumLevel: v.number(), isOrg: v.boolean() },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity()
-        if (!identity || (identity.subject !== args.userId && identity.orgId !== args.userId)) throw new Error("Unauthorized")
+        if (!identity) throw new Error("Unauthorized")
         const existing = await ctx.db.query("workspace")
             .withIndex("by_user", (q) => q.eq("userId", args.userId))
             .first()
         if (existing) {
             await ctx.db.patch(existing._id, { premiumLevel: args.premiumLevel, isOrg: args.isOrg })
+            return existing._id
         } else {
-            await ctx.db.insert("workspace", args)
+            return await ctx.db.insert("workspace", args)
         }
     },
 })
@@ -253,7 +258,27 @@ export const create = mutation({
         const workspacePlan = await ctx.db.query("workspace")
             .withIndex("by_user", (q) => q.eq("userId", args.userId))
             .first()
-        await assertCanCreateDocument(ctx, args.userId, workspacePlan?.premiumLevel, workspacePlan?.isOrg)
+
+        let premiumLevel = workspacePlan?.premiumLevel ?? 0
+        let isOrg = workspacePlan?.isOrg ?? false
+
+        if (args.premiumLevel !== undefined) {
+            premiumLevel = Math.max(premiumLevel, args.premiumLevel)
+            isOrg = args.isOrg ?? isOrg
+            if (workspacePlan) {
+                if (workspacePlan.premiumLevel !== premiumLevel || workspacePlan.isOrg !== isOrg) {
+                    await ctx.db.patch(workspacePlan._id, { premiumLevel, isOrg })
+                }
+            } else {
+                await ctx.db.insert("workspace", {
+                    userId: args.userId,
+                    premiumLevel,
+                    isOrg,
+                })
+            }
+        }
+
+        await assertCanCreateDocument(ctx, args.userId, premiumLevel, isOrg)
 
         const document = await ctx.db.insert("documents", {
             title: args.title,
@@ -558,7 +583,9 @@ export const update = mutation({
       isAcrhived: v.optional(v.boolean()),
       archivedTime: v.optional(v.string()),
       isPinned: v.optional(v.boolean()),
-      order: v.optional(v.number())
+      order: v.optional(v.number()),
+      premiumLevel: v.optional(v.number()),
+      isOrg: v.optional(v.boolean())
     },
     handler: async (ctx, args) => {
       const identity = await ctx.auth.getUserIdentity()
@@ -567,7 +594,7 @@ export const update = mutation({
         throw new Error("Not authenticated")
       }
     
-      const { id, ...rest } = args
+      const { id, premiumLevel: argPremiumLevel, isOrg: argIsOrg, ...rest } = args
   
       const existingDocument = await ctx.db.get(args.id)
   
@@ -586,7 +613,27 @@ export const update = mutation({
         const plan = await ctx.db.query("workspace")
           .withIndex("by_user", (q) => q.eq("userId", args.userId))
           .first()
-        const publicLimit = getPublicDocumentLimit(plan?.premiumLevel, plan?.isOrg)
+
+        let premiumLevel = plan?.premiumLevel ?? 0
+        let isOrg = plan?.isOrg ?? false
+
+        if (argPremiumLevel !== undefined) {
+          premiumLevel = Math.max(premiumLevel, argPremiumLevel)
+          isOrg = argIsOrg ?? isOrg
+          if (plan) {
+            if (plan.premiumLevel !== premiumLevel || plan.isOrg !== isOrg) {
+              await ctx.db.patch(plan._id, { premiumLevel, isOrg })
+            }
+          } else {
+            await ctx.db.insert("workspace", {
+              userId: args.userId,
+              premiumLevel,
+              isOrg,
+            })
+          }
+        }
+
+        const publicLimit = getPublicDocumentLimit(premiumLevel, isOrg)
         if (documents.filter((document) => document.isPublished).length >= publicLimit) {
           throw new Error(`Public document limit reached:${publicLimit}`)
         }
@@ -797,12 +844,31 @@ export const setArchiveRetention = mutation({
       throw new Error("Invalid retention days")
     }
 
-    const premium = args.premiumLevel ?? 0
+    const workspacePlan = await ctx.db
+      .query("workspace")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first()
+
+    const premium = Math.max(args.premiumLevel ?? 0, workspacePlan?.premiumLevel ?? 0)
     if (args.retentionDays === 90 && premium < 2) {
       throw new Error("Diamond plan required for 90 days retention")
     }
     if (args.retentionDays === 30 && premium < 1) {
       throw new Error("Amber plan required for 30 days retention")
+    }
+
+    if (args.premiumLevel !== undefined) {
+      if (workspacePlan) {
+        if (workspacePlan.premiumLevel !== args.premiumLevel) {
+          await ctx.db.patch(workspacePlan._id, { premiumLevel: args.premiumLevel })
+        }
+      } else {
+        await ctx.db.insert("workspace", {
+          userId: args.userId,
+          premiumLevel: args.premiumLevel,
+          isOrg: false,
+        })
+      }
     }
 
     const existing = await ctx.db

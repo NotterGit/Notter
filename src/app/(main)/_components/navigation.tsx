@@ -23,6 +23,8 @@ import Link from "next/link"
 import { pages } from "@/config/routing/pages.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
 import { createDocumentWithFallback, getCreateDocumentErrorMessage } from "@/api/document-limit"
+import { getUserById } from "@/api/user"
+import { getOrgById } from "@/api/org"
 import type { BeforeInstallPromptEvent } from "@/config/types/components.types"
 import {
     getIsPwaInstalled,
@@ -64,6 +66,7 @@ export function Navigation() {
     const { organization } = useOrganization()
     const isMobile = useMediaQuery("(max-width: 768px)")
     const create = useMutation(api.document.create)
+    const syncWorkspacePlan = useMutation(api.document.syncWorkspacePlan)
     const isOrg = organization?.id !== undefined
     const orgId = isOrg ? organization?.id as string : user?.id as string
 
@@ -77,6 +80,33 @@ export function Navigation() {
     const [promptInstall, setPromptInstall] = useState<BeforeInstallPromptEvent | null>(null)
     const [isInstalled, setIsInstalled] = useState(false)
     const [isInstallModalOpen, setIsInstallModalOpen] = useState(false)
+
+    useEffect(() => {
+        let isMounted = true
+
+        const syncPlan = async () => {
+            if (!orgId) return
+
+            try {
+                const profile = isOrg ? await getOrgById(orgId) : await getUserById(orgId)
+                if (profile && isMounted && profile.premium !== undefined) {
+                    if (!limits || limits.premiumLevel !== profile.premium) {
+                        await syncWorkspacePlan({
+                            userId: orgId,
+                            premiumLevel: profile.premium,
+                            isOrg,
+                        })
+                    }
+                }
+            } catch {}
+        }
+
+        syncPlan()
+
+        return () => {
+            isMounted = false
+        }
+    }, [orgId, isOrg, limits, syncWorkspacePlan])
 
     useEffect(() => {
         setPromptInstall(getPwaPromptInstall())
@@ -124,6 +154,8 @@ export function Navigation() {
             lastEditor: user?.username as string,
             creatorName: isOrg ? organization?.slug as string : user?.username as string,
             lastEditTime: getCurrentEditTime(),
+            premiumLevel: limits?.premiumLevel,
+            isOrg,
         })
             .then((documentId) => {
                 router.push(pages.DASHBOARD(documentId))

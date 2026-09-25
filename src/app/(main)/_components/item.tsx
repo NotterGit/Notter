@@ -136,6 +136,7 @@ export function Item({
                 lastEditor: user?.username as string,
                 creatorName: isOrg ? organization?.slug ?? "" : user?.username ?? "",
                 lastEditTime: getCurrentEditTime(),
+                isOrg,
             }).then((documentId) => {
             if (!expanded) {
                 onExpand?.()

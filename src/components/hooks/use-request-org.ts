@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { useOrganization, useUser } from "@clerk/nextjs";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 import { createOrg, getOrgById, updateOrg } from "@/api/org";
 import { useDocumentStats } from "@/components/hooks/use-document-stats";
@@ -8,8 +10,28 @@ import type { UseRequestOrgFunction } from "@/config/types/api.types";
 export const useRequestOrg: UseRequestOrgFunction = () => {
   const { organization, isLoaded } = useOrganization();
   const { isSignedIn } = useUser();
+  const syncWorkspacePlan = useMutation(api.document.syncWorkspacePlan);
   const { documentCount, documentPublicCount, documentVerifiedCount, isReady } =
     useDocumentStats(organization?.id);
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !organization?.id) return;
+
+    const syncOrgPlan = async () => {
+      try {
+        const org = await getOrgById(organization.id);
+        if (org && org.premium !== undefined) {
+          await syncWorkspacePlan({
+            userId: organization.id,
+            premiumLevel: org.premium,
+            isOrg: true,
+          });
+        }
+      } catch {}
+    };
+
+    syncOrgPlan();
+  }, [isLoaded, isSignedIn, organization?.id, syncWorkspacePlan]);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !organization || !isReady) return;
@@ -25,7 +47,7 @@ export const useRequestOrg: UseRequestOrgFunction = () => {
 
       const existingOrg = await getOrgById(organization.id);
       if (!existingOrg) {
-        await createOrg(organization.id, {
+        const createdOrg = await createOrg(organization.id, {
           username: organization.slug,
           owner: adminId,
           created: organization.createdAt,
@@ -36,6 +58,14 @@ export const useRequestOrg: UseRequestOrgFunction = () => {
           publicDocuments: documentPublicCount,
           verifiedDocuments: documentVerifiedCount,
         });
+
+        if (createdOrg?.premium !== undefined) {
+          await syncWorkspacePlan({
+            userId: organization.id,
+            premiumLevel: createdOrg.premium,
+            isOrg: true,
+          }).catch(() => {});
+        }
         return;
       }
 
@@ -49,6 +79,14 @@ export const useRequestOrg: UseRequestOrgFunction = () => {
         members,
         verifiedDocuments: documentVerifiedCount,
       });
+
+      if (existingOrg.premium !== undefined) {
+        await syncWorkspacePlan({
+          userId: organization.id,
+          premiumLevel: existingOrg.premium,
+          isOrg: true,
+        }).catch(() => {});
+      }
     };
 
     syncOrg();
@@ -60,6 +98,7 @@ export const useRequestOrg: UseRequestOrgFunction = () => {
     documentPublicCount,
     documentVerifiedCount,
     isReady,
+    syncWorkspacePlan,
   ]);
 
   return null;

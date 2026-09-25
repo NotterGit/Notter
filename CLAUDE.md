@@ -33,8 +33,8 @@
   - `ui/` — Base UI components (Radix UI / custom).
 - `src/lib/` — Utilities (PWA, Desktop App helper, image URLs, plan limits).
 - `convex/` — Backend logic and Database configuration on Convex.
-  - `schema.ts` — Database schema (defines `documents` and `archiveSettings` tables).
-  - `document.ts` — Queries and mutations for document CRUD and archive auto-cleanup.
+  - `schema.ts` — Database schema (defines `documents`, `archiveSettings`, and `workspace` tables).
+  - `document.ts` — Queries and mutations for document CRUD, workspace plan synchronization, and archive auto-cleanup.
   - `rateLimits.ts` — API rate limiter implementation.
 
 ## Tech Stack & Core Features
@@ -43,11 +43,12 @@
 - **Backend REST API:** Centralized Axios client in `src/api/client.ts` with automatic Clerk Bearer token interceptor, `Get`/`Post`/`Put`/`Delete` helpers, typed payload objects (`UpdateUserPayload`, `CreateUserPayload`), S3 file operations, and normalized endpoint constants (`API.BACKEND.*`).
 - **Editor:** BlockNote (`@blocknote/react` and `@blocknote/mantine`) for production documents; Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, custom extensions for images, resizable video with captions, audio with player & captions) for custom prototype (`src/app/(main)/dashboard/editor/`).
 - **Drag & Drop:** `@hello-pangea/dnd` for hierarchical note reordering and nesting in the sidebar.
-- **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `archivedTime`, `isPinned`, `parentDocument`, `order`, `content`, `coverImage`, `icon`, `isPublished`, etc. `archiveSettings` stores `userId` and `retentionDays` (1, 7, 30 days for Amber, 90 days for Diamond).
+- **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `archivedTime`, `isPinned`, `parentDocument`, `order`, `content`, `coverImage`, `icon`, `isPublished`, etc. `archiveSettings` stores `userId` and `retentionDays` (1, 7, 30 days for Amber, 90 days for Diamond). `workspace` stores `userId`, `premiumLevel`, and `isOrg`.
 - **Convex Indexes:**
   - `documents.by_user`: `["userId"]`
   - `documents.by_user_parent`: `["userId", "parentDocument"]`
   - `archiveSettings.by_user`: `["userId"]`
+  - `workspace.by_user`: `["userId"]`
 - **Desktop Packaging:** Pake-cli integration for packaging web app into lightweight desktop builds.
 
 ## Coding Guidelines

@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
-import { useMutation } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 import { toast } from "react-hot-toast"
 import { useRouter } from "next/navigation"
@@ -21,6 +21,7 @@ export default function Dashboard() {
     const { organization } = useOrganization()
     const isOrg = organization?.id !== undefined
     const orgId = isOrg ? organization?.id as string : user?.id as string
+    const limits = useQuery(api.document.getWorkspaceLimits, orgId ? { userId: orgId } : "skip")
     
     useEffect(() => {
         const orgName = organization?.name || organization?.slug
@@ -40,6 +41,8 @@ export default function Dashboard() {
                 creatorName: isOrg ? organization?.slug as string : user?.username as string,
                 lastEditor: user?.username as string,
                 lastEditTime: getCurrentEditTime(),
+                premiumLevel: limits?.premiumLevel,
+                isOrg,
             })
             .then((documentId) => {
                 router.push(pages.DASHBOARD(documentId));

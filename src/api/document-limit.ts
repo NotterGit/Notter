@@ -30,6 +30,8 @@ type CreateDocumentArgs = {
   creatorName: string;
   lastEditTime?: string;
   parentDocument?: Id<"documents">;
+  premiumLevel?: number;
+  isOrg?: boolean;
 };
 
 type CreateDocumentMutation = (

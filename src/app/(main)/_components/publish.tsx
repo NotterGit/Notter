@@ -172,6 +172,8 @@ export function Publish({ initialData }: PublishProps) {
       lastEditor: user?.username as string,
       lastEditTime: getCurrentEditTime(),
       isShort: isShortUrl,
+      premiumLevel: userData?.premium,
+      isOrg,
     }).finally(() => setIsSubmitting(false))
 
     toast.promise(promise, {
