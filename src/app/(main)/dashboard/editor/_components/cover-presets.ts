@@ -119,28 +119,7 @@ export const COVER_PRESETS: CoverPreset[] = [
   },
 ]
 
-export const POPULAR_EMOJIS = [
-  "📝",
-  "🚀",
-  "💡",
-  "🎨",
-  "📚",
-  "✨",
-  "🎯",
-  "🧠",
-  "⚡",
-  "🌟",
-  "🔥",
-  "🌿",
-  "☕",
-  "💼",
-  "🏖️",
-  "🎵",
-  "📌",
-  "💻",
-  "🏆",
-  "🔮",
-]
+import { ALL_EMOJIS } from "./all-emojis"
 
 export function getRandomCoverPreset(): CoverPreset {
   const index = Math.floor(Math.random() * COVER_PRESETS.length)
@@ -148,6 +127,7 @@ export function getRandomCoverPreset(): CoverPreset {
 }
 
 export function getRandomEmoji(): string {
-  const index = Math.floor(Math.random() * POPULAR_EMOJIS.length)
-  return POPULAR_EMOJIS[index]
+  const index = Math.floor(Math.random() * ALL_EMOJIS.length)
+  return ALL_EMOJIS[index]
 }
+

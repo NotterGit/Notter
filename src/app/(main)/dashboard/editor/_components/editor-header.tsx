@@ -42,7 +42,7 @@ export function EditorHeader({
   return (
     <div
       className={cn(
-        "group/header relative px-6 sm:px-10 pb-4 pt-6 transition-all",
+        "group/header relative px-4 sm:px-6 md:px-10 pb-4 pt-6 transition-all",
         hasCover && "pt-0"
       )}
     >
@@ -77,7 +77,7 @@ export function EditorHeader({
             </IconPicker>
 
             {!preview && (
-              <div className="flex flex-col gap-1 opacity-0 transition-opacity duration-150 group-hover/emoji:opacity-100">
+              <div className="flex flex-col gap-1 opacity-100 md:opacity-0 md:group-hover/emoji:opacity-100 transition-opacity duration-150">
                 <Button
                   type="button"
                   variant="ghost"
@@ -108,23 +108,36 @@ export function EditorHeader({
       {!preview && (!icon || !hasCover) && (
         <div
           className={cn(
-            "flex flex-wrap items-center gap-2 mb-2 transition-opacity duration-150 select-none",
-            "opacity-0 group-hover/header:opacity-100 focus-within:opacity-100",
-            !icon && !hasCover && !title && "opacity-100"
+            "flex flex-wrap items-center gap-1.5 sm:gap-2 my-2 transition-opacity duration-150 select-none",
+            "opacity-100 md:opacity-0 md:group-hover/header:opacity-100 md:focus-within:opacity-100"
           )}
         >
           {!icon && (
-            <IconPicker asChild onChange={onChangeIcon}>
+            <>
+              <IconPicker asChild onChange={onChangeIcon}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  <Smile className="mr-1.5 h-3.5 w-3.5 text-primary" />
+                  <span>Добавить иконку</span>
+                </Button>
+              </IconPicker>
+
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
+                onClick={handleRandomEmoji}
                 className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                title="Выбрать случайный эмодзи"
               >
-                <Smile className="mr-1.5 h-3.5 w-3.5 text-primary" />
-                <span>Добавить иконку</span>
+                <Sparkles className="mr-1.5 h-3.5 w-3.5 text-muted-foreground" />
+                <span>Случайный эмодзи</span>
               </Button>
-            </IconPicker>
+            </>
           )}
 
           {!hasCover && (
