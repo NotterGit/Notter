@@ -339,7 +339,7 @@ export function AiAgentSettings() {
                 value={modelInput}
                 onChange={(e) => setModelInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Введите название модели и нажмите Пробел или Enter..."
+                placeholder="Введите название модели..."
                 className="h-8 text-xs font-mono bg-background"
               />
             </div>

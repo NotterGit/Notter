@@ -394,7 +394,6 @@ function ImageComponent({
         alignment === "center" && "items-center",
         alignment === "right" && "items-end"
       )}
-      onSelectStart={(e: React.SyntheticEvent) => e.preventDefault()}
     >
       <div
         ref={containerRef}
@@ -820,7 +819,6 @@ function VideoComponent({
         alignment === "center" && "items-center",
         alignment === "right" && "items-end"
       )}
-      onSelectStart={(e: React.SyntheticEvent) => e.preventDefault()}
     >
       <div
         ref={containerRef}
@@ -1222,7 +1220,6 @@ function AudioComponent({
         alignment === "center" && "items-center",
         alignment === "right" && "items-end"
       )}
-      onSelectStart={(e: React.SyntheticEvent) => e.preventDefault()}
     >
       <div className="relative flex flex-col w-full max-w-xl">
         {isEditable && (

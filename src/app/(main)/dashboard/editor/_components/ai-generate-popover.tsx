@@ -42,23 +42,28 @@ export function AiGeneratePopover({
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const generatingTargetPosRef = useRef<{ from: number; to: number } | null>(null);
+  const initializedRef = useRef<boolean>(false);
 
-  // Initialize model/provider on first open or provider change, without clearing existing prompt or interrupting loading
+  // Initialize model/provider once per open, without clearing existing prompt or interrupting loading
   useEffect(() => {
-    if (!isOpen) return;
-    if (isLoading) return;
-
-    if (!selectedModel) {
-      setSelectedProviderId(activeProviderId);
-      const prov = providers[activeProviderId];
-      const model =
-        prov?.selectedModel ||
-        (Array.isArray(prov?.models) && prov.models[0]) ||
-        "";
-      setSelectedModel(model);
-      setCustomModelMode(!prov?.models?.length);
+    if (!isOpen) {
+      initializedRef.current = false;
+      return;
     }
-  }, [isOpen, isLoading, activeProviderId, providers, selectedModel]);
+    if (isLoading) return;
+    if (initializedRef.current) return;
+
+    initializedRef.current = true;
+
+    setSelectedProviderId(activeProviderId);
+    const prov = providers[activeProviderId];
+    const model =
+      prov?.selectedModel ||
+      (Array.isArray(prov?.models) && prov.models[0]) ||
+      "";
+    setSelectedModel(model);
+    setCustomModelMode(!prov?.models?.length);
+  }, [isOpen, isLoading, activeProviderId, providers]);
 
   // Clean up if component unmounts
   useEffect(() => {

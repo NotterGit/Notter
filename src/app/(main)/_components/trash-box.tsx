@@ -185,9 +185,6 @@ export function TrashBox(){
             </span>
           )}
         </div>
-        <span className="shrink-0 text-[10px] text-muted-foreground/70 ml-2">
-          {documents && documents.length > 0 ? `(${retentionDays} дн.)` : "Архив пуст"}
-        </span>
       </div>
 
       <div
