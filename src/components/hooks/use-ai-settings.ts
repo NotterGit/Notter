@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { AiProviderId, AiSettingsStore, CustomProviderConfig } from "@/config/types/ai.types";
+import { AiProviderId, AiSettingsData, AiSettingsStore, CustomProviderConfig, StandardProviderConfig } from "@/config/types/ai.types";
 import { AI_PROVIDERS, AI_SYSTEM_PROMPTS, DEFAULT_AI_SETTINGS } from "@/config/ai-providers";
 import { useEffect, useState } from "react";
 
@@ -119,7 +119,7 @@ export const useAiStore = create<AiSettingsStore>()(
         if (!data || typeof data !== "object") return;
 
         set((state) => {
-          const validIds: AiProviderId[] = ["openai", "claude", "gemini", "deepseek", "custom"];
+          const validIds: AiProviderId[] = ["openai", "claude", "gemini", "deepseek", "qualai", "custom"];
 
           let nextActive = state.activeProviderId;
           if (
@@ -193,6 +193,30 @@ export const useAiStore = create<AiSettingsStore>()(
     {
       name: "notter_ai_settings_v2",
       storage: createJSONStorage(() => localStorage),
+      merge: (persistedState, currentState) => {
+        const persisted = (persistedState ?? {}) as Partial<AiSettingsData>;
+        const persistedProviders = (persisted.providers ?? {}) as Partial<
+          AiSettingsData["providers"]
+        >;
+
+        const merged = { ...DEFAULT_AI_SETTINGS.providers } as Record<
+          AiProviderId,
+          StandardProviderConfig | CustomProviderConfig
+        >;
+
+        for (const id of Object.keys(merged) as AiProviderId[]) {
+          const stored = persistedProviders[id];
+          if (stored) {
+            merged[id] = { ...merged[id], ...stored };
+          }
+        }
+
+        return {
+          ...currentState,
+          ...persisted,
+          providers: merged as AiSettingsData["providers"],
+        };
+      },
     }
   )
 );

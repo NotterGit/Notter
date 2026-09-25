@@ -95,7 +95,10 @@ export function AiGeneratePopover({
     ? currentProviderConfig.models.filter(Boolean)
     : [];
 
-  const isCloudWithoutKey = selectedProviderId !== "custom" && !currentProviderConfig?.apiKey?.trim();
+  const isCloudWithoutKey =
+    selectedProviderId !== "custom" &&
+    currentMeta.requiresKey !== false &&
+    !currentProviderConfig?.apiKey?.trim();
 
   const handleCancel = () => {
     if (isLoading) {
@@ -211,7 +214,7 @@ export function AiGeneratePopover({
           </button>
         </div>
 
-        <div className="grid grid-cols-5 gap-1">
+        <div className="grid grid-cols-3 gap-1">
           {(Object.keys(AI_PROVIDERS) as AiProviderId[]).map((id) => {
             const meta = AI_PROVIDERS[id];
             const isSelected = selectedProviderId === id;

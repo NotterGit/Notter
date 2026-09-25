@@ -9,7 +9,14 @@ export interface ProviderMeta {
   placeholderKey: string;
   keyHelpUrl?: string;
   defaultBaseUrl?: string;
+  requiresKey?: boolean;
 }
+
+export const QUALAI_DEFAULT_MODELS = [
+  "QualAI-2",
+  "QualAI-1.5",
+  "QualAI-1.5-mini",
+];
 
 export const AI_PROVIDERS: Record<AiProviderId, ProviderMeta> = {
   openai: {
@@ -39,6 +46,13 @@ export const AI_PROVIDERS: Record<AiProviderId, ProviderMeta> = {
     iconSrc: images.AI.DEEPSEEK,
     placeholderKey: "sk-...",
     keyHelpUrl: "https://platform.deepseek.com/api_keys",
+  },
+  qualai: {
+    id: "qualai",
+    name: "QualAI",
+    iconSrc: images.AI.QUALAI,
+    placeholderKey: "Не требуется",
+    requiresKey: false,
   },
   custom: {
     id: "custom",
@@ -77,6 +91,11 @@ export const DEFAULT_AI_SETTINGS: AiSettingsData = {
       apiKey: "",
       selectedModel: "",
       models: [],
+    },
+    qualai: {
+      apiKey: "",
+      selectedModel: QUALAI_DEFAULT_MODELS[0],
+      models: [...QUALAI_DEFAULT_MODELS],
     },
     custom: {
       apiKey: "",

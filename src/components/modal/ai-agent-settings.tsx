@@ -113,7 +113,7 @@ export function AiAgentSettings() {
 
         const hasProviders = data.providers && typeof data.providers === "object";
         const hasDirectProviders = Boolean(
-          data.openai || data.claude || data.gemini || data.deepseek || data.custom
+          data.openai || data.claude || data.gemini || data.deepseek || data.qualai || data.custom
         );
         const hasValidData = hasProviders || hasDirectProviders || data.activeProviderId;
 
@@ -194,7 +194,7 @@ export function AiAgentSettings() {
 
       {isOpen && (
         <div className="p-3 border-t border-border/60 space-y-3 bg-background/50">
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
             {(Object.keys(AI_PROVIDERS) as AiProviderId[]).map((id) => {
               const meta = AI_PROVIDERS[id];
               const isActive = activeProviderId === id;
@@ -250,45 +250,47 @@ export function AiAgentSettings() {
               </div>
             )}
 
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">API Ключ</Label>
-                {activeMeta.keyHelpUrl && (
-                  <a
-                    href={activeMeta.keyHelpUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5"
-                  >
-                    Получить ключ
-                    <ExternalLink className="h-2.5 w-2.5" />
-                  </a>
-                )}
-              </div>
+            {activeMeta.requiresKey !== false && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">API Ключ</Label>
+                  {activeMeta.keyHelpUrl && (
+                    <a
+                      href={activeMeta.keyHelpUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5"
+                    >
+                      Получить ключ
+                      <ExternalLink className="h-2.5 w-2.5" />
+                    </a>
+                  )}
+                </div>
 
-              <div className="relative">
-                <Input
-                  type={showApiKey ? "text" : "password"}
-                  value={activeProvider?.apiKey || ""}
-                  onChange={(e) => {
-                    if (activeProviderId === "custom") {
-                      setCustomProviderConfig({ apiKey: e.target.value });
-                    } else {
-                      setProviderApiKey(activeProviderId, e.target.value);
-                    }
-                  }}
-                  placeholder={activeMeta.placeholderKey}
-                  className="h-8 text-xs pr-8 font-mono bg-background"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowApiKey(!showApiKey)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showApiKey ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                </button>
+                <div className="relative">
+                  <Input
+                    type={showApiKey ? "text" : "password"}
+                    value={activeProvider?.apiKey || ""}
+                    onChange={(e) => {
+                      if (activeProviderId === "custom") {
+                        setCustomProviderConfig({ apiKey: e.target.value });
+                      } else {
+                        setProviderApiKey(activeProviderId, e.target.value);
+                      }
+                    }}
+                    placeholder={activeMeta.placeholderKey}
+                    className="h-8 text-xs pr-8 font-mono bg-background"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showApiKey ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const QUALAI_API_URL = (process.env.QUALAI_API_URL || "http://localhost:8010").replace(/\/+$/, "");
+
 interface GeneratePayload {
-  provider: "openai" | "claude" | "gemini" | "deepseek" | "custom";
+  provider: "openai" | "claude" | "gemini" | "deepseek" | "qualai" | "custom";
   model: string;
   prompt: string;
   systemPrompt?: string;
@@ -22,7 +24,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Не выбрана модель" }, { status: 400 });
     }
 
-    if (provider !== "custom" && !apiKey.trim()) {
+    if (provider !== "custom" && provider !== "qualai" && !apiKey.trim()) {
       return NextResponse.json({ error: `Отсутствует API ключ для ${provider}` }, { status: 400 });
     }
 
@@ -117,6 +119,31 @@ export async function POST(req: NextRequest) {
       const data = await res.json();
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
       return NextResponse.json({ text });
+    }
+
+    if (provider === "qualai") {
+      const res = await fetch(`${QUALAI_API_URL}/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal: req.signal,
+        body: JSON.stringify({
+          account_id: "notter-ai",
+          session_id: crypto.randomUUID(),
+          model_id: model,
+          message: prompt,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        const errMsg = errorData?.detail || `Ошибка API QualAI (${res.status})`;
+        return NextResponse.json({ error: errMsg }, { status: res.status });
+      }
+
+      const data = await res.json();
+      return NextResponse.json({ text: data.response ?? "" });
     }
 
     if (provider === "custom") {
