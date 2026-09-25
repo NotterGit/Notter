@@ -214,7 +214,7 @@ export function AiGeneratePopover({
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-1">
+        <div className="flex flex-nowrap gap-1 overflow-x-auto pb-1.5 scrollbar-minimal">
           {(Object.keys(AI_PROVIDERS) as AiProviderId[]).map((id) => {
             const meta = AI_PROVIDERS[id];
             const isSelected = selectedProviderId === id;
@@ -226,7 +226,7 @@ export function AiGeneratePopover({
                 disabled={isLoading}
                 onClick={() => handleProviderSelect(id)}
                 className={cn(
-                  "flex flex-col items-center justify-center p-1.5 rounded-lg border text-center transition-all gap-1 cursor-pointer",
+                  "flex shrink-0 basis-16 grow flex-col items-center justify-center p-1.5 rounded-lg border text-center transition-all gap-1 cursor-pointer",
                   isSelected
                     ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30"
                     : "border-border/60 hover:bg-muted/40 text-muted-foreground hover:text-foreground",
@@ -258,7 +258,7 @@ export function AiGeneratePopover({
         <div className="space-y-1">
           <div className="flex items-center justify-between text-[11px] text-muted-foreground">
             <span>Модель</span>
-            {availableModels.length > 0 && !isLoading && (
+            {availableModels.length > 0 && !isLoading && selectedProviderId !== "qualai" && (
               <button
                 type="button"
                 onClick={() => setCustomModelMode(!customModelMode)}

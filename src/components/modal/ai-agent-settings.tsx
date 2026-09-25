@@ -194,7 +194,7 @@ export function AiAgentSettings() {
 
       {isOpen && (
         <div className="p-3 border-t border-border/60 space-y-3 bg-background/50">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+          <div className="flex flex-nowrap gap-1.5 overflow-x-auto pb-1.5 scrollbar-minimal">
             {(Object.keys(AI_PROVIDERS) as AiProviderId[]).map((id) => {
               const meta = AI_PROVIDERS[id];
               const isActive = activeProviderId === id;
@@ -208,7 +208,7 @@ export function AiAgentSettings() {
                     setModelInput("");
                   }}
                   className={cn(
-                    "flex flex-col items-center justify-center p-2 rounded-lg border text-center transition-all gap-1.5",
+                    "flex shrink-0 basis-20 grow flex-col items-center justify-center p-2 rounded-lg border text-center transition-all gap-1.5",
                     isActive
                       ? "border-primary bg-primary/10 ring-1 ring-primary/40 text-foreground"
                       : "border-border/60 hover:border-border hover:bg-muted/50 text-muted-foreground hover:text-foreground"
@@ -318,32 +318,36 @@ export function AiAgentSettings() {
                         )}
                       >
                         <span>{model}</span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeProviderModel(activeProviderId, model);
-                          }}
-                          className={cn(
-                            "rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/20 transition-colors",
-                            isSelected ? "text-primary-foreground/80 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                          )}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
+                        {activeProviderId !== "qualai" && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeProviderModel(activeProviderId, model);
+                            }}
+                            className={cn(
+                              "rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/20 transition-colors",
+                              isSelected ? "text-primary-foreground/80 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
                       </div>
                     );
                   })}
                 </div>
               )}
 
-              <Input
-                value={modelInput}
-                onChange={(e) => setModelInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Введите название модели..."
-                className="h-8 text-xs font-mono bg-background"
-              />
+              {activeProviderId !== "qualai" && (
+                <Input
+                  value={modelInput}
+                  onChange={(e) => setModelInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Введите название модели..."
+                  className="h-8 text-xs font-mono bg-background"
+                />
+              )}
             </div>
 
             <div className="pt-2 border-t border-border/60 space-y-2.5">

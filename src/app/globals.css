@@ -167,6 +167,41 @@ body,
   background-color: rgba(255,255,255,0.12);
 }
 
+/* Ultra-thin minimal scrollbar for horizontal provider strips */
+.scrollbar-minimal {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.15) transparent;
+}
+
+.scrollbar-minimal::-webkit-scrollbar {
+  height: 3px;
+}
+
+.scrollbar-minimal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-minimal::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.15);
+  border-radius: 9999px;
+}
+
+.scrollbar-minimal::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0,0,0,0.3);
+}
+
+.dark .scrollbar-minimal {
+  scrollbar-color: rgba(255,255,255,0.14) transparent;
+}
+
+.dark .scrollbar-minimal::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,0.14);
+}
+
+.dark .scrollbar-minimal::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255,255,255,0.28);
+}
+
 /* Resize handle highlight */
 .resize-handle {
   transition: background-color 150ms ease, box-shadow 150ms ease, opacity 150ms ease;

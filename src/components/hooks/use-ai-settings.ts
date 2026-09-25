@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { AiProviderId, AiSettingsData, AiSettingsStore, CustomProviderConfig, StandardProviderConfig } from "@/config/types/ai.types";
-import { AI_PROVIDERS, AI_SYSTEM_PROMPTS, DEFAULT_AI_SETTINGS } from "@/config/ai-providers";
+import { AI_PROVIDERS, AI_SYSTEM_PROMPTS, DEFAULT_AI_SETTINGS, QUALAI_DEFAULT_MODELS } from "@/config/ai-providers";
 import { useEffect, useState } from "react";
 
 export const useAiStore = create<AiSettingsStore>()(
@@ -38,6 +38,8 @@ export const useAiStore = create<AiSettingsStore>()(
       },
 
       addProviderModel: (id: AiProviderId, rawModel: string) => {
+        if (id === "qualai") return;
+
         const trimmed = rawModel.trim();
         if (!trimmed) return;
 
@@ -72,6 +74,8 @@ export const useAiStore = create<AiSettingsStore>()(
       },
 
       removeProviderModel: (id: AiProviderId, modelToRemove: string) => {
+        if (id === "qualai") return;
+
         set((state) => {
           const current = state.providers[id];
           const existingModels = Array.isArray(current.models) ? current.models : [];
@@ -182,6 +186,16 @@ export const useAiStore = create<AiSettingsStore>()(
             }
           }
 
+          nextProviders.qualai = {
+            ...nextProviders.qualai,
+            models: [...QUALAI_DEFAULT_MODELS],
+            selectedModel: QUALAI_DEFAULT_MODELS.includes(
+              nextProviders.qualai.selectedModel
+            )
+              ? nextProviders.qualai.selectedModel
+              : QUALAI_DEFAULT_MODELS[0],
+          };
+
           return {
             activeProviderId: nextActive,
             systemPrompt: nextSystemPrompt,
@@ -210,6 +224,16 @@ export const useAiStore = create<AiSettingsStore>()(
             merged[id] = { ...merged[id], ...stored };
           }
         }
+
+        merged.qualai = {
+          ...merged.qualai,
+          models: [...QUALAI_DEFAULT_MODELS],
+          selectedModel: QUALAI_DEFAULT_MODELS.includes(
+            merged.qualai.selectedModel
+          )
+            ? merged.qualai.selectedModel
+            : QUALAI_DEFAULT_MODELS[0],
+        };
 
         return {
           ...currentState,
