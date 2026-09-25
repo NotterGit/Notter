@@ -7,10 +7,11 @@ export interface GenerateTextOptions {
   systemPrompt?: string;
   apiKey?: string;
   baseUrl?: string;
+  signal?: AbortSignal;
 }
 
 export async function generateAiText(options: GenerateTextOptions): Promise<string> {
-  const { provider, model, prompt, systemPrompt, apiKey = "", baseUrl } = options;
+  const { provider, model, prompt, systemPrompt, apiKey = "", baseUrl, signal } = options;
 
   const isLocalCustom =
     provider === "custom" &&
@@ -31,6 +32,7 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
     const res = await fetch(endpoint, {
       method: "POST",
       headers,
+      signal,
       body: JSON.stringify({
         model,
         messages: [
@@ -54,6 +56,7 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
     headers: {
       "Content-Type": "application/json",
     },
+    signal,
     body: JSON.stringify({
       provider,
       model,

@@ -77,6 +77,7 @@ import { getOrgById } from "@/api/org"
 import { getUserById } from "@/api/user"
 import { getPlanLimits } from "@/lib/plan-limits"
 import { AiGeneratePopover } from "./_components/ai-generate-popover"
+import { AiIndicatorExtension, aiIndicatorPluginKey } from "./_components/ai-indicator-extension"
 
 const STORAGE_KEY = "notter-tiptap-prototype-v3"
 
@@ -2405,6 +2406,7 @@ export default function EditorPage() {
       CustomAudio,
       TaskList,
       TaskItem.configure({ nested: true }),
+      AiIndicatorExtension,
     ],
     content: starterContent,
     editorProps: {
@@ -3320,35 +3322,6 @@ export default function EditorPage() {
             </div>
           </Hint>
 
-          <Hint description="Сгенерировать с помощью ИИ">
-            <div>
-              <AiGeneratePopover
-                editor={editor}
-                isOpen={isAiOpen}
-                setIsOpen={(open) => {
-                  if (open && editor) {
-                    selectionBackupRef.current = editor.state.selection
-                      ? {
-                          from: editor.state.selection.from,
-                          to: editor.state.selection.to,
-                        }
-                      : null
-                  }
-                  setIsAiOpen(open)
-                }}
-                selectionBackupRef={selectionBackupRef}
-              >
-                <button
-                  type="button"
-                  className={cn(buttonClass(isAiOpen), "gap-1 px-1.5 text-primary hover:text-primary")}
-                >
-                  <Sparkles size={16} />
-                  <span className="text-xs font-medium hidden sm:inline">ИИ</span>
-                </button>
-              </AiGeneratePopover>
-            </div>
-          </Hint>
-
           <Hint description="Цитата">
             <button
               type="button"
@@ -3380,6 +3353,49 @@ export default function EditorPage() {
             >
               <RemoveFormatting size={16} />
             </button>
+          </Hint>
+
+          <Hint description="Сгенерировать с помощью ИИ">
+            <div>
+              <AiGeneratePopover
+                editor={editor}
+                isOpen={isAiOpen}
+                setIsOpen={(open) => {
+                  if (open && editor) {
+                    const pluginState = aiIndicatorPluginKey.getState(editor.state)
+                    if (!pluginState?.isGenerating) {
+                      selectionBackupRef.current = editor.state.selection
+                        ? {
+                            from: editor.state.selection.from,
+                            to: editor.state.selection.to,
+                          }
+                        : null
+                    }
+                  }
+                  setIsAiOpen(open)
+                }}
+                selectionBackupRef={selectionBackupRef}
+              >
+                <button
+                  type="button"
+                  className={cn(
+                    "inline-flex h-8 items-center justify-center rounded-md px-2 text-xs font-medium transition-all cursor-pointer select-none gap-1.5 border shadow-xs",
+                    isAiOpen
+                      ? "bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white border-violet-500/60 shadow-violet-500/25 shadow-md font-semibold"
+                      : "bg-gradient-to-r from-violet-500/15 via-purple-500/10 to-indigo-500/15 hover:from-violet-500/25 hover:via-purple-500/20 hover:to-indigo-500/25 text-violet-600 dark:text-violet-300 border-violet-500/35 hover:border-violet-500/55 hover:shadow-xs"
+                  )}
+                >
+                  <Sparkles
+                    size={14}
+                    className={cn(
+                      "transition-transform",
+                      isAiOpen ? "text-white scale-105" : "text-violet-500 dark:text-violet-400"
+                    )}
+                  />
+                  <span className="text-xs font-semibold hidden sm:inline">ИИ</span>
+                </button>
+              </AiGeneratePopover>
+            </div>
           </Hint>
         </div>
         )}
