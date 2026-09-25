@@ -14,6 +14,7 @@ import { uploadFile as uploadFileOnServer } from "@/api/files"
 import type { EditorProps } from "@/config/types/components.types";
 import type { ClipboardEvent } from "react";
 import { normalizeContentUrls } from "@/lib/image-url"
+import { getPlanLimits } from "@/lib/plan-limits"
 
 const normalizePastedText = (text: string) =>
   text
@@ -37,10 +38,7 @@ export default function Editor({ onChange, initialContent, editable, documentId 
       ? await getOrgById(orgId)
       : await getUserById(orgId)
 
-    const userSize =
-      userdata?.premium == 1 ? 3
-      : userdata?.premium == 2 ? 10
-      : 1
+    const userSize = getPlanLimits(Number(userdata?.premium ?? 0), isOrg).uploadMb
 
     const maxSize = userSize * 1024 * 1024
     if (file.size > maxSize) {

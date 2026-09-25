@@ -19,6 +19,7 @@ import { getOrgById } from "@/api/org";
 import toast from "react-hot-toast"
 import { isValidConvexId } from "@/lib/convex-id"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
+import { getPlanLimits } from "@/lib/plan-limits"
 
 export function CoverImageModal(){
   const params = useParams() 
@@ -52,10 +53,7 @@ export function CoverImageModal(){
       await getOrgById(orgId) : 
       await getUserById(orgId);
 
-    const userSize = 
-      userdata?.premium == 1 ? 3 
-      : userdata?.premium == 2 ? 10 
-      : 1;
+    const userSize = getPlanLimits(Number(userdata?.premium ?? 0), isOrg).uploadMb;
     const maxSize = userSize * 1024 * 1024
 
     if (file.size > maxSize) {

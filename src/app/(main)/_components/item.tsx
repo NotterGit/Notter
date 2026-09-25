@@ -223,7 +223,7 @@ export function Item({
                 <Icon className={cn("mr-2 h-[17px] w-[17px] shrink-0 text-muted-foreground", isArchiveTarget && "text-red-600 dark:text-red-400")}/>
             )}
             
-            <span className="truncate">
+            <span className={cn("truncate", isDragging && "font-bold text-foreground")}>
                 <Twemoji options={{ className: "twemoji" }}>
                     {label}
                 </Twemoji>
