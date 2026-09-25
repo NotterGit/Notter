@@ -47,4 +47,10 @@ export const images = {
     RUBY: "/badges/ruby.png",
     ID: "/badges/id.png",
   },
+  AI: {
+    OPENAI: "/ai-icons/openai.svg",
+    CLAUDE: "/ai-icons/claude.svg",
+    GEMINI: "/ai-icons/gemini.webp",
+    DEEPSEEK: "/ai-icons/deepseek.webp",
+  },
 } as const;

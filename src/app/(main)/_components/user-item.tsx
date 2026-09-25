@@ -78,14 +78,12 @@ export function UserItem() {
     }
   }
 
-  // Close user-item when any modal store opens
   useEffect(() => {
     if (settings.isOpen || search.isOpen || coverImage.isOpen || moveNote.isOpen) {
       closeAll()
     }
   }, [settings.isOpen, search.isOpen, coverImage.isOpen, moveNote.isOpen, closeAll])
 
-  // Close user-item dropdown if any external modal / dialog / Clerk modal opens in the DOM
   useEffect(() => {
     if (!isOpen) return
 

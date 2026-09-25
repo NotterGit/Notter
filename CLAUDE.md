@@ -18,7 +18,7 @@
   - If Next.js/Tailwind CSS compilation fails with a missing `lightningcss` binary error on Linux, ensure `lightningcss-linux-x64-gnu` is installed.
 
 ## Project Structure
-- `public/` — Static assets organized by domain (`badges/`, `defaults/`, `fonts/`, `icons/`, `images/`, `landing/`, `logos/`).
+- `public/` — Static assets organized by domain (`ai-icons/`, `badges/`, `defaults/`, `fonts/`, `icons/`, `images/`, `landing/`, `logos/`).
 - `src/api/` — Backend REST API client (`client.ts`, `user.ts`, `org.ts`, `s3.ts`, `admin.ts`, `files.ts`, `document-limit.ts`, `image.ts`) modeled after `notter-todo`.
 - `src/app/` — Next.js 15 App Router routes.
   - `(landing)/` — Welcome and landing page.
@@ -29,7 +29,7 @@
   - `globals.css` — Global styles (Tailwind CSS v4).
   - `manifest.ts` — Dynamic PWA manifest.
 - `src/components/` — Shared React components.
-  - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, `use-workspace-admin`, `use-document-stats`, etc.).
+  - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, `use-workspace-admin`, `use-document-stats`, `use-ai-settings`, etc.).
   - `ui/` — Base UI components (Radix UI / custom).
 - `src/lib/` — Utilities (PWA, Desktop App helper, image URLs, plan limits).
 - `convex/` — Backend logic and Database configuration on Convex.

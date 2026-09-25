@@ -34,6 +34,7 @@ import {
   isArchiveRetentionAllowed,
   pluralize,
 } from "@/lib/archive"
+import { AiAgentSettings } from "./ai-agent-settings"
 
 const readRedirectPreference = () => {
   if (typeof window === "undefined") return false
@@ -154,8 +155,6 @@ export function SettingsModal() {
     document.cookie = `redirect=${value ? "true" : "false"}; Path=/; Max-Age=31536000; SameSite=Lax`
   }
 
-  // backdrop modal (simplified)
-
   const backdropId = "clerk-backdrop-overlay"
   const intervalRef = useRef<number | null>(null)
 
@@ -230,11 +229,9 @@ export function SettingsModal() {
     }
   }, [])
 
-  // backdrop modal end
-
   return (
     <Dialog open={settings.isOpen} onOpenChange={settings.onClose}>
-      <DialogContent>
+      <DialogContent className="max-h-[85vh] overflow-y-auto max-w-lg">
         <DialogHeader className="border-b pb-3">
           <h2 className="text-lg font-medium">Настройки</h2>
         </DialogHeader>
@@ -368,6 +365,8 @@ export function SettingsModal() {
             </DropdownMenu>
           </div>
         )}
+
+        <AiAgentSettings />
 
         <Separator />
 
