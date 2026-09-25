@@ -26,12 +26,13 @@
   - `(profile)/` — Profile, user, and organization settings.
   - `(public)/` — Publicly shared document views (accessible without auth).
   - `api/image/route.ts` — S3 image proxy route handler (`/api/image`).
+  - `api/ai/generate/route.ts` — AI text generation route handler (`/api/ai/generate`).
   - `globals.css` — Global styles (Tailwind CSS v4).
   - `manifest.ts` — Dynamic PWA manifest.
 - `src/components/` — Shared React components.
   - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, `use-workspace-admin`, `use-document-stats`, `use-ai-settings`, etc.).
   - `ui/` — Base UI components (Radix UI / custom).
-- `src/lib/` — Utilities (PWA, Desktop App helper, image URLs, plan limits).
+- `src/lib/` — Utilities (PWA, Desktop App helper, image URLs, plan limits, AI generation helper).
 - `convex/` — Backend logic and Database configuration on Convex.
   - `schema.ts` — Database schema (defines `documents`, `archiveSettings`, and `workspace` tables).
   - `document.ts` — Queries and mutations for document CRUD, workspace plan synchronization, and archive auto-cleanup.
@@ -41,7 +42,7 @@
 - **Authentication:** Clerk (`@clerk/nextjs`) with multi-session support and middleware session synchronization.
 - **Styling:** Tailwind CSS v4 with `@tailwindcss/postcss`.
 - **Backend REST API:** Centralized Axios client in `src/api/client.ts` with automatic Clerk Bearer token interceptor, `Get`/`Post`/`Put`/`Delete` helpers, typed payload objects (`UpdateUserPayload`, `CreateUserPayload`), S3 file operations, and normalized endpoint constants (`API.BACKEND.*`).
-- **Editor:** BlockNote (`@blocknote/react` and `@blocknote/mantine`) for production documents; Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, custom extensions for images, resizable video with captions, audio with player & captions) for custom prototype (`src/app/(main)/dashboard/editor/`).
+- **Editor:** BlockNote (`@blocknote/react` and `@blocknote/mantine`) for production documents; Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, custom extensions for images, resizable video with captions, audio with player & captions, AI text generation with local/cloud providers) for custom prototype (`src/app/(main)/dashboard/editor/`).
 - **Drag & Drop:** `@hello-pangea/dnd` for hierarchical note reordering and nesting in the sidebar.
 - **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `archivedTime`, `isPinned`, `parentDocument`, `order`, `content`, `coverImage`, `icon`, `isPublished`, etc. `archiveSettings` stores `userId` and `retentionDays` (1, 7, 30 days for Amber, 90 days for Diamond). `workspace` stores `userId`, `premiumLevel`, and `isOrg`.
 - **Convex Indexes:**

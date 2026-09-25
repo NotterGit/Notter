@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { AiProviderId, AiSettingsStore, CustomProviderConfig } from "@/config/types/ai.types";
-import { AI_PROVIDERS, DEFAULT_AI_SETTINGS } from "@/config/ai-providers";
+import { AI_PROVIDERS, AI_SYSTEM_PROMPTS, DEFAULT_AI_SETTINGS } from "@/config/ai-providers";
 import { useEffect, useState } from "react";
 
 export const useAiStore = create<AiSettingsStore>()(
@@ -128,7 +128,10 @@ export function useAiSettings() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (!store.systemPrompt || store.systemPrompt.includes("Notter. Пиши грамотно")) {
+      store.setSystemPrompt(AI_SYSTEM_PROMPTS.DEFAULT);
+    }
+  }, [store]);
 
   const activeProvider = store.providers[store.activeProviderId];
   const activeMeta = AI_PROVIDERS[store.activeProviderId];

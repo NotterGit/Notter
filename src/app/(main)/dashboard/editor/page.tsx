@@ -76,6 +76,7 @@ import { cn } from "@/lib/utils"
 import { getOrgById } from "@/api/org"
 import { getUserById } from "@/api/user"
 import { getPlanLimits } from "@/lib/plan-limits"
+import { AiGeneratePopover } from "./_components/ai-generate-popover"
 
 const STORAGE_KEY = "notter-tiptap-prototype-v3"
 
@@ -2358,6 +2359,7 @@ export default function EditorPage() {
   const [isImageOpen, setIsImageOpen] = useState(false)
   const [isVideoOpen, setIsVideoOpen] = useState(false)
   const [isAudioOpen, setIsAudioOpen] = useState(false)
+  const [isAiOpen, setIsAiOpen] = useState(false)
 
   useEffect(() => {
     uploadLimitMbRef.current = uploadLimitMb
@@ -3315,6 +3317,35 @@ export default function EditorPage() {
                   <Music size={16} />
                 </button>
               </AudioPopover>
+            </div>
+          </Hint>
+
+          <Hint description="Сгенерировать с помощью ИИ">
+            <div>
+              <AiGeneratePopover
+                editor={editor}
+                isOpen={isAiOpen}
+                setIsOpen={(open) => {
+                  if (open && editor) {
+                    selectionBackupRef.current = editor.state.selection
+                      ? {
+                          from: editor.state.selection.from,
+                          to: editor.state.selection.to,
+                        }
+                      : null
+                  }
+                  setIsAiOpen(open)
+                }}
+                selectionBackupRef={selectionBackupRef}
+              >
+                <button
+                  type="button"
+                  className={cn(buttonClass(isAiOpen), "gap-1 px-1.5 text-primary hover:text-primary")}
+                >
+                  <Sparkles size={16} />
+                  <span className="text-xs font-medium hidden sm:inline">ИИ</span>
+                </button>
+              </AiGeneratePopover>
             </div>
           </Hint>
 
