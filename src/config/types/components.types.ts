@@ -7,6 +7,12 @@ export interface CoverImageProps {
   preview?: boolean
 }
 
+export interface BgCollection {
+  name: string
+  folder: string
+  images: string[]
+}
+
 export interface EditorProps {
   documentId: string
   onChange: (value: string) => void

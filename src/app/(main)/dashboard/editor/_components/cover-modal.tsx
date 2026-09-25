@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
-import { useState, useRef } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 import {
   Dialog,
   DialogContent,
@@ -11,17 +11,14 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
-import {
-  COVER_PRESETS,
-  getRandomCoverPreset,
-  CoverPreset,
-} from "./cover-presets"
+import { defaultBgImage } from "@/config/const/banner-images.const"
+import type { BgCollection } from "@/config/types/components.types"
 import {
   UploadCloud,
   Link2,
   Sparkles,
-  Trash2,
   Check,
   Palette,
   Image as ImageIcon,
@@ -89,24 +86,76 @@ export function CoverModal({
   const [activeTab, setActiveTab] = useState<"gallery" | "upload" | "link">(
     "gallery"
   )
-  const [selectedCategory, setSelectedCategory] = useState<
-    "all" | "gradient" | "photo"
-  >("all")
+  const [activeFolder, setActiveFolder] = useState<string>("")
+  const [collections, setCollections] = useState<BgCollection[]>([])
+  const [isLoadingCollections, setIsLoadingCollections] = useState(true)
   const [customUrl, setCustomUrl] = useState("")
   const [isUploading, setIsUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleSelectPreset = (preset: CoverPreset) => {
-    onSelectCover(preset.url)
-    toast.success(`Обложка «${preset.title}» применена`)
+  useEffect(() => {
+    let cancelled = false
+
+    const loadCollections = async () => {
+      try {
+        const response = await fetch("/api/backgrounds")
+        if (!response.ok) throw new Error("Failed to load backgrounds")
+        const data: BgCollection[] = await response.json()
+        if (!cancelled) {
+          setCollections(data)
+        }
+      } catch {
+        if (!cancelled) {
+          toast.error("Не удалось загрузить коллекции обложек")
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingCollections(false)
+        }
+      }
+    }
+
+    void loadCollections()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (collections.length === 0) return
+
+    const found = currentCoverUrl
+      ? collections.find((col) => col.images.includes(currentCoverUrl))
+      : undefined
+
+    if (found) {
+      setActiveFolder(found.folder)
+    } else {
+      setActiveFolder((prev) => prev || collections[0].folder)
+    }
+  }, [collections, currentCoverUrl])
+
+  const activeCollection = useMemo(
+    () =>
+      collections.find((col) => col.folder === activeFolder) ??
+      collections[0],
+    [collections, activeFolder]
+  )
+
+  const handleSelectCover = (url: string) => {
+    onSelectCover(url)
     onClose()
   }
 
   const handleRandomCover = () => {
-    const randomPreset = getRandomCoverPreset()
-    onSelectCover(randomPreset.url)
-    toast.success(`Случайная обложка «${randomPreset.title}» выбрана!`)
+    const allImages = collections.flatMap((col) => col.images)
+    if (allImages.length === 0) return
+    const randomUrl =
+      allImages[Math.floor(Math.random() * allImages.length)] ?? defaultBgImage
+    onSelectCover(randomUrl)
+    toast.success("Случайная обложка выбрана")
     onClose()
   }
 
@@ -161,11 +210,6 @@ export function CoverModal({
     }
   }
 
-  const filteredPresets = COVER_PRESETS.filter((p) => {
-    if (selectedCategory === "all") return true
-    return p.category === selectedCategory
-  })
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden sm:rounded-2xl">
@@ -176,7 +220,7 @@ export function CoverModal({
                 Обложка заметки
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                Выберите готовую обложку, загрузите файл или вставьте ссылку
+                Выберите обложку из коллекции, загрузите файл или вставьте ссылку
               </DialogDescription>
             </div>
 
@@ -186,6 +230,7 @@ export function CoverModal({
                 variant="outline"
                 size="sm"
                 onClick={handleRandomCover}
+                disabled={collections.length === 0}
                 className="h-7 text-xs gap-1.5 cursor-pointer shadow-xs"
               >
                 <Sparkles size={12} className="text-white" />
@@ -206,7 +251,7 @@ export function CoverModal({
               )}
             >
               <Palette size={13} />
-              <span>Галерея</span>
+              <span>Коллекции</span>
             </button>
             <button
               type="button"
@@ -240,80 +285,77 @@ export function CoverModal({
         <div className="p-6 max-h-[440px] overflow-y-auto">
           {activeTab === "gallery" && (
             <div className="space-y-4">
-              <div className="flex items-center gap-1.5 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategory("all")}
-                  className={cn(
-                    "px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer",
-                    selectedCategory === "all"
-                      ? "bg-secondary text-secondary-foreground font-semibold"
-                      : "text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  Все ({COVER_PRESETS.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategory("gradient")}
-                  className={cn(
-                    "px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer",
-                    selectedCategory === "gradient"
-                      ? "bg-secondary text-secondary-foreground font-semibold"
-                      : "text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  Градиенты
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategory("photo")}
-                  className={cn(
-                    "px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer",
-                    selectedCategory === "photo"
-                      ? "bg-secondary text-secondary-foreground font-semibold"
-                      : "text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  Фотографии
-                </button>
-              </div>
+              {isLoadingCollections ? (
+                <>
+                  <div className="flex gap-1.5">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <Skeleton key={i} className="h-7 w-24 rounded-full" />
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <Skeleton key={i} className="aspect-video rounded-xl" />
+                    ))}
+                  </div>
+                </>
+              ) : collections.length === 0 ? (
+                <div className="text-xs text-muted-foreground text-center py-10">
+                  Нет доступных обложек
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-0.5 px-0.5 scrollbar-none">
+                    {collections.map((col) => {
+                      const isActive = activeCollection?.folder === col.folder
+                      return (
+                        <button
+                          key={col.folder}
+                          type="button"
+                          onClick={() => setActiveFolder(col.folder)}
+                          className={cn(
+                            "px-2.5 py-1 text-xs font-medium rounded-full transition-all whitespace-nowrap shrink-0 cursor-pointer",
+                            isActive
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground"
+                          )}
+                        >
+                          {col.name}
+                        </button>
+                      )
+                    })}
+                  </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {filteredPresets.map((preset) => {
-                  const isSelected = currentCoverUrl === preset.url
-                  return (
-                    <button
-                      key={preset.id}
-                      type="button"
-                      onClick={() => handleSelectPreset(preset)}
-                      className={cn(
-                        "group/preset relative flex flex-col overflow-hidden rounded-xl border bg-muted/40 text-left transition-all hover:ring-2 hover:ring-primary/50 focus:outline-none cursor-pointer",
-                        isSelected && "ring-2 ring-primary border-primary shadow-sm"
-                      )}
-                    >
-                      <div className="relative h-20 w-full overflow-hidden bg-muted">
-                        <img
-                          src={preset.url}
-                          alt={preset.title}
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover/preset:scale-105"
-                          loading="lazy"
-                        />
-                        {isSelected && (
-                          <div className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
-                            <Check size={11} strokeWidth={3} />
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-2">
-                        <span className="block truncate text-xs font-medium text-foreground">
-                          {preset.title}
-                        </span>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {activeCollection?.images.map((image) => {
+                      const isSelected = currentCoverUrl === image
+                      return (
+                        <button
+                          key={image}
+                          type="button"
+                          onClick={() => handleSelectCover(image)}
+                          className={cn(
+                            "group/cover relative aspect-video overflow-hidden rounded-xl border bg-muted/40 transition-all hover:ring-2 hover:ring-primary/50 focus:outline-none cursor-pointer",
+                            isSelected &&
+                              "ring-2 ring-primary border-primary shadow-sm"
+                          )}
+                        >
+                          <img
+                            src={image}
+                            alt=""
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover/cover:scale-105"
+                            loading="lazy"
+                          />
+                          {isSelected && (
+                            <div className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
+                              <Check size={11} strokeWidth={3} />
+                            </div>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
             </div>
           )}
 

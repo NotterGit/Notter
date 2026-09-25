@@ -2,14 +2,13 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ImageIcon, Sparkles, X } from "lucide-react"
+import { ImageIcon, X } from "lucide-react"
 
 interface CoverBannerProps {
   coverUrl: string | null
   preview: boolean
   onOpenModal: () => void
   onRemoveCover: () => void
-  onRandomCover: () => void
 }
 
 export function CoverBanner({
@@ -17,7 +16,6 @@ export function CoverBanner({
   preview,
   onOpenModal,
   onRemoveCover,
-  onRandomCover,
 }: CoverBannerProps) {
   if (!coverUrl) {
     return null
@@ -43,18 +41,6 @@ export function CoverBanner({
             <ImageIcon className="mr-1 sm:mr-1.5 h-3.5 w-3.5 text-white" />
             <span className="hidden sm:inline">Изменить обложку</span>
             <span className="sm:hidden">Изменить</span>
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onRandomCover}
-            className="h-7 px-2 sm:px-2.5 text-xs font-medium cursor-pointer text-white/90 hover:text-white hover:bg-white/15"
-            title="Выбрать случайную обложку"
-          >
-            <Sparkles className="mr-1 sm:mr-1.5 h-3.5 w-3.5 text-white" />
-            <span>Случайная</span>
           </Button>
 
           <Button

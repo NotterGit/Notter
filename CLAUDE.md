@@ -18,7 +18,7 @@
   - If Next.js/Tailwind CSS compilation fails with a missing `lightningcss` binary error on Linux, ensure `lightningcss-linux-x64-gnu` is installed.
 
 ## Project Structure
-- `public/` — Static assets organized by domain (`ai-icons/`, `badges/`, `defaults/`, `fonts/`, `icons/`, `images/`, `landing/`, `logos/`).
+- `public/` — Static assets organized by domain (`ai-icons/`, `badges/`, `bg/` (cover collections per folder), `defaults/`, `fonts/`, `icons/`, `images/`, `landing/`, `logos/`).
 - `src/api/` — Backend REST API client (`client.ts`, `user.ts`, `org.ts`, `s3.ts`, `admin.ts`, `files.ts`, `document-limit.ts`, `image.ts`) modeled after `notter-todo`.
 - `src/app/` — Next.js 15 App Router routes.
   - `(landing)/` — Welcome and landing page.
@@ -27,12 +27,14 @@
   - `(public)/` — Publicly shared document views (accessible without auth).
   - `api/image/route.ts` — S3 image proxy route handler (`/api/image`).
   - `api/ai/generate/route.ts` — AI text generation route handler (`/api/ai/generate`).
+  - `api/backgrounds/route.ts` — Cover collection listing route handler (`/api/backgrounds`).
   - `globals.css` — Global styles (Tailwind CSS v4).
   - `manifest.ts` — Dynamic PWA manifest.
 - `src/components/` — Shared React components.
   - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, `use-workspace-admin`, `use-document-stats`, `use-ai-settings`, etc.).
   - `ui/` — Base UI components (Radix UI / custom).
 - `src/lib/` — Utilities (PWA, Desktop App helper, image URLs, plan limits, AI generation helper).
+  - `backgrounds.ts` — Reads `public/bg/<folder>` and builds the cover collections (config in `src/config/const/banner-images.const.ts`).
 - `convex/` — Backend logic and Database configuration on Convex.
   - `schema.ts` — Database schema (defines `documents`, `archiveSettings`, and `workspace` tables).
   - `document.ts` — Queries and mutations for document CRUD, workspace plan synchronization, and archive auto-cleanup.
@@ -42,7 +44,7 @@
 - **Authentication:** Clerk (`@clerk/nextjs`) with multi-session support and middleware session synchronization.
 - **Styling:** Tailwind CSS v4 with `@tailwindcss/postcss`.
 - **Backend REST API:** Centralized Axios client in `src/api/client.ts` with automatic Clerk Bearer token interceptor, `Get`/`Post`/`Put`/`Delete` helpers, typed payload objects (`UpdateUserPayload`, `CreateUserPayload`), S3 file operations, and normalized endpoint constants (`API.BACKEND.*`).
-- **Editor:** BlockNote (`@blocknote/react` and `@blocknote/mantine`) for production documents; Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, custom extensions for images, resizable video with captions, audio with player & captions, AI text generation, document headers with title, cover banners with presets/upload/URL, and Twemoji emoji picker with local persistence) for custom prototype (`src/app/(main)/dashboard/editor/`).
+- **Editor:** BlockNote (`@blocknote/react` and `@blocknote/mantine`) for production documents; Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, custom extensions for images, resizable video with captions, audio with player & captions, AI text generation, document headers with title, cover banners with collections (Notter Qualsu / Vectors / Цвета via `/api/backgrounds`), upload and URL, and Twemoji emoji picker with local persistence) for custom prototype (`src/app/(main)/dashboard/editor/`).
 - **Drag & Drop:** `@hello-pangea/dnd` for hierarchical note reordering and nesting in the sidebar.
 - **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `archivedTime`, `isPinned`, `parentDocument`, `order`, `content`, `coverImage`, `icon`, `isPublished`, etc. `archiveSettings` stores `userId` and `retentionDays` (1, 7, 30 days for Amber, 90 days for Diamond). `workspace` stores `userId`, `premiumLevel`, and `isOrg`.
 - **Convex Indexes:**

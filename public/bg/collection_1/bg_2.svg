@@ -1,0 +1,15 @@
+<svg width="899" height="500" viewBox="0 0 899 500" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g clip-path="url(#clip0_879_110)">
+<rect width="899" height="500" fill="white"/>
+<rect width="899" height="500" fill="url(#pattern0_879_110)"/>
+</g>
+<defs>
+<clipPath id="clip0_879_110">
+<rect width="899" height="500" fill="white"/>
+</clipPath>
+<pattern id="pattern0_879_110" patternUnits="userSpaceOnUse" patternTransform="matrix(47.857 0 0 47.857 3.11518e-05 0)" preserveAspectRatio="none" viewBox="6.62804e-05 0 101.823 101.823" width="1" height="1">
+<g id="pattern0_879_110_inner">
+<rect x="50.9117" width="72" height="72" transform="rotate(45 50.9117 0)" fill="#2C2C2C"/>
+</g>
+</pattern></defs>
+</svg>

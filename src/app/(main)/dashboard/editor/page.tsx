@@ -81,7 +81,7 @@ import { AiIndicatorExtension, aiIndicatorPluginKey } from "./_components/ai-ind
 import { CoverBanner } from "./_components/cover-banner"
 import { CoverModal } from "./_components/cover-modal"
 import { EditorHeader } from "./_components/editor-header"
-import { getRandomCoverPreset } from "./_components/cover-presets"
+
 
 export interface DocumentMeta {
   title: string
@@ -2816,11 +2816,6 @@ export default function EditorPage() {
           preview={previewMode}
           onOpenModal={() => setIsCoverModalOpen(true)}
           onRemoveCover={() => updateMeta({ coverImage: null })}
-          onRandomCover={() => {
-            const rand = getRandomCoverPreset()
-            updateMeta({ coverImage: rand.url })
-            toast.success(`Обложка «${rand.title}» применена`)
-          }}
         />
 
         {/* Document Header (Icon, Actions, Title) */}
