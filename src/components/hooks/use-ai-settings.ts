@@ -114,6 +114,81 @@ export const useAiStore = create<AiSettingsStore>()(
       resetToDefaults: () => {
         set(DEFAULT_AI_SETTINGS);
       },
+
+      importSettings: (data: any) => {
+        if (!data || typeof data !== "object") return;
+
+        set((state) => {
+          const validIds: AiProviderId[] = ["openai", "claude", "gemini", "deepseek", "custom"];
+
+          let nextActive = state.activeProviderId;
+          if (
+            data.activeProviderId &&
+            validIds.includes(data.activeProviderId)
+          ) {
+            nextActive = data.activeProviderId;
+          }
+
+          let nextSystemPrompt = state.systemPrompt;
+          if (typeof data.systemPrompt === "string" && data.systemPrompt.trim()) {
+            nextSystemPrompt = data.systemPrompt;
+          }
+
+          const rawProviders =
+            data.providers && typeof data.providers === "object"
+              ? data.providers
+              : data;
+
+          const nextProviders = { ...state.providers };
+
+          for (const id of validIds) {
+            const p = rawProviders[id];
+            if (p && typeof p === "object") {
+              const current = nextProviders[id];
+              const apiKey = typeof p.apiKey === "string" ? p.apiKey : current.apiKey;
+              const selectedModel =
+                typeof p.selectedModel === "string" ? p.selectedModel : current.selectedModel;
+              const models: string[] = Array.isArray(p.models)
+                ? Array.from<string>(
+                    new Set(
+                      p.models.filter(
+                        (m: unknown): m is string =>
+                          typeof m === "string" && m.trim().length > 0
+                      )
+                    )
+                  )
+                : current.models;
+
+              if (id === "custom") {
+                const baseUrl =
+                  typeof p.baseUrl === "string" && p.baseUrl.trim()
+                    ? p.baseUrl
+                    : (current as CustomProviderConfig).baseUrl;
+                nextProviders.custom = {
+                  ...current,
+                  apiKey,
+                  selectedModel,
+                  models,
+                  baseUrl,
+                };
+              } else {
+                nextProviders[id] = {
+                  ...current,
+                  apiKey,
+                  selectedModel,
+                  models,
+                };
+              }
+            }
+          }
+
+          return {
+            activeProviderId: nextActive,
+            systemPrompt: nextSystemPrompt,
+            providers: nextProviders,
+          };
+        });
+      },
     }),
     {
       name: "notter_ai_settings_v2",

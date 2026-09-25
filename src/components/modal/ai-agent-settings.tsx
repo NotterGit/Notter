@@ -1,19 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Image from "next/image";
 import {
   ChevronDown,
   ChevronUp,
   Cpu,
+  Download,
   ExternalLink,
   Eye,
   EyeOff,
+  ShieldCheck,
   Sparkles,
+  Upload,
   X,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import { useAiSettings } from "@/components/hooks/use-ai-settings";
 import { AI_PROVIDERS } from "@/config/ai-providers";
@@ -24,17 +29,21 @@ export function AiAgentSettings() {
     isHydrated,
     activeProviderId,
     providers,
+    systemPrompt,
     setActiveProvider,
     setProviderApiKey,
     setProviderModel,
     addProviderModel,
     removeProviderModel,
     setCustomProviderConfig,
+    importSettings,
   } = useAiSettings();
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [modelInput, setModelInput] = useState("");
+
 
   const activeProvider = providers[activeProviderId];
   const activeMeta = AI_PROVIDERS[activeProviderId];
@@ -51,6 +60,89 @@ export function AiAgentSettings() {
       }
     }
   };
+
+  const handleExport = () => {
+    try {
+      const exportData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        activeProviderId,
+        systemPrompt,
+        providers,
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `notter-ai-providers-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success("Настройки провайдеров экспортированы");
+    } catch (e) {
+      console.error(e);
+      toast.error("Не удалось экспортировать настройки");
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        if (!text) {
+          throw new Error("Файл пуст");
+        }
+
+        const data = JSON.parse(text);
+        if (!data || typeof data !== "object") {
+          throw new Error("Неверная структура данных");
+        }
+
+        const hasProviders = data.providers && typeof data.providers === "object";
+        const hasDirectProviders = Boolean(
+          data.openai || data.claude || data.gemini || data.deepseek || data.custom
+        );
+        const hasValidData = hasProviders || hasDirectProviders || data.activeProviderId;
+
+        if (!hasValidData) {
+          throw new Error("Файл не содержит настроек ИИ провайдеров");
+        }
+
+        importSettings(data);
+        toast.success("Настройки успешно импортированы");
+      } catch (err: any) {
+        console.error("Import error:", err);
+        toast.error(err?.message || "Ошибка при импорте файла");
+      } finally {
+        if (e.target) {
+          e.target.value = "";
+        }
+      }
+    };
+
+    reader.onerror = () => {
+      toast.error("Ошибка при чтении файла");
+      if (e.target) {
+        e.target.value = "";
+      }
+    };
+
+    reader.readAsText(file);
+  };
+
 
   if (!isHydrated) {
     return null;
@@ -251,9 +343,51 @@ export function AiAgentSettings() {
                 className="h-8 text-xs font-mono bg-background"
               />
             </div>
+
+            <div className="pt-2 border-t border-border/60 space-y-2.5">
+              <div className="flex items-start gap-2 p-2.5 rounded-lg bg-muted/40 border border-border/50 text-[11px] text-muted-foreground leading-relaxed">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                <span>
+                  Все данные о провайдерах и API-ключи хранятся локально в вашем браузере
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExport}
+                  className="h-8 text-xs gap-1.5 flex-1 border-border/70 hover:bg-muted"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span>Экспорт данных</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleImportClick}
+                  className="h-8 text-xs gap-1.5 flex-1 border-border/70 hover:bg-muted"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  <span>Импорт данных</span>
+                </Button>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json,application/json"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </div>
+            </div>
           </div>
         </div>
       )}
     </div>
+
   );
 }

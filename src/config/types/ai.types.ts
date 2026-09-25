@@ -31,4 +31,6 @@ export interface AiSettingsStore extends AiSettingsData {
   setCustomProviderConfig: (config: Partial<CustomProviderConfig>) => void;
   setSystemPrompt: (prompt: string) => void;
   resetToDefaults: () => void;
+  importSettings: (data: any) => void;
 }
+
