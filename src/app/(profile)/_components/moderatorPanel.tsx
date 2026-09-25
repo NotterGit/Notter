@@ -16,7 +16,7 @@ import {
 } from "@/api/admin";
 import { toast } from "react-hot-toast";
 import { Switch } from "@/components/ui/switch";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/nextjs";
 import type { UserProps } from "@/config/types/profile.types";
 import { getPlanLimits } from "@/lib/plan-limits";
 

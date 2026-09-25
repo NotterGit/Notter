@@ -2,8 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { SignedOut, SignInButton, UserButton } from "@clerk/clerk-react"
-import { SignedIn, useAuth } from "@clerk/nextjs"
+import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from "@clerk/nextjs"
 import { useConvexAuth } from "convex/react"
 
 import { useEffect, useState } from "react"

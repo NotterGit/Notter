@@ -38,7 +38,7 @@
   - `rateLimits.ts` — API rate limiter implementation.
 
 ## Tech Stack & Core Features
-- **Authentication:** Clerk (`@clerk/nextjs`).
+- **Authentication:** Clerk (`@clerk/nextjs`) with multi-session support and middleware session synchronization.
 - **Styling:** Tailwind CSS v4 with `@tailwindcss/postcss`.
 - **Backend REST API:** Centralized Axios client in `src/api/client.ts` with automatic Clerk Bearer token interceptor, `Get`/`Post`/`Put`/`Delete` helpers, typed payload objects (`UpdateUserPayload`, `CreateUserPayload`), S3 file operations, and normalized endpoint constants (`API.BACKEND.*`).
 - **Editor:** BlockNote (`@blocknote/react` and `@blocknote/mantine`) for production documents; Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, custom extensions for images, resizable video with captions, audio with player & captions) for custom prototype (`src/app/(main)/dashboard/editor/`).
