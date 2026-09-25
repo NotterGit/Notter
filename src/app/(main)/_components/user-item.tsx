@@ -34,6 +34,10 @@ import { getOrgById } from "@/api/org"
 import { useEffect, useState, useRef } from "react"
 import { toast } from "react-hot-toast"
 import { cn } from "@/lib/utils"
+import { useSettings } from "@/components/hooks/use-settings"
+import { useSearch } from "@/components/hooks/use-search"
+import { useCoverImage } from "@/components/hooks/use-cover-image"
+import { useMoveNote } from "@/components/hooks/use-move-note"
 
 export function UserItem() {
   const { user } = useUser()
@@ -50,10 +54,68 @@ export function UserItem() {
   const clerk = useClerk()
 
   const isOrg = organization?.id !== undefined
+  const [isOpen, setIsOpen] = useState(false)
   const [profile, setProfile] = useState<any | null>(null)
   const [switchingOrgId, setSwitchingOrgId] = useState<string | null>(null)
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const accountMenuRef = useRef<HTMLDivElement>(null)
+  const dropdownContentRef = useRef<HTMLDivElement>(null)
+
+  const settings = useSettings()
+  const search = useSearch()
+  const coverImage = useCoverImage()
+  const moveNote = useMoveNote()
+
+  const closeAll = React.useCallback(() => {
+    setIsOpen(false)
+    setIsAccountMenuOpen(false)
+  }, [])
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open)
+    if (!open) {
+      setIsAccountMenuOpen(false)
+    }
+  }
+
+  // Close user-item when any modal store opens
+  useEffect(() => {
+    if (settings.isOpen || search.isOpen || coverImage.isOpen || moveNote.isOpen) {
+      closeAll()
+    }
+  }, [settings.isOpen, search.isOpen, coverImage.isOpen, moveNote.isOpen, closeAll])
+
+  // Close user-item dropdown if any external modal / dialog / Clerk modal opens in the DOM
+  useEffect(() => {
+    if (!isOpen) return
+
+    const checkForModals = () => {
+      const modals = document.querySelectorAll(
+        '[role="dialog"], [role="alertdialog"], [aria-modal="true"], .cl-modalBackdrop, .cl-modal-container, .cl-modal'
+      )
+      const hasExternalModal = Array.from(modals).some((el) => {
+        return !dropdownContentRef.current?.contains(el)
+      })
+      if (hasExternalModal) {
+        closeAll()
+      }
+    }
+
+    checkForModals()
+
+    const observer = new MutationObserver(() => {
+      checkForModals()
+    })
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-state", "open", "aria-hidden", "class"],
+    })
+
+    return () => observer.disconnect()
+  }, [isOpen, closeAll])
 
   useEffect(() => {
     if (!isAccountMenuOpen) return
@@ -122,7 +184,11 @@ export function UserItem() {
 
   const handleSelectOrg = async (orgId: string | null) => {
     const currentOrgId = organization?.id ?? null
-    if (orgId === currentOrgId) return
+    if (orgId === currentOrgId) {
+      closeAll()
+      return
+    }
+    closeAll()
     try {
       setSwitchingOrgId(orgId === null ? "personal" : orgId)
       if (setActiveOrg) {
@@ -138,6 +204,7 @@ export function UserItem() {
   }
 
   const handleCreateOrg = () => {
+    closeAll()
     if (typeof clerk?.openCreateOrganization === "function") {
       clerk.openCreateOrganization()
     }
@@ -145,7 +212,7 @@ export function UserItem() {
 
   return (
     <div className="mr-6">
-      <DropdownMenu modal={false}>
+      <DropdownMenu open={isOpen} onOpenChange={handleOpenChange} modal={false}>
         <DropdownMenuTrigger asChild>
           <button className="flex w-full items-center gap-2 rounded-xl border border-transparent p-2 transition hover:border-black/10 hover:bg-white/70 dark:hover:border-white/10 dark:hover:bg-zinc-900/70">
             <Avatar className="h-6 w-6 ring-1 ring-border/60">
@@ -192,6 +259,7 @@ export function UserItem() {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
+          ref={dropdownContentRef}
           className="ml-1 flex w-64 flex-col items-start rounded-xl border-white/60 bg-white p-3 shadow-xl dark:border-white/10 dark:bg-zinc-950 overflow-visible"
           align="start"
         >
@@ -285,11 +353,11 @@ export function UserItem() {
                 })}
             </div>
 
-            <div className="flex items-center gap-1 mt-1">
+            <div className="mt-1">
               <button
                 type="button"
                 onClick={handleCreateOrg}
-                className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs text-muted-foreground transition hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10 cursor-pointer"
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-muted-foreground transition hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10 cursor-pointer text-left"
               >
                 <Building2 className="h-3.5 w-3.5 shrink-0" />
                 <span>Создать организацию</span>
@@ -308,7 +376,7 @@ export function UserItem() {
                   <>
                     <Link
                       href={pages.PROFILE(true, organization?.slug ?? "")}
-                      onClick={() => setIsAccountMenuOpen(false)}
+                      onClick={closeAll}
                       className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition hover:bg-black/5 dark:hover:bg-white/10"
                     >
                       <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
@@ -319,7 +387,7 @@ export function UserItem() {
                     <button
                       type="button"
                       onClick={() => {
-                        setIsAccountMenuOpen(false)
+                        closeAll()
                         clerk?.openOrganizationProfile?.()
                       }}
                       className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer"
@@ -333,7 +401,7 @@ export function UserItem() {
                     <button
                       type="button"
                       onClick={() => {
-                        setIsAccountMenuOpen(false)
+                        closeAll()
                         clerk?.openUserProfile?.()
                       }}
                       className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground transition hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10 cursor-pointer"
@@ -346,7 +414,7 @@ export function UserItem() {
                   <>
                     <Link
                       href={pages.PROFILE(false, user?.username ?? "")}
-                      onClick={() => setIsAccountMenuOpen(false)}
+                      onClick={closeAll}
                       className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition hover:bg-black/5 dark:hover:bg-white/10"
                     >
                       <UserIcon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -357,7 +425,7 @@ export function UserItem() {
                     <button
                       type="button"
                       onClick={() => {
-                        setIsAccountMenuOpen(false)
+                        closeAll()
                         clerk?.openUserProfile?.()
                       }}
                       className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer"
@@ -373,12 +441,12 @@ export function UserItem() {
                 <button
                   type="button"
                   onClick={() => {
-                    setIsAccountMenuOpen(false)
+                    closeAll()
                     clerk?.signOut?.()
                   }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-destructive transition hover:bg-destructive/10 cursor-pointer"
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-red-400 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300 transition hover:bg-red-500/10 dark:hover:bg-red-400/10 cursor-pointer"
                 >
-                  <LogOut className="h-3.5 w-3.5 text-destructive" />
+                  <LogOut className="h-3.5 w-3.5 shrink-0" />
                   <span>Выйти из аккаунта</span>
                 </button>
               </div>
