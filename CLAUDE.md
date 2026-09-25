@@ -42,7 +42,7 @@
 - **Authentication:** Clerk (`@clerk/nextjs`) with multi-session support and middleware session synchronization.
 - **Styling:** Tailwind CSS v4 with `@tailwindcss/postcss`.
 - **Backend REST API:** Centralized Axios client in `src/api/client.ts` with automatic Clerk Bearer token interceptor, `Get`/`Post`/`Put`/`Delete` helpers, typed payload objects (`UpdateUserPayload`, `CreateUserPayload`), S3 file operations, and normalized endpoint constants (`API.BACKEND.*`).
-- **Editor:** BlockNote (`@blocknote/react` and `@blocknote/mantine`) for production documents; Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, custom extensions for images, resizable video with captions, audio with player & captions, AI text generation with local/cloud providers) for custom prototype (`src/app/(main)/dashboard/editor/`).
+- **Editor:** BlockNote (`@blocknote/react` and `@blocknote/mantine`) for production documents; Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, custom extensions for images, resizable video with captions, audio with player & captions, AI text generation, document headers with title, cover banners with presets/upload/URL, and Twemoji emoji picker with local persistence) for custom prototype (`src/app/(main)/dashboard/editor/`).
 - **Drag & Drop:** `@hello-pangea/dnd` for hierarchical note reordering and nesting in the sidebar.
 - **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `archivedTime`, `isPinned`, `parentDocument`, `order`, `content`, `coverImage`, `icon`, `isPublished`, etc. `archiveSettings` stores `userId` and `retentionDays` (1, 7, 30 days for Amber, 90 days for Diamond). `workspace` stores `userId`, `premiumLevel`, and `isOrg`.
 - **Convex Indexes:**

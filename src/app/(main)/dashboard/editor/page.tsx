@@ -78,8 +78,26 @@ import { getUserById } from "@/api/user"
 import { getPlanLimits } from "@/lib/plan-limits"
 import { AiGeneratePopover } from "./_components/ai-generate-popover"
 import { AiIndicatorExtension, aiIndicatorPluginKey } from "./_components/ai-indicator-extension"
+import { CoverBanner } from "./_components/cover-banner"
+import { CoverModal } from "./_components/cover-modal"
+import { EditorHeader } from "./_components/editor-header"
+import { getRandomCoverPreset } from "./_components/cover-presets"
+
+export interface DocumentMeta {
+  title: string
+  icon: string | null
+  coverImage: string | null
+}
+
+const DEFAULT_META: DocumentMeta = {
+  title: "Проверка кастомного редактора Tiptap",
+  icon: "📝",
+  coverImage: "/defaults/default-cover.svg",
+}
 
 const STORAGE_KEY = "notter-tiptap-prototype-v3"
+const META_STORAGE_KEY = "notter-tiptap-prototype-meta-v2"
+
 
 function createDragGhost(icon: string, title: string, width?: string) {
   const ghost = document.createElement("div")
@@ -1441,19 +1459,15 @@ const starterContent = {
   type: "doc",
   content: [
     {
-      type: "heading",
-      attrs: { level: 2 },
-      content: [{ type: "text", text: "Проверка кастомного редактора Tiptap" }],
-    },
-    {
       type: "paragraph",
       content: [
         {
           type: "text",
-          text: "Полнофункциональный редактор с удобной палитрой цветов, поддержкой перетаскивания картинок и заголовками H1–H5.",
+          text: "Полнофункциональный редактор с удобной палитрой цветов, поддержкой перетаскивания картинок, заголовками H1–H5, обложками и эмодзи.",
         },
       ],
     },
+
     {
       type: "heading",
       attrs: { level: 4 },
@@ -2347,6 +2361,8 @@ function AudioPopover({
 export default function EditorPage() {
   const { user } = useUser()
   const { organization } = useOrganization()
+  const [meta, setMeta] = useState<DocumentMeta>(DEFAULT_META)
+  const [isCoverModalOpen, setIsCoverModalOpen] = useState(false)
   const [previewMode, setPreviewMode] = useState(false)
   const [showToolbar, setShowToolbar] = useState(true)
   const [uploadLimitMb, setUploadLimitMb] = useState(1)
@@ -2625,6 +2641,37 @@ export default function EditorPage() {
     editor.setEditable(!previewMode)
   }, [editor, previewMode])
 
+  const updateMeta = (partial: Partial<DocumentMeta>) => {
+    setMeta((prev) => {
+      const updated = { ...prev, ...partial }
+      try {
+        localStorage.setItem(META_STORAGE_KEY, JSON.stringify(updated))
+        setSaveStatus("saved")
+      } catch (err) {
+        console.error("Failed to save meta to localStorage:", err)
+      }
+      return updated
+    })
+  }
+
+  useEffect(() => {
+    try {
+      const storedMeta = localStorage.getItem(META_STORAGE_KEY)
+      if (storedMeta) {
+        setMeta(JSON.parse(storedMeta))
+      }
+    } catch (err) {
+      console.error("Failed to load meta from localStorage:", err)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      const currentTitle = meta.title.trim()
+      document.title = currentTitle ? `${currentTitle} | Notter Editor` : "Notter Editor V2"
+    }
+  }, [meta.title])
+
   useEffect(() => {
     if (!editor) return
     const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("notter_tiptap_prototype_content")
@@ -2641,16 +2688,24 @@ export default function EditorPage() {
   const reset = () => {
     if (!editor) return
     editor.commands.setContent(starterContent)
-    localStorage.removeItem(STORAGE_KEY)
+    setMeta(DEFAULT_META)
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(META_STORAGE_KEY)
+    } catch {}
     setSaveStatus("initial")
-    toast.success("Редактор сброшен к начальному состоянию")
+    toast.success("Редактор и свойства заметки сброшены к начальному состоянию")
   }
 
   const copyJson = () => {
     if (!editor) return
-    const jsonStr = JSON.stringify(editor.getJSON(), null, 2)
+    const exportData = {
+      meta,
+      content: editor.getJSON(),
+    }
+    const jsonStr = JSON.stringify(exportData, null, 2)
     navigator.clipboard.writeText(jsonStr)
-    toast.success("JSON скопирован в буфер обмена")
+    toast.success("JSON заметки скопирован в буфер обмена")
   }
 
   if (!editor) {
@@ -2692,7 +2747,7 @@ export default function EditorPage() {
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-8 sm:py-10">
+    <main className="mx-auto w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1536px] px-4 py-6 sm:px-8 sm:py-10 transition-all">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -2755,10 +2810,40 @@ export default function EditorPage() {
       </div>
 
       <section className="relative overflow-visible rounded-2xl border bg-card shadow-sm transition-all focus-within:ring-2 focus-within:ring-primary/20">
+        {/* Cover Banner */}
+        <CoverBanner
+          coverUrl={meta.coverImage}
+          preview={previewMode}
+          onOpenModal={() => setIsCoverModalOpen(true)}
+          onRemoveCover={() => updateMeta({ coverImage: null })}
+          onRandomCover={() => {
+            const rand = getRandomCoverPreset()
+            updateMeta({ coverImage: rand.url })
+            toast.success(`Обложка «${rand.title}» применена`)
+          }}
+        />
+
+        {/* Document Header (Icon, Actions, Title) */}
+        <EditorHeader
+          title={meta.title}
+          onChangeTitle={(title) => updateMeta({ title })}
+          icon={meta.icon}
+          onChangeIcon={(icon) => updateMeta({ icon })}
+          onRemoveIcon={() => updateMeta({ icon: null })}
+          hasCover={Boolean(meta.coverImage)}
+          onAddCover={() => setIsCoverModalOpen(true)}
+          preview={previewMode}
+          onEnterPress={() => {
+            if (editor) {
+              editor.chain().focus("start").run()
+            }
+          }}
+        />
+
         {showToolbar && (
         <div
           className={cn(
-            "sticky top-0 z-10 flex flex-wrap items-center gap-0.5 rounded-t-2xl border-b bg-background/95 backdrop-blur-sm p-1.5 sm:gap-1",
+            "sticky top-0 z-20 flex flex-wrap items-center gap-0.5 border-y bg-background/95 backdrop-blur-sm p-1.5 sm:gap-1 transition-all",
             previewMode && "pointer-events-none opacity-60"
           )}
           role="toolbar"
@@ -3436,6 +3521,14 @@ export default function EditorPage() {
           </div>
         </div>
       </section>
+
+      <CoverModal
+        isOpen={isCoverModalOpen}
+        onClose={() => setIsCoverModalOpen(false)}
+        currentCoverUrl={meta.coverImage}
+        onSelectCover={(url) => updateMeta({ coverImage: url })}
+        onRemoveCover={() => updateMeta({ coverImage: null })}
+      />
     </main>
   )
 }
