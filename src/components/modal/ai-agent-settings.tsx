@@ -113,7 +113,7 @@ export function AiAgentSettings() {
 
         const hasProviders = data.providers && typeof data.providers === "object";
         const hasDirectProviders = Boolean(
-          data.openai || data.claude || data.gemini || data.deepseek || data.qualai || data.custom
+          data.openai || data.claude || data.gemini || data.deepseek || data.qwen || data.openrouter || data.qualai || data.custom
         );
         const hasValidData = hasProviders || hasDirectProviders || data.activeProviderId;
 

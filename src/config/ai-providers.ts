@@ -47,6 +47,20 @@ export const AI_PROVIDERS: Record<AiProviderId, ProviderMeta> = {
     placeholderKey: "sk-...",
     keyHelpUrl: "https://platform.deepseek.com/api_keys",
   },
+  qwen: {
+    id: "qwen",
+    name: "Qwen",
+    iconSrc: images.AI.QWEN,
+    placeholderKey: "sk-...",
+    keyHelpUrl: "https://bailian.console.aliyun.com/?apiKey=1",
+  },
+  openrouter: {
+    id: "openrouter",
+    name: "OpenRouter",
+    iconSrc: images.AI.OPENROUTER,
+    placeholderKey: "sk-or-v1-...",
+    keyHelpUrl: "https://openrouter.ai/keys",
+  },
   qualai: {
     id: "qualai",
     name: "QualAI",
@@ -88,6 +102,16 @@ export const DEFAULT_AI_SETTINGS: AiSettingsData = {
       models: [],
     },
     deepseek: {
+      apiKey: "",
+      selectedModel: "",
+      models: [],
+    },
+    qwen: {
+      apiKey: "",
+      selectedModel: "",
+      models: [],
+    },
+    openrouter: {
       apiKey: "",
       selectedModel: "",
       models: [],

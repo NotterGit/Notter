@@ -1,4 +1,12 @@
-export type AiProviderId = "openai" | "claude" | "gemini" | "deepseek" | "qualai" | "custom";
+export type AiProviderId =
+  | "openai"
+  | "claude"
+  | "gemini"
+  | "deepseek"
+  | "qwen"
+  | "openrouter"
+  | "qualai"
+  | "custom";
 
 export interface StandardProviderConfig {
   apiKey: string;
@@ -18,6 +26,8 @@ export interface AiSettingsData {
     claude: StandardProviderConfig;
     gemini: StandardProviderConfig;
     deepseek: StandardProviderConfig;
+    qwen: StandardProviderConfig;
+    openrouter: StandardProviderConfig;
     qualai: StandardProviderConfig;
     custom: CustomProviderConfig;
   };

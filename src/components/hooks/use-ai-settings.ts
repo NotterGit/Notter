@@ -123,7 +123,7 @@ export const useAiStore = create<AiSettingsStore>()(
         if (!data || typeof data !== "object") return;
 
         set((state) => {
-          const validIds: AiProviderId[] = ["openai", "claude", "gemini", "deepseek", "qualai", "custom"];
+          const validIds: AiProviderId[] = ["openai", "claude", "gemini", "deepseek", "qwen", "openrouter", "qualai", "custom"];
 
           let nextActive = state.activeProviderId;
           if (

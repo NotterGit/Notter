@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 const QUALAI_API_URL = (process.env.QUALAI_API_URL || "http://localhost:8010").replace(/\/+$/, "");
 
 interface GeneratePayload {
-  provider: "openai" | "claude" | "gemini" | "deepseek" | "qualai" | "custom";
+  provider: "openai" | "claude" | "gemini" | "deepseek" | "qwen" | "openrouter" | "qualai" | "custom";
   model: string;
   prompt: string;
   systemPrompt?: string;
@@ -28,18 +28,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Отсутствует API ключ для ${provider}` }, { status: 400 });
     }
 
-    if (provider === "openai" || provider === "deepseek") {
-      const endpoint =
-        provider === "openai"
-          ? "https://api.openai.com/v1/chat/completions"
-          : "https://api.deepseek.com/chat/completions";
+    if (
+      provider === "openai" ||
+      provider === "deepseek" ||
+      provider === "qwen" ||
+      provider === "openrouter"
+    ) {
+      const endpoints: Record<string, string> = {
+        openai: "https://api.openai.com/v1/chat/completions",
+        deepseek: "https://api.deepseek.com/chat/completions",
+        qwen: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+        openrouter: "https://openrouter.ai/api/v1/chat/completions",
+      };
+      const endpoint = endpoints[provider];
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      };
+      if (provider === "openrouter") {
+        headers["HTTP-Referer"] = "https://notter.app";
+        headers["X-Title"] = "Notter";
+      }
 
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
+        headers,
         body: JSON.stringify({
           model,
           messages: [

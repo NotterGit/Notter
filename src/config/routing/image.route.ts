@@ -52,6 +52,8 @@ export const images = {
     CLAUDE: "/ai-icons/claude.svg",
     GEMINI: "/ai-icons/gemini.webp",
     DEEPSEEK: "/ai-icons/deepseek.webp",
+    QWEN: "/ai-icons/qwen.png",
+    OPENROUTER: "/ai-icons/openrouter.png",
     QUALAI: "/ai-icons/qualai.svg",
   },
 } as const;
