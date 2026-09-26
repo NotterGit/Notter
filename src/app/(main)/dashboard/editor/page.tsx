@@ -280,7 +280,7 @@ export default function EditorPrototypePage() {
           <EditorToolbar
             editor={editor}
             uploadLimitMb={uploadLimitMb}
-            className={cn("top-0", previewMode && "pointer-events-none opacity-60")}
+            className={cn("top-0 z-30", previewMode && "pointer-events-none opacity-60")}
           />
         )}
 
@@ -290,7 +290,10 @@ export default function EditorPrototypePage() {
               editor.commands.focus()
             }
           }}
-          className={cn("cursor-text p-4", previewMode && "preview-mode select-text")}
+          className={cn(
+            "cursor-text px-4 sm:px-6 md:px-10 pt-3 pb-6 min-h-[350px]",
+            previewMode && "preview-mode select-text cursor-default"
+          )}
         >
           <EditorContent editor={editor} />
         </div>

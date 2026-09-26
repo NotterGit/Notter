@@ -36,12 +36,12 @@ export function IframeModal({ iframeUrl }: IframeModalProps) {
   return (
     <>
       <Button
-        className="mt-2 h-9 w-full rounded-xl text-xs w-full max-w-[1380px] "
+        className="mt-3 h-9 w-full rounded-xl text-xs"
         size="sm"
         variant="outline"
         onClick={() => setOpen(true)}
       >
-        <Code/> Вставить на сайт
+        <Code /> Вставить на сайт
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>

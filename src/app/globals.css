@@ -268,7 +268,7 @@ body.editor-is-dragging .tiptap-prototype-content {
 
 .tiptap-prototype-content {
   min-height: 420px;
-  padding: 1.5rem;
+  padding: 0.25rem 1.5rem 1.5rem 1.5rem;
   line-height: 1.75;
   overflow-wrap: anywhere;
   -webkit-user-select: text;
@@ -276,6 +276,9 @@ body.editor-is-dragging .tiptap-prototype-content {
 }
 .tiptap-prototype-content:focus {
   outline: none;
+}
+.tiptap-prototype-content > :first-child {
+  margin-top: 0 !important;
 }
 .tiptap-prototype-content > * + * {
   margin-top: 0.75rem;
@@ -527,7 +530,7 @@ body.editor-is-dragging .tiptap-prototype-content {
 @media (max-width: 640px) {
   .tiptap-prototype-content {
     min-height: 50vh;
-    padding: 1rem;
+    padding: 0.25rem 1rem 1rem 1rem;
   }
   .tiptap-prototype-content ul[data-type="taskList"] li > label {
     padding-top: 0.32rem;

@@ -298,7 +298,7 @@ export default function Editor({
           editor={editor}
           uploadLimitMb={uploadLimitMb}
           onUploadFile={handleUpload}
-          className="sticky top-12 z-20 border-y bg-background/95 backdrop-blur-sm px-4 sm:px-6 md:px-10"
+          className="sticky top-0 z-30 border-y bg-card/95 backdrop-blur-md px-4 sm:px-6 md:px-10"
         />
       )}
 
@@ -309,7 +309,7 @@ export default function Editor({
           }
         }}
         className={cn(
-          "cursor-text px-4 sm:px-6 md:px-10 py-6 min-h-[350px]",
+          "cursor-text px-4 sm:px-6 md:px-10 pt-3 pb-6 min-h-[350px]",
           !editable && "preview-mode select-text cursor-default"
         )}
       >

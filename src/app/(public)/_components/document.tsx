@@ -4,10 +4,9 @@ import { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
 import { useMutation, useQuery } from "convex/react"
 import Link from "next/link"
-import Twemoji from "react-twemoji"
-
 import { Skeleton } from "@/components/ui/skeleton"
-import { Cover } from "@/components/cover"
+import { CoverBanner } from "@/components/editor/cover-banner"
+import { EditorHeader } from "@/components/editor/editor-header"
 import Error404 from "@/app/not-found"
 import { Separator } from "@/components/ui/separator"
 import { api } from "../../../../convex/_generated/api"
@@ -28,11 +27,11 @@ const Editor = dynamic(() => import("@/components/editor"), { ssr: false })
 
 function Footer({ name, team, logo }: UserInterface) {
   return (
-    <footer className="mt-8 w-full">
-      <Separator className="bg-black/10 dark:bg-white/10" />
-      <p className="my-4 text-center text-sm text-primary/60">
+    <footer className="mt-4 w-full">
+      <Separator className="bg-border" />
+      <p className="my-4 px-4 text-center text-sm text-muted-foreground">
         <span>Заметка создана {team ? "командой" : ""}{" "}</span>
-        <Link href={pages.PROFILE(team, name)} className="font-semibold transition-colors duration-200 hover:text-primary">
+        <Link href={pages.PROFILE(team, name)} className="font-semibold transition-colors duration-200 hover:text-foreground">
           {name}
         </Link>
         {logo && (
@@ -121,41 +120,44 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
   if (document === undefined) {
     if (iframe) {
       return (
-        <div className="min-h-screen bg-background px-4 py-6">
-          <div className="mx-auto w-full max-w-5xl space-y-4">
-            <Skeleton className="h-16 w-16 rounded-xl bg-primary/8 sm:h-20 sm:w-20" />
-            <Skeleton className="h-10 w-1/5 max-w-xl rounded-xl bg-primary/8" />
-            <div className="space-y-3 pt-2">
-              <Skeleton className="h-4 w-full max-w-4xl rounded-full bg-primary/8" />
-              <Skeleton className="h-4 w-4/5 max-w-3xl rounded-full bg-primary/8" />
-              <Skeleton className="h-4 w-2/3 max-w-2xl rounded-full bg-primary/8" />
+        <div className="min-h-screen bg-background p-3 sm:p-6">
+          <section className="mx-auto w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1536px] rounded-2xl border bg-card p-6 sm:p-10 space-y-6 shadow-sm">
+            <Skeleton className="h-16 w-16 rounded-2xl bg-primary/8" />
+            <Skeleton className="h-10 w-3/5 rounded-xl bg-primary/8" />
+            <div className="space-y-3 pt-4">
+              <Skeleton className="h-5 w-full rounded-full bg-primary/8" />
+              <Skeleton className="h-5 w-[85%] rounded-full bg-primary/8" />
+              <Skeleton className="h-5 w-[70%] rounded-full bg-primary/8" />
+              <Skeleton className="h-5 w-[60%] rounded-full bg-primary/8" />
+              <Skeleton className="h-5 w-[45%] rounded-full bg-primary/8" />
             </div>
-          </div>
+          </section>
         </div>
       )
     }
 
     return (
-      <main className="relative z-10 min-h-screen px-4 pb-10 pt-20">
-        <div className="relative mx-auto w-full max-w-[1380px]">
-          <BackButton className="mb-4 2xl:absolute 2xl:-left-14 2xl:top-20 2xl:mb-0 xl:-left-16" />
-          <div className="rounded-2xl border border-black/10 bg-background/70 pt-4 shadow-sm dark:border-white/10">
-            <div className="overflow-hidden rounded-2xl border border-black/10 shadow-2xl dark:border-white/10 mx-4">
-              <Cover.Skeleton />
-            </div>
-            <div className="mx-auto my-8 w-full max-w-6xl rounded-2xl border border-black/10 bg-background/70 p-4 shadow-sm dark:border-white/10 sm:p-8">
-              <div className="space-y-5 px-0 sm:px-6">
-                <Skeleton className="h-16 w-16 rounded-xl bg-primary/8 sm:h-20 sm:w-20" />
-                <Skeleton className="h-10 w-1/5 max-w-xl rounded-xl bg-primary/8" />
-                <div className="space-y-3 pt-2">
-                  <Skeleton className="h-4 w-full max-w-4xl rounded-full bg-primary/8" />
-                  <Skeleton className="h-4 w-4/5 max-w-3xl rounded-full bg-primary/8" />
-                  <Skeleton className="h-4 w-2/3 max-w-2xl rounded-full bg-primary/8" />
-                </div>
-              </div>
-            </div>
+      <main className="relative z-10 flex min-h-screen flex-col items-center px-3 pb-6 sm:px-6 sm:pb-8 lg:px-8 lg:pb-10 pt-20 sm:pt-24">
+        <div className="relative mx-auto w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1536px] flex flex-col lg:flex-row items-start gap-3 lg:gap-4">
+          <div className="w-full flex items-center justify-between lg:hidden">
+            <BackButton />
           </div>
-          <Skeleton className="mx-auto mt-3 h-8 max-w-[1380px] w-full rounded-xl bg-primary/8" />
+          <aside className="hidden lg:block shrink-0 sticky top-20 sm:top-24 z-20">
+            <BackButton />
+          </aside>
+          <div className="flex-1 min-w-0 w-full">
+            <section className="relative overflow-visible rounded-2xl border bg-card p-6 sm:p-10 space-y-6 shadow-sm">
+              <Skeleton className="h-16 w-16 rounded-2xl bg-primary/8" />
+              <Skeleton className="h-10 w-3/5 rounded-xl bg-primary/8" />
+              <div className="space-y-3 pt-4">
+                <Skeleton className="h-5 w-full rounded-full bg-primary/8" />
+                <Skeleton className="h-5 w-[85%] rounded-full bg-primary/8" />
+                <Skeleton className="h-5 w-[70%] rounded-full bg-primary/8" />
+                <Skeleton className="h-5 w-[60%] rounded-full bg-primary/8" />
+                <Skeleton className="h-5 w-[45%] rounded-full bg-primary/8" />
+              </div>
+            </section>
+          </div>
         </div>
       </main>
     )
@@ -166,18 +168,59 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
   }
 
   const iframeUrl = pages.DOCUMENT_IFRAME_URL(origin, document._id, document.isShort, document.shortId)
+  const showWatermark = profile?.watermark !== false
 
-  const content = (
-    <div className={iframe ? "min-h-screen bg-background px-4 py-6 text-foreground" : "rounded-2xl border border-black/10 bg-background/70 pt-4 shadow-sm dark:border-white/10"}>
-      {iframe && document.coverImage && (
-        <div className={iframe ? "mb-4 overflow-hidden rounded-2xl border border-black/10 dark:border-white/10" : "overflow-hidden rounded-2xl border border-black/10 dark:border-white/10"}>
-          <Cover url={document.coverImage} preview />
+  if (iframe) {
+    return (
+      <div className="min-h-screen bg-background p-3 sm:p-6 text-foreground">
+        <div className="mx-auto w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1536px]">
+          <section className="relative overflow-visible rounded-2xl border bg-card shadow-sm transition-all">
+            <CoverBanner
+              coverUrl={document.coverImage ?? null}
+              preview={true}
+              onOpenModal={() => {}}
+              onRemoveCover={() => {}}
+            />
+
+            <EditorHeader
+              title={document.title}
+              onChangeTitle={() => {}}
+              icon={document.icon ?? null}
+              onChangeIcon={() => {}}
+              onRemoveIcon={() => {}}
+              hasCover={Boolean(document.coverImage)}
+              onAddCover={() => {}}
+              preview={true}
+              onEnterPress={() => {}}
+            />
+
+            <Editor
+              initialContent={document.content}
+              onChange={() => {}}
+              editable={false}
+              documentId={document._id as string}
+            />
+
+            {showWatermark && (
+              <Footer
+                name={document.creatorName as string}
+                team={document.userId.startsWith("org_")}
+                logo={profile?.watermark as boolean}
+              />
+            )}
+          </section>
         </div>
-      )}
+      </div>
+    )
+  }
 
-      <div className={iframe ? "mx-auto w-full max-w-5xl" : ""}>
-        {!iframe && (
-          <div className="mb-2 flex justify-end">
+  return (
+    <main className="relative z-10 flex min-h-screen flex-col items-center px-3 pb-6 sm:px-6 sm:pb-8 lg:px-8 lg:pb-10 pt-20 sm:pt-24">
+      <div className="relative mx-auto w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1536px] flex flex-col lg:flex-row items-start gap-3 lg:gap-4">
+        {/* Mobile top bar: BackButton + ModeratorPanel */}
+        <div className="w-full flex items-center justify-between lg:hidden">
+          <BackButton />
+          {isModerator && (
             <ModeratorPanel
               _id={document._id}
               userId={document.userId}
@@ -186,57 +229,80 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
               isPublished={document.isPublished}
               creatorName={document.creatorName}
               lastEditor={document.lastEditor}
+              lastEditTime={document.lastEditTime}
               verifed={document.verifed}
               content={document.content}
               title={document.title}
               isAcrhived={document.isAcrhived}
             />
-          </div>
-        )}
+          )}
+        </div>
 
-        {!!document.icon && (
-          <Twemoji options={{ className: "twemoji-lg" }}>
-            <p className={iframe ? "ml-13 px-0 pt-2 text-5xl sm:text-6xl" : "px-12 pt-6 text-6xl"}>{document.icon}</p>
-          </Twemoji>
-        )}
+        {/* Desktop left sidebar: sticky BackButton */}
+        <aside className="hidden lg:block shrink-0 sticky top-20 sm:top-24 z-20">
+          <BackButton />
+        </aside>
 
-        <h1 className={iframe ? "ml-13 px-0 pb-4 pt-2 mt-2 text-5xl font-bold text-[#3F3F3F] dark:text-[#CFCFCF]" : "px-12 pb-2 pt-4 text-5xl font-bold text-[#3F3F3F] dark:text-[#CFCFCF]"}>
-          {document.title}
-        </h1>
-
-        <Editor onChange={() => {}} initialContent={document.content} editable={false} documentId={document._id as string}/>
-        {iframe && (
-          <Footer name={document.creatorName as string} team={document.userId.startsWith("org_")} logo={profile?.watermark as boolean} />
-        )}
-      </div>
-    </div>
-  )
-
-  if (iframe) {
-    return content
-  }
-
-  const showWatermark = profile?.watermark !== false
-
-  return (
-    <main className="relative z-10 flex min-h-screen flex-col items-center px-4 pb-10 pt-20">
-      <div className="relative mx-auto w-full max-w-[1380px]">
-        <BackButton className="mb-4 2xl:absolute 2xl:-left-14 2xl:top-0 2xl:mb-0 xl:-left-16" />
-        <div className="rounded-3xl border border-black/10 bg-background/70 shadow-sm dark:border-white/10 p-3">
-          {document.coverImage && (
-            <div className="mb-8 overflow-hidden rounded-2xl border border-black/10 shadow-2xl dark:border-white/10">
-              <Cover url={document.coverImage} preview />
+        {/* Main note area */}
+        <div className="flex-1 min-w-0 w-full">
+          {isModerator && (
+            <div className="hidden lg:flex justify-end mb-3">
+              <ModeratorPanel
+                _id={document._id}
+                userId={document.userId}
+                shortId={document.shortId}
+                isShort={document.isShort}
+                isPublished={document.isPublished}
+                creatorName={document.creatorName}
+                lastEditor={document.lastEditor}
+                lastEditTime={document.lastEditTime}
+                verifed={document.verifed}
+                content={document.content}
+                title={document.title}
+                isAcrhived={document.isAcrhived}
+              />
             </div>
           )}
-          <div className="mx-auto w-full max-w-6xl flex-grow px-2 sm:px-4">
-            {content}
+
+          <section className="relative overflow-visible rounded-2xl border bg-card shadow-sm transition-all">
+            <CoverBanner
+              coverUrl={document.coverImage ?? null}
+              preview={true}
+              onOpenModal={() => {}}
+              onRemoveCover={() => {}}
+            />
+
+            <EditorHeader
+              title={document.title}
+              onChangeTitle={() => {}}
+              icon={document.icon ?? null}
+              onChangeIcon={() => {}}
+              onRemoveIcon={() => {}}
+              hasCover={Boolean(document.coverImage)}
+              onAddCover={() => {}}
+              preview={true}
+              onEnterPress={() => {}}
+            />
+
+            <Editor
+              initialContent={document.content}
+              onChange={() => {}}
+              editable={false}
+              documentId={document._id as string}
+            />
+
             {showWatermark && (
-              <Footer name={document.creatorName as string} team={document.userId.startsWith("org_")} logo={profile?.watermark as boolean} />
+              <Footer
+                name={document.creatorName as string}
+                team={document.userId.startsWith("org_")}
+                logo={profile?.watermark as boolean}
+              />
             )}
-          </div>
+          </section>
+
+          <IframeModal iframeUrl={iframeUrl} />
         </div>
       </div>
-      <IframeModal iframeUrl={iframeUrl}/>
     </main>
   )
 }

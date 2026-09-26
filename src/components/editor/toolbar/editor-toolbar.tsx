@@ -95,7 +95,7 @@ export function EditorToolbar({
   return (
     <div
       className={cn(
-        "sticky top-12 z-20 flex flex-wrap items-center gap-0.5 border-y bg-background/95 backdrop-blur-sm p-1.5 sm:gap-1 transition-all",
+        "sticky top-0 z-30 flex flex-wrap items-center gap-0.5 border-y bg-card/95 backdrop-blur-md p-1.5 sm:gap-1 transition-all",
         className
       )}
       role="toolbar"

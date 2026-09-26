@@ -231,7 +231,7 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
             <div className="border-y bg-background/95 p-3">
               <Skeleton className="h-7 w-full max-w-md rounded-lg bg-primary/8" />
             </div>
-            <div className="space-y-3 px-4 sm:px-6 md:px-10 py-6 min-h-[350px]">
+            <div className="space-y-3 px-4 sm:px-6 md:px-10 pt-3 pb-6 min-h-[350px]">
               <Skeleton className="h-5 w-[85%] rounded-full bg-primary/8" />
               <Skeleton className="h-5 w-[70%] rounded-full bg-primary/8" />
               <Skeleton className="h-5 w-[60%] rounded-full bg-primary/8" />
@@ -250,10 +250,12 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
   const isArchived = Boolean(document.isAcrhived)
 
   return (
-    <div className="relative pb-40 overflow-hidden">
+    <div className="relative pb-40">
       {/* Ambient background glows */}
-      <div className="pointer-events-none absolute -left-16 top-16 h-64 w-64 rounded-full bg-logo-yellow/20 blur-3xl" />
-      <div className="pointer-events-none absolute -right-12 bottom-12 h-72 w-72 rounded-full bg-logo-cyan/15 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="pointer-events-none absolute -left-16 top-16 h-64 w-64 rounded-full bg-logo-yellow/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-12 bottom-12 h-72 w-72 rounded-full bg-logo-cyan/15 blur-3xl" />
+      </div>
 
       <main className="mx-auto w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1536px] px-4 py-6 sm:px-8 sm:py-10 transition-all">
         <section className="relative overflow-visible rounded-2xl border bg-card shadow-sm transition-all focus-within:ring-2 focus-within:ring-primary/20">

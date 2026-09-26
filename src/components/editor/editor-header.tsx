@@ -57,10 +57,7 @@ export function EditorHeader({
                 title="Нажмите, чтобы изменить эмодзи"
                 disabled={preview}
               >
-                <Twemoji
-                  options={{ className: "twemoji-lg" }}
-                  className="flex items-center justify-center leading-none"
-                >
+                <Twemoji options={{ className: "twemoji-lg" }}>
                   <span className="flex items-center justify-center leading-none text-5xl sm:text-6xl select-none">
                     {icon}
                   </span>
