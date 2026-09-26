@@ -107,11 +107,12 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
   }, [profile?.watermark, setNavbarLogo])
 
   useEffect(() => {
-    if (!document?.title) return
+    if (!document) return
 
-    const title = `${document.title}${iframe ? " (iframe)" : ""}`
+    const docTitle = document.title?.trim() || "Без названия"
+    const title = `${docTitle}${iframe ? " (iframe)" : ""}`
     globalThis.document.title = profile?.watermark === false ? title : `${title} | Notter`
-  }, [document?.title, iframe, profile?.watermark])
+  }, [document, iframe, profile?.watermark])
 
   if (!isShort && documentId === null) {
     return <Error404 />

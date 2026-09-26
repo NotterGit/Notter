@@ -7,9 +7,9 @@ import DocumentIdPage from "../../_components/document"
 
 export async function generateMetadata({ params }: DocumentIdPageProps): Promise<Metadata> {
   const resolvedParams = await params
-  const metadata = await getPublicDocumentMetadata(resolvedParams.documentId, { requireShort: true })
+  const metadata = await getPublicDocumentMetadata(resolvedParams.documentId)
 
-  return createPublicTitleMetadata(metadata, "Публичная заметка")
+  return createPublicTitleMetadata(metadata, "Page not found")
 }
 
 export default async function Page({ params }: DocumentIdPageProps) {

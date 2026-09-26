@@ -6,26 +6,22 @@ import type { Id } from "../../convex/_generated/dataModel"
 import { getOrgByUsername } from "@/api/org"
 import { getUserByUsername } from "@/api/user"
 import { isValidConvexId } from "@/lib/convex-id"
-
-type PublicDocumentMetadata = {
-  title: string
-  watermark: boolean | null
-}
-
-type PublicDocumentMetadataOptions = {
-  requireShort?: boolean
-}
+import type { PublicDocumentMetadata, PublicDocumentMetadataOptions } from "@/config/types/public.types"
 
 async function getWatermark(userId: string, creatorName?: string | null) {
   if (!creatorName) {
     return null
   }
 
-  const profile = userId.startsWith("org_")
-    ? await getOrgByUsername(creatorName)
-    : await getUserByUsername(creatorName)
+  try {
+    const profile = userId.startsWith("org_")
+      ? await getOrgByUsername(creatorName)
+      : await getUserByUsername(creatorName)
 
-  return profile?.watermark ?? null
+    return profile?.watermark ?? null
+  } catch {
+    return null
+  }
 }
 
 export async function getPublicDocumentMetadata(
@@ -47,12 +43,12 @@ export async function getPublicDocumentMetadata(
         shortId: documentId,
       })
 
-      if (!document?.isPublished || document.isAcrhived || (options.requireShort && !document.isShort)) {
+      if (!document?.isPublished || document.isAcrhived || !document.isShort) {
         return null
       }
 
       return {
-        title: document.title,
+        title: document.title?.trim() || "Без названия",
         watermark: await getWatermark(document.userId, document.creatorName),
       }
     }
@@ -66,7 +62,7 @@ export async function getPublicDocumentMetadata(
     }
 
     return {
-      title: document.title,
+      title: document.title?.trim() || "Без названия",
       watermark: await getWatermark(document.userId, document.creatorName),
     }
   } catch {
@@ -76,10 +72,11 @@ export async function getPublicDocumentMetadata(
 
 export function createPublicTitleMetadata(
   metadata: PublicDocumentMetadata | null,
-  fallbackTitle: string,
+  fallbackTitle = "Page not found",
   suffix = ""
 ): Metadata {
-  const title = metadata?.title ? `${metadata.title}${suffix}` : fallbackTitle
+  const docTitle = metadata?.title?.trim() || fallbackTitle
+  const title = `${docTitle}${suffix}`
 
   return {
     title: metadata?.watermark === false ? { absolute: title } : title,

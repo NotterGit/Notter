@@ -33,3 +33,12 @@ export interface DocumentIdPageProps {
     documentId: string
   }>
 }
+
+export type PublicDocumentMetadata = {
+  title: string
+  watermark: boolean | null
+}
+
+export type PublicDocumentMetadataOptions = {
+  requireShort?: boolean
+}
