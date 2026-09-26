@@ -4,30 +4,40 @@ export type PlanLimits = {
     documents: number
     publicDocuments: number
     uploadMb: number
+    aiGenerationsPerWeek: number
+    aiGenerationsPerDay?: number
 }
 
 export const FREE_LIMITS: PlanLimits = {
     documents: 50,
     publicDocuments: 10,
     uploadMb: 1,
+    aiGenerationsPerWeek: 10,
+    aiGenerationsPerDay: 10,
 }
 
 export const AMBER_PERSONAL_LIMITS: PlanLimits = {
     documents: 200,
     publicDocuments: 100,
     uploadMb: 3,
+    aiGenerationsPerWeek: 50,
+    aiGenerationsPerDay: 50,
 }
 
 export const AMBER_TEAM_LIMITS: PlanLimits = {
     documents: 500,
     publicDocuments: 250,
     uploadMb: 3,
+    aiGenerationsPerWeek: 50,
+    aiGenerationsPerDay: 50,
 }
 
 export const DIAMOND_LIMITS: PlanLimits = {
     documents: 1000,
     publicDocuments: 1000,
     uploadMb: 10,
+    aiGenerationsPerWeek: 250,
+    aiGenerationsPerDay: 250,
 }
 
 export type ArchiveRetentionDays = 1 | 7 | 30 | 90

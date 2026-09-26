@@ -26,12 +26,13 @@
   - `(profile)/` — Profile, user, and organization settings.
   - `(public)/` — Publicly shared document views (accessible without auth).
   - `api/image/route.ts` — S3 image proxy route handler (`/api/image`).
-  - `api/ai/generate/route.ts` — AI text generation route handler (`/api/ai/generate`) proxying OpenAI, Claude, Gemini, DeepSeek, QualAI (self-hosted QualAI backend at `QUALAI_API_URL`, defaults to `http://localhost:8010`, no API key required), and custom OpenAI-compatible endpoints.
+  - `api/ai/generate/route.ts` — AI text generation route handler (`/api/ai/generate`) proxying OpenAI, Claude, Gemini, DeepSeek, QualAI (self-hosted QualAI backend at `QUALAI_API_URL`, defaults to `http://localhost:8010`, weekly limits: Free 10/week, Amber 50/week, Diamond 250/week), and custom OpenAI-compatible endpoints.
+  - `api/ai/limits/route.ts` — QualAI weekly generation limits status route handler (`/api/ai/limits`).
   - `api/backgrounds/route.ts` — Cover collection listing route handler (`/api/backgrounds`).
   - `globals.css` — Global styles (Tailwind CSS v4).
   - `manifest.ts` — Dynamic PWA manifest.
 - `src/components/` — Shared React components.
-  - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, `use-workspace-admin`, `use-document-stats`, `use-ai-settings`, etc.).
+  - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, `use-workspace-admin`, `use-document-stats`, `use-ai-settings`, `use-qualai-limits`, etc.).
   - `ui/` — Base UI components (Radix UI / custom).
 - `src/lib/` — Utilities (PWA, Desktop App helper, image URLs, plan limits, AI generation helper).
   - `backgrounds.ts` — Reads `public/bg/<folder>` and builds the cover collections (config in `src/config/const/banner-images.const.ts`).

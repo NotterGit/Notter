@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 
 const QUALAI_API_URL = (process.env.QUALAI_API_URL || "http://localhost:8010").replace(/\/+$/, "");
 
@@ -13,6 +14,8 @@ interface GeneratePayload {
 
 export async function POST(req: NextRequest) {
   try {
+    const { userId } = await auth();
+    const accountId = userId || "guest";
     const body: GeneratePayload = await req.json();
     const { provider, model, prompt, systemPrompt, apiKey = "", baseUrl } = body;
 
@@ -136,14 +139,19 @@ export async function POST(req: NextRequest) {
     }
 
     if (provider === "qualai") {
+      const forwardedFor = req.headers.get("x-forwarded-for");
+      const realIp = req.headers.get("x-real-ip");
+
       const res = await fetch(`${QUALAI_API_URL}/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(forwardedFor ? { "X-Forwarded-For": forwardedFor } : {}),
+          ...(realIp ? { "X-Real-IP": realIp } : {}),
         },
         signal: req.signal,
         body: JSON.stringify({
-          account_id: "notter-ai",
+          account_id: accountId,
           session_id: crypto.randomUUID(),
           model_id: model,
           message: prompt,

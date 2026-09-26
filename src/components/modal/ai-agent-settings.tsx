@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import { useAiSettings } from "@/components/hooks/use-ai-settings";
+import { useQualAiLimits } from "@/components/hooks/use-qualai-limits";
 import { AI_PROVIDERS } from "@/config/ai-providers";
 import { AiProviderId } from "@/config/types/ai.types";
 
@@ -43,6 +44,7 @@ export function AiAgentSettings() {
   const [isOpen, setIsOpen] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [modelInput, setModelInput] = useState("");
+  const { limits: qualAiLimits, isLoading: isLimitsLoading } = useQualAiLimits();
 
 
   const activeProvider = providers[activeProviderId];
@@ -232,12 +234,55 @@ export function AiAgentSettings() {
                   <span className="text-xs font-medium leading-tight truncate max-w-full">
                     {meta.name}
                   </span>
+                  {id === "qualai" && qualAiLimits && (
+                    <span className="text-[10px] text-muted-foreground font-mono leading-none">
+                      {qualAiLimits.remaining}/{qualAiLimits.limit}
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
 
           <div className="space-y-2.5 pt-1">
+            {activeProviderId === "qualai" && (
+              <div className="rounded-lg border border-border/70 bg-muted/40 p-2.5 space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-foreground">Недельный лимит QualAI</span>
+                  {isLimitsLoading ? (
+                    <span className="h-3 w-28 bg-primary/10 rounded-md animate-pulse"/>
+                  ) : (
+                    <span className="font-semibold font-mono text-primary">
+                      {qualAiLimits ? `${qualAiLimits.remaining} / ${qualAiLimits.limit}` : "—"} осталось
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                  <span>Тариф: <strong className="text-foreground">{qualAiLimits?.tier ?? "Free"}</strong></span>
+                  <span>Использовано за неделю: <strong className="text-foreground">{qualAiLimits?.used ?? 0}</strong></span>
+                </div>
+
+                <div className="w-full bg-border/60 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-full transition-all rounded-full",
+                      (qualAiLimits?.remaining ?? 1) === 0 ? "bg-destructive" : "bg-primary"
+                    )}
+                    style={{
+                      width: qualAiLimits && qualAiLimits.limit > 0
+                        ? `${Math.min(100, Math.round((qualAiLimits.used / qualAiLimits.limit) * 100))}%`
+                        : "0%"
+                    }}
+                  />
+                </div>
+
+                <div className="text-[11px] text-muted-foreground flex items-center justify-between pt-0.5">
+                  <span>Сброс в понедельник в 00:00 UTC</span>
+                </div>
+              </div>
+            )}
+
             {activeProviderId === "custom" && (
               <div className="space-y-1">
                 <Label className="text-xs">Базовый URL</Label>

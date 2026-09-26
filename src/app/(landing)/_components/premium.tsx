@@ -59,8 +59,9 @@ export function Premium() {
           features={[
             `До ${limits.free.documents} заметок`,
             `До ${limits.free.publicDocuments} публичных заметок`,
+            `До ${limits.free.aiGenerationsPerWeek} генераций QualAI в неделю`,
             `Загрузка изображений до ${limits.free.uploadMb} МБ`,
-            "Хранение в архиве до 7 дней"
+            "Хранение в архиве до 7 дней",
           ]}
           btn={false}
         />
@@ -71,12 +72,13 @@ export function Premium() {
           className="border-yellow-300 dark:border-yellow-300/40"
           icon={images.BADGES.AMBER}
           features={[
+            `До ${limits.amber.documents} заметок`,
+            `До ${limits.amber.publicDocuments} публичных заметок`,
+            `До ${limits.amber.aiGenerationsPerWeek} генераций QualAI в неделю`,
+            `Загрузка изображений до ${limits.amber.uploadMb} МБ`,
             "Сокращенные ссылки для публичных заметок",
             "Уникальный значок в профиле",
             "Хранение в архиве до 30 дней",
-            `До ${limits.amber.documents} заметок`,
-            `До ${limits.amber.publicDocuments} публичных заметок`,
-            `Загрузка изображений до ${limits.amber.uploadMb} МБ`
           ]}
         />
         <PremiumCard
@@ -86,13 +88,14 @@ export function Premium() {
           icon={images.BADGES.DIAMOND}
           features={[
             "Все преимущества Amber",
+            `До ${limits.diamond.documents} заметок`,
+            `До ${limits.diamond.publicDocuments} публичных заметок`,
+            `До ${limits.diamond.aiGenerationsPerWeek} генераций QualAI в неделю`,
+            `Загрузка изображений до ${limits.diamond.uploadMb} МБ`,
             "Хранение в архиве до 90 дней",
             "Кастомные ссылки",
             "Отключение упоминаний Notter",
             "Скачивание/Загрузка заметок в JSON",
-            `До ${limits.diamond.documents} заметок`,
-            `До ${limits.diamond.publicDocuments} публичных заметок`,
-            `Загрузка изображений до ${limits.diamond.uploadMb} МБ`
           ]}
         />
       </div>
@@ -120,6 +123,12 @@ export function Premium() {
               <TableCell>{limits.free.publicDocuments}</TableCell>
               <TableCell className="font-medium text-yellow-400">{limits.amber.publicDocuments}</TableCell>
               <TableCell className="font-medium text-cyan-500">{limits.diamond.publicDocuments}</TableCell>
+            </TableRow>
+            <TableRow className="border-border/40">
+              <TableCell className="font-medium">Генерации QualAI в неделю</TableCell>
+              <TableCell>{limits.free.aiGenerationsPerWeek}</TableCell>
+              <TableCell className="font-medium text-yellow-400">{limits.amber.aiGenerationsPerWeek}</TableCell>
+              <TableCell className="font-medium text-cyan-500">{limits.diamond.aiGenerationsPerWeek}</TableCell>
             </TableRow>
             <TableRow className="border-border/40">
               <TableCell className="font-medium">Максимальный размер загружаемых изображений</TableCell>

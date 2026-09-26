@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { useAiSettings } from "@/components/hooks/use-ai-settings";
+import { useQualAiLimits } from "@/components/hooks/use-qualai-limits";
 import { useSettings } from "@/components/hooks/use-settings";
 import { AI_PROVIDERS } from "@/config/ai-providers";
 import { AiProviderId } from "@/config/types/ai.types";
@@ -33,6 +34,7 @@ export function AiGeneratePopover({
 }: AiGeneratePopoverProps) {
   const { activeProviderId, providers, systemPrompt } = useAiSettings();
   const settingsModal = useSettings();
+  const { limits: qualAiLimits, refresh: refreshQualAiLimits } = useQualAiLimits();
 
   const [selectedProviderId, setSelectedProviderId] = useState<AiProviderId>(activeProviderId);
   const [selectedModel, setSelectedModel] = useState<string>("");
@@ -50,6 +52,7 @@ export function AiGeneratePopover({
       initializedRef.current = false;
       return;
     }
+    void refreshQualAiLimits();
     if (isLoading) return;
     if (initializedRef.current) return;
 
@@ -63,7 +66,7 @@ export function AiGeneratePopover({
       "";
     setSelectedModel(model);
     setCustomModelMode(!prov?.models?.length);
-  }, [isOpen, isLoading, activeProviderId, providers]);
+  }, [isOpen, isLoading, activeProviderId, providers, refreshQualAiLimits]);
 
   // Clean up if component unmounts
   useEffect(() => {
@@ -131,6 +134,11 @@ export function AiGeneratePopover({
       return;
     }
 
+    if (selectedProviderId === "qualai" && qualAiLimits && qualAiLimits.remaining <= 0) {
+      toast.error(`Вы исчерпали недельный лимит генераций для тарифа ${qualAiLimits.tier} (${qualAiLimits.limit} в неделю)`);
+      return;
+    }
+
     if (!editor) return;
 
     const targetPos = selectionBackupRef.current
@@ -162,7 +170,9 @@ export function AiGeneratePopover({
       setIsOpen(false);
       setPrompt("");
       toast.success("Текст добавлен");
+      void refreshQualAiLimits();
     } catch (error: any) {
+      void refreshQualAiLimits();
       if (error?.name === "AbortError" || abortController.signal.aborted) {
         toast("Генерация отменена");
       } else {
@@ -250,10 +260,27 @@ export function AiGeneratePopover({
                 <span className="text-[10px] font-medium leading-none truncate max-w-full">
                   {meta.name}
                 </span>
+                {id === "qualai" && qualAiLimits && (
+                  <span className="text-[9px] font-mono text-muted-foreground leading-none">
+                    {qualAiLimits.remaining}/{qualAiLimits.limit}
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
+
+        {selectedProviderId === "qualai" && (
+          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-muted/40 border border-border/60 text-xs">
+            <span className="text-muted-foreground text-[11px]">Недельный лимит QualAI:</span>
+            <span className={cn(
+              "font-mono font-medium text-[11px]",
+              (qualAiLimits?.remaining ?? 1) === 0 ? "text-destructive font-semibold" : "text-primary"
+            )}>
+              {qualAiLimits ? `${qualAiLimits.remaining} из ${qualAiLimits.limit} осталось` : "Загрузка..."}
+            </span>
+          </div>
+        )}
 
         <div className="space-y-1">
           <div className="flex items-center justify-between text-[11px] text-muted-foreground">
@@ -362,7 +389,12 @@ export function AiGeneratePopover({
               type="button"
               size="sm"
               onClick={handleGenerate}
-              disabled={isLoading || !prompt.trim() || !selectedModel.trim()}
+              disabled={
+                isLoading ||
+                !prompt.trim() ||
+                !selectedModel.trim() ||
+                (selectedProviderId === "qualai" && qualAiLimits?.remaining === 0)
+              }
               className="h-7 px-3 text-xs gap-1.5 cursor-pointer bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 shadow-xs disabled:opacity-50"
             >
               {isLoading ? (
@@ -370,6 +402,8 @@ export function AiGeneratePopover({
                   <Loader2 className="h-3 w-3 animate-spin" />
                   <span>Генерация...</span>
                 </>
+              ) : selectedProviderId === "qualai" && qualAiLimits?.remaining === 0 ? (
+                <span>Лимит исчерпан</span>
               ) : (
                 <>
                   <Sparkles className="h-3 w-3" />
