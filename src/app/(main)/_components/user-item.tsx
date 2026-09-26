@@ -25,9 +25,8 @@ import {
   ChevronUp,
   LogOut,
   User as UserIcon,
+  Gem,
 } from "lucide-react"
-import Image from "next/image"
-import { images } from "@/config/routing/image.route"
 import { normalizeImageUrl } from "@/lib/image-url"
 import { getUserById } from "@/api/user"
 import { getOrgById } from "@/api/org"
@@ -220,13 +219,13 @@ export function UserItem() {
                 <AvatarFallback className="text-sm">{fallbackLetter}</AvatarFallback>
               )}
             </Avatar>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <span
                 className={`text-sm font-medium truncate max-w-[8rem] ${
                   profile?.premium === 1
-                    ? "bg-gradient-to-b from-[#FFEB9C] to-[#FFDB4A] bg-clip-text text-transparent"
+                    ? "text-[#FFDB4A]"
                     : profile?.premium === 2
-                    ? "bg-gradient-to-b from-[#2BD8FF] to-[#94AAF3] bg-clip-text text-transparent"
+                    ? "text-[#2BD8FF]"
                     : "text-muted-foreground"
                 }`}
               >
@@ -234,23 +233,11 @@ export function UserItem() {
               </span>
 
               {profile?.premium === 1 && (
-                <Image
-                  src={images.BADGES.AMBER}
-                  alt="Amber"
-                  width={14}
-                  height={14}
-                  className="object-contain relative right-0.5"
-                />
+                <Gem size={14} className="h-3.5 w-3.5 shrink-0 text-[#FFDB4A]" />
               )}
 
               {profile?.premium === 2 && (
-                <Image
-                  src={images.BADGES.DIAMOND}
-                  alt="Diamond"
-                  width={14}
-                  height={14}
-                  className="object-contain relative right-0.5"
-                />
+                <Gem size={14} className="h-3.5 w-3.5 shrink-0 text-[#2BD8FF]" />
               )}
             </div>
           </button>
