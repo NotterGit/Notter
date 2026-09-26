@@ -24,6 +24,7 @@ export const images = {
     LAMP: "/landing/lamp.svg",
     OPTIONS: "/landing/options.svg",
     PEOPLE: "/landing/people.svg",
+    AI: "/landing/ai.svg",
     INAPI: "/landing/inapi.png",
     INAPI_LOGO: "/landing/inapi-logo.png",
     GOLANG: "/landing/golang.png",

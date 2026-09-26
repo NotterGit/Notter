@@ -6,7 +6,7 @@ export interface BgCollectionConfig {
 export const bgCollectionsConfig: BgCollectionConfig[] = [
   {
     name: "Notter Qualsu",
-    folder: "collection_4",
+    folder: "collection_2",
   },
   {
     name: "Vectors",
@@ -16,6 +16,10 @@ export const bgCollectionsConfig: BgCollectionConfig[] = [
     name: "Цвета",
     folder: "collection_colors",
   },
+  {
+    name: "Город и работа",
+    folder: "collection_3",
+  },
 ];
 
-export const defaultBgImage = "/bg/collection_4/bg_2.svg";
+export const defaultBgImage = "/bg/collection_2/bg_2.svg";

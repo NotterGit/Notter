@@ -24,6 +24,11 @@ export function About(){
                 description="Синхронизируя данные вы можете работать с любого устройства"
                 img={images.LANDING.ECOSYSTEM}
             />
+            <Card
+                name="Генерируй"
+                description="Подключайте своего AI-провайдера или используйте QualAI"
+                img={images.LANDING.AI}
+            />
         </div>
     )
 }
