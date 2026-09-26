@@ -3,6 +3,7 @@
 
 import { Button } from "@/components/ui/button"
 import { ImageIcon, X } from "lucide-react"
+import { normalizeImageUrl } from "@/lib/image-url"
 
 interface CoverBannerProps {
   coverUrl: string | null
@@ -21,10 +22,12 @@ export function CoverBanner({
     return null
   }
 
+  const normalizedUrl = normalizeImageUrl(coverUrl) || coverUrl
+
   return (
     <div className="group/cover relative h-48 sm:h-60 md:h-72 w-full overflow-hidden rounded-t-2xl border-b bg-muted/40 select-none transition-all">
       <img
-        src={coverUrl}
+        src={normalizedUrl}
         alt="Обложка заметки"
         className="h-full w-full object-cover object-center select-none"
       />

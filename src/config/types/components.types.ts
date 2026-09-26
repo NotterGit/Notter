@@ -18,6 +18,10 @@ export interface EditorProps {
   onChange: (value: string) => void
   initialContent?: string
   editable?: boolean
+  className?: string
+  showFooter?: boolean
+  saveStatus?: "saving" | "saved" | "idle"
+  onEditorReady?: (editor: any) => void
 }
 
 export type InputProps = {

@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { defaultBgImage } from "@/config/const/banner-images.const"
 import type { BgCollection } from "@/config/types/components.types"
+import { normalizeImageUrl } from "@/lib/image-url"
 import {
   UploadCloud,
   Link2,
@@ -22,6 +23,7 @@ import {
   Check,
   Palette,
   Image as ImageIcon,
+  X,
 } from "lucide-react"
 import toast from "react-hot-toast"
 
@@ -31,6 +33,7 @@ interface CoverModalProps {
   currentCoverUrl: string | null
   onSelectCover: (url: string) => void
   onRemoveCover: () => void
+  onUploadFile?: (file: File) => Promise<string>
 }
 
 /**
@@ -82,6 +85,7 @@ export function CoverModal({
   currentCoverUrl,
   onSelectCover,
   onRemoveCover,
+  onUploadFile,
 }: CoverModalProps) {
   const [activeTab, setActiveTab] = useState<"gallery" | "upload" | "link">(
     "gallery"
@@ -179,12 +183,17 @@ export function CoverModal({
 
     setIsUploading(true)
     try {
-      const compressedDataUrl = await compressImageForStorage(file)
-      onSelectCover(compressedDataUrl)
+      if (onUploadFile) {
+        const uploadedUrl = await onUploadFile(file)
+        onSelectCover(uploadedUrl)
+      } else {
+        const compressedDataUrl = await compressImageForStorage(file)
+        onSelectCover(compressedDataUrl)
+      }
       toast.success("Обложка успешно загружена")
       onClose()
     } catch {
-      toast.error("Не удалось обработать изображение")
+      toast.error("Не удалось загрузить или обработать изображение")
     } finally {
       setIsUploading(false)
     }
@@ -225,6 +234,22 @@ export function CoverModal({
             </div>
 
             <div className="flex items-center gap-1.5 mr-6">
+              {currentCoverUrl && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    onRemoveCover()
+                    onClose()
+                  }}
+                  className="h-7 text-xs gap-1.5 cursor-pointer text-destructive hover:text-destructive shadow-xs"
+                  title="Убрать обложку"
+                >
+                  <X size={12} />
+                  <span>Убрать</span>
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="outline"
@@ -340,7 +365,7 @@ export function CoverModal({
                           )}
                         >
                           <img
-                            src={image}
+                            src={normalizeImageUrl(image) || image}
                             alt=""
                             className="h-full w-full object-cover transition-transform duration-300 group-hover/cover:scale-105"
                             loading="lazy"

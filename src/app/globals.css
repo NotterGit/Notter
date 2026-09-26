@@ -103,13 +103,6 @@ body,
   color: rgb(199, 199, 199);
 }
 
-/* Changes for dark mode */
-.bn-container[data-theming-css-variables-demo][data-color-scheme="dark"] {
-  --bn-colors-editor-background: #0a0a0a;
-  --bn-colors-menu-background: #0a0a0a;
-  --bn-colors-disabled-background: #0a0a0a;
-}
-
 .cl-organizationSwitcherPopoverCard {
   z-index: 999999;
 }

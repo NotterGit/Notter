@@ -2,6 +2,7 @@ import { v } from "convex/values"
 import { mutation, query, type MutationCtx } from "./_generated/server"
 import { Doc, Id } from "./_generated/dataModel"
 import { generateRandomId } from "./genId"
+import { convertBlockNoteToTiptap } from "./migrateBlocknote"
 
 const getDocumentLimit = (premiumLevel?: number, isOrg?: boolean) => {
     if ((premiumLevel ?? 0) >= 2) {
@@ -1024,6 +1025,65 @@ export const move = mutation({
     }
 
     return args.id
+  },
+})
+
+export const migrateAllDocumentsToTiptap = mutation({
+  args: {
+    userId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) {
+      throw new Error("Not authenticated")
+    }
+
+    let documents
+    if (args.userId) {
+      documents = await ctx.db
+        .query("documents")
+        .withIndex("by_user", (q) => q.eq("userId", args.userId!))
+        .collect()
+    } else {
+      documents = await ctx.db.query("documents").collect()
+    }
+
+    let migrated = 0
+    let alreadyTiptap = 0
+    let empty = 0
+
+    for (const doc of documents) {
+      if (!doc.content || !doc.content.trim()) {
+        empty++
+        continue
+      }
+
+      const trimmed = doc.content.trim()
+
+      // Check if it's already Tiptap
+      try {
+        const parsed = JSON.parse(trimmed)
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && parsed.type === "doc") {
+          alreadyTiptap++
+          continue
+        }
+      } catch {
+        // Not JSON, continue to conversion
+      }
+
+      const convertedDoc = convertBlockNoteToTiptap(trimmed)
+      await ctx.db.patch(doc._id, {
+        content: JSON.stringify(convertedDoc),
+      })
+      migrated++
+    }
+
+    return {
+      total: documents.length,
+      migrated,
+      alreadyTiptap,
+      empty,
+    }
   },
 })
 

@@ -16,7 +16,7 @@ import { AiProviderId } from "@/config/types/ai.types";
 import { generateAiText } from "@/lib/ai/generate";
 import { cn } from "@/lib/utils";
 import { markdownToEditorHtml } from "@/lib/editor/markdown-to-html";
-import { getAiGeneratingPos, setAiGenerating } from "./ai-indicator-extension";
+import { getAiGeneratingPos, setAiGenerating } from "../extensions/ai-indicator";
 
 interface AiGeneratePopoverProps {
   editor: Editor | null;
