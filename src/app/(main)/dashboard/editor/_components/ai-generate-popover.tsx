@@ -34,7 +34,7 @@ export function AiGeneratePopover({
 }: AiGeneratePopoverProps) {
   const { activeProviderId, providers, systemPrompt } = useAiSettings();
   const settingsModal = useSettings();
-  const { limits: qualAiLimits, refresh: refreshQualAiLimits } = useQualAiLimits();
+  const { limits: qualAiLimits, refresh: refreshQualAiLimits, workspaceId, isOrg } = useQualAiLimits();
 
   const [selectedProviderId, setSelectedProviderId] = useState<AiProviderId>(activeProviderId);
   const [selectedModel, setSelectedModel] = useState<string>("");
@@ -160,6 +160,8 @@ export function AiGeneratePopover({
         systemPrompt,
         apiKey: currentProviderConfig?.apiKey,
         baseUrl: selectedProviderId === "custom" ? providers.custom.baseUrl : undefined,
+        workspaceId,
+        isOrg,
         signal: abortController.signal,
       });
 

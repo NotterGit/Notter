@@ -10,14 +10,22 @@ interface GeneratePayload {
   systemPrompt?: string;
   apiKey?: string;
   baseUrl?: string;
+  workspaceId?: string;
+  isOrg?: boolean;
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    const accountId = userId || "guest";
+    const { userId, orgId } = await auth();
     const body: GeneratePayload = await req.json();
-    const { provider, model, prompt, systemPrompt, apiKey = "", baseUrl } = body;
+    const { provider, model, prompt, systemPrompt, apiKey = "", baseUrl, workspaceId, isOrg: payloadIsOrg } = body;
+
+    const accountId = workspaceId || orgId || userId || "guest";
+    const isOrg = Boolean(
+      (workspaceId && workspaceId.startsWith("org_")) ||
+      (!workspaceId && orgId) ||
+      payloadIsOrg
+    );
 
     if (!prompt || !prompt.trim()) {
       return NextResponse.json({ error: "Промпт не может быть пустым" }, { status: 400 });
@@ -152,6 +160,7 @@ export async function POST(req: NextRequest) {
         signal: req.signal,
         body: JSON.stringify({
           account_id: accountId,
+          is_org: isOrg,
           session_id: crypto.randomUUID(),
           model_id: model,
           message: prompt,

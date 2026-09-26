@@ -28,8 +28,8 @@ export const AMBER_TEAM_LIMITS: PlanLimits = {
     documents: 500,
     publicDocuments: 250,
     uploadMb: 3,
-    aiGenerationsPerWeek: 50,
-    aiGenerationsPerDay: 50,
+    aiGenerationsPerWeek: 100,
+    aiGenerationsPerDay: 100,
 }
 
 export const DIAMOND_LIMITS: PlanLimits = {

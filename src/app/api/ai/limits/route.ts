@@ -5,12 +5,27 @@ const QUALAI_API_URL = (process.env.QUALAI_API_URL || "http://localhost:8010").r
 
 export async function GET(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    const accountId = userId || "guest";
+    const { userId, orgId } = await auth();
+    const searchParams = req.nextUrl.searchParams;
+    const requestedWorkspaceId = searchParams.get("workspaceId") || searchParams.get("orgId");
+    const requestedIsOrg = searchParams.get("isOrg");
+
+    const accountId = requestedWorkspaceId || orgId || userId || "guest";
+    const isOrg = Boolean(
+      (requestedWorkspaceId && requestedWorkspaceId.startsWith("org_")) ||
+      (!requestedWorkspaceId && orgId) ||
+      requestedIsOrg === "true"
+    );
+
     const forwardedFor = req.headers.get("x-forwarded-for");
     const realIp = req.headers.get("x-real-ip");
 
-    const res = await fetch(`${QUALAI_API_URL}/limits?account_id=${encodeURIComponent(accountId)}`, {
+    const queryParams = new URLSearchParams({
+      account_id: accountId,
+      ...(isOrg ? { is_org: "true" } : {}),
+    });
+
+    const res = await fetch(`${QUALAI_API_URL}/limits?${queryParams.toString()}`, {
       headers: {
         ...(forwardedFor ? { "X-Forwarded-For": forwardedFor } : {}),
         ...(realIp ? { "X-Real-IP": realIp } : {}),
@@ -27,11 +42,15 @@ export async function GET(req: NextRequest) {
         used: 0,
         remaining: 10,
         period: "week",
+        is_org: isOrg,
       });
     }
 
     const data = await res.json();
-    return NextResponse.json(data);
+    return NextResponse.json({
+      ...data,
+      is_org: isOrg,
+    });
   } catch {
     return NextResponse.json({
       account_id: "guest",

@@ -7,11 +7,13 @@ export interface GenerateTextOptions {
   systemPrompt?: string;
   apiKey?: string;
   baseUrl?: string;
+  workspaceId?: string;
+  isOrg?: boolean;
   signal?: AbortSignal;
 }
 
 export async function generateAiText(options: GenerateTextOptions): Promise<string> {
-  const { provider, model, prompt, systemPrompt, apiKey = "", baseUrl, signal } = options;
+  const { provider, model, prompt, systemPrompt, apiKey = "", baseUrl, workspaceId, isOrg, signal } = options;
 
   const isLocalCustom =
     provider === "custom" &&
@@ -64,6 +66,8 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
       systemPrompt,
       apiKey,
       baseUrl,
+      workspaceId,
+      isOrg,
     }),
   });
 

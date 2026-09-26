@@ -26,8 +26,8 @@
   - `(profile)/` — Profile, user, and organization settings.
   - `(public)/` — Publicly shared document views (accessible without auth).
   - `api/image/route.ts` — S3 image proxy route handler (`/api/image`).
-  - `api/ai/generate/route.ts` — AI text generation route handler (`/api/ai/generate`) proxying OpenAI, Claude, Gemini, DeepSeek, QualAI (self-hosted QualAI backend at `QUALAI_API_URL`, defaults to `http://localhost:8010`, weekly limits: Free 10/week, Amber 50/week, Diamond 250/week), and custom OpenAI-compatible endpoints.
-  - `api/ai/limits/route.ts` — QualAI weekly generation limits status route handler (`/api/ai/limits`).
+  - `api/ai/generate/route.ts` — AI text generation route handler (`/api/ai/generate`) proxying OpenAI, Claude, Gemini, DeepSeek, QualAI (self-hosted QualAI backend at `QUALAI_API_URL`, defaults to `http://localhost:8010`, weekly workspace limits: Free 10/week, Amber 50/week personal / 100/week orgs, Diamond 250/week), and custom OpenAI-compatible endpoints.
+  - `api/ai/limits/route.ts` — QualAI weekly generation limits status route handler (`/api/ai/limits`), workspace-scoped for users and organizations.
   - `api/backgrounds/route.ts` — Cover collection listing route handler (`/api/backgrounds`).
   - `globals.css` — Global styles (Tailwind CSS v4).
   - `manifest.ts` — Dynamic PWA manifest.
