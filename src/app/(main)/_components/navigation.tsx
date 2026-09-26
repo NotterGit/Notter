@@ -35,7 +35,11 @@ import {
 } from "@/lib/pwa-install"
 import { links } from "@/config/routing/links.route"
 
-export function Navigation() {
+interface NavigationProps {
+    children?: React.ReactNode
+}
+
+export function Navigation({ children }: NavigationProps) {
     const router = useRouter()
     const settings = useSettings()
 
@@ -193,10 +197,8 @@ export function Navigation() {
         if (newWidth < 240) newWidth = 240
         if (newWidth > 480) newWidth = 480
 
-        if (sidebarRef.current && navbarRef.current) {
+        if (sidebarRef.current) {
             sidebarRef.current.style.width = `${newWidth}px`
-            navbarRef.current.style.setProperty("left", `${newWidth}px`)
-            navbarRef.current.style.setProperty("width", `calc(100% - ${newWidth}px)`)
         }
     }
 
@@ -207,25 +209,21 @@ export function Navigation() {
     }
 
     const resetWidth = () => {
-        if (sidebarRef.current && navbarRef.current) {
+        if (sidebarRef.current) {
             setIsCollapsed(false)
             setIsResetting(true)
 
             sidebarRef.current.style.width = isMobile ? "100%" : "240px"
-            navbarRef.current.style.setProperty("width", isMobile ? "0" : "")
-            navbarRef.current.style.setProperty("left", isMobile ? "100%" : "240px")
             setTimeout(() => setIsResetting(false), 300)
         }
     }
 
     const collapse = () => {
-        if (sidebarRef.current && navbarRef.current) {
+        if (sidebarRef.current) {
             setIsCollapsed(true)
             setIsResetting(true)
 
             sidebarRef.current.style.width = "0"
-            navbarRef.current.style.setProperty("width", "100%")
-            navbarRef.current.style.setProperty("left", "0")
             setTimeout(() => setIsResetting(false), 300)
         }
     }
@@ -233,7 +231,7 @@ export function Navigation() {
     return (
         <>
             <aside ref={sidebarRef} className={cn(
-                "group/sidebar relative z-50 flex h-full w-60 flex-col overflow-hidden border-r border-white/50 bg-white/65 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/70",
+                "group/sidebar relative z-50 flex h-full w-60 shrink-0 flex-col overflow-hidden border-r border-white/50 bg-white/65 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/70",
                 isResetting && "transition-all ease-in-out duration-300",
                 isMobile && "w-0"
             )}>
@@ -329,18 +327,31 @@ export function Navigation() {
                 <div onMouseDown={handleMouseDown} onClick={resetWidth} className="absolute right-0 top-0 h-full w-1 cursor-ew-resize bg-transparent opacity-0 transition group-hover/sidebar:opacity-100 resize-handle" />
             </aside>
 
-            <div ref={navbarRef} className={cn(
-                "absolute left-60 top-0 z-[99999] w-[calc(100%-240px)]",
-                isResetting && "transition-all ease-in-out duration-300",
-                isMobile && "left-0 w-full"
-            )}>
-                {!!params.documentId ? (
-                    <Navbar isCollapsed={isCollapsed} onResetWidth={resetWidth} />
-                ) : (
-                    <nav className="w-full px-4 py-3">
-                        {isCollapsed && <MenuIcon onClick={resetWidth} role="button" className="h-6 w-6 rounded-md p-1 text-muted-foreground hover:bg-background/70" />}
-                    </nav>
-                )}
+            <div className="flex flex-col flex-1 h-full min-w-0 overflow-hidden relative">
+                <div ref={navbarRef} className={cn(
+                    "w-full shrink-0 z-40",
+                    isResetting && "transition-all ease-in-out duration-300"
+                )}>
+                    {!!params.documentId ? (
+                        <Navbar isCollapsed={isCollapsed} onResetWidth={resetWidth} />
+                    ) : (
+                        isCollapsed ? (
+                            <nav className="flex h-12 w-full items-center border-b border-black/5 px-4 dark:border-white/10 bg-background/80 backdrop-blur-md">
+                                <button
+                                    aria-label="Menu"
+                                    onClick={resetWidth}
+                                    className="cursor-pointer"
+                                >
+                                    <MenuIcon className="h-6 w-6 rounded-md p-1 text-muted-foreground hover:bg-background/70" />
+                                </button>
+                            </nav>
+                        ) : null
+                    )}
+                </div>
+
+                <main className="relative z-10 flex-1 overflow-y-auto">
+                    {children}
+                </main>
             </div>
 
             <InstallModal

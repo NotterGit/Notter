@@ -86,11 +86,10 @@ export function MainLayoutClient({
             <div className="pointer-events-none absolute -bottom-24 right-10 h-72 w-72 rounded-full bg-logo-cyan/15 blur-3xl" />
           </>
         )}
-        <Navigation />
-        <main className="relative z-10 h-full flex-1 overflow-y-auto">
+        <Navigation>
           <SearchCommand />
           {children}
-        </main>
+        </Navigation>
       </div>
     </RequestProvider>
   )

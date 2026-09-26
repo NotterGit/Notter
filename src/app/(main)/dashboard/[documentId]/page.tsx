@@ -64,10 +64,10 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps){
 
   if (document === undefined) {
     return (
-      <div className="relative overflow-hidden pb-40 pt-14">
+      <div className="relative overflow-hidden pb-40">
         <div className="pointer-events-none absolute -left-16 top-16 h-64 w-64 rounded-full bg-logo-yellow/20 blur-3xl" />
         <div className="pointer-events-none absolute -right-12 bottom-12 h-72 w-72 rounded-full bg-logo-cyan/15 blur-3xl" />
-        <div className="relative z-10 mx-auto mt-28 rounded-3xl border border-white/40 bg-white/70 px-4 pb-6 dark:border-white/10 dark:bg-zinc-950/70 md:max-w-3xl lg:max-w-4xl">
+        <div className="relative z-10 mx-auto mt-14 rounded-3xl border border-white/40 bg-white/70 px-4 pb-6 dark:border-white/10 dark:bg-zinc-950/70 md:max-w-3xl lg:max-w-4xl">
           <div className="min-h-[520px] px-8 pb-6 pt-8">
             <div className="space-y-5 pl-4">
               <Skeleton className="h-18 w-18 rounded-xl bg-primary/8" />
@@ -91,11 +91,11 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps){
   }
 
   return (
-    <div className="relative pb-40 pt-14 overflow-hidden">
+    <div className="relative pb-40 overflow-hidden">
       <div className="pointer-events-none absolute -left-16 top-16 h-64 w-64 rounded-full bg-logo-yellow/20 blur-3xl" />
       <div className="pointer-events-none absolute -right-12 bottom-12 h-72 w-72 rounded-full bg-logo-cyan/15 blur-3xl" />
       <Cover url={document.coverImage} preview={document.isAcrhived ? true : false}/>
-      <div className={`relative z-10 mx-auto px-4 md:max-w-3xl lg:max-w-4xl rounded-3xl border bg-white/50 border-black/10 dark:border-white/10 dark:bg-zinc-950/70 pb-6 ${document.coverImage && 'mt-6'}`}>
+      <div className={`relative z-10 mx-auto px-4 md:max-w-3xl lg:max-w-4xl rounded-3xl border bg-white/50 border-black/10 dark:border-white/10 dark:bg-zinc-950/70 pb-6 ${document.coverImage ? 'mt-6' : 'mt-0'}`}>
         <Toolbar initialData={document} preview={document.isAcrhived ? true : false}/>
         <Editor onChange={onChange} initialContent={document.content} editable={document.isAcrhived ? false : true} documentId={document._id}/>
       </div>

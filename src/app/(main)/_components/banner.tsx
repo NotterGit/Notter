@@ -79,7 +79,7 @@ export function Banner({ documentId }: BannerProps){
 
     return (
     <div
-      className="mx-2 mt-2 flex w-[calc(100%-1rem)] items-center justify-between flex-col gap-3 rounded-2xl border border-rose-300/60 bg-rose-500/95 px-4 py-2 text-center text-sm text-white shadow-xl backdrop-blur md:flex-row md:text-left"
+      className="flex w-full items-center justify-between flex-col gap-3 border-b border-rose-400/40 bg-rose-500/95 px-4 py-2.5 text-center text-sm text-white shadow-sm backdrop-blur md:flex-row md:text-left"
       style={{ minHeight: 40 }}
     >
       <p className="md:mb-0">
