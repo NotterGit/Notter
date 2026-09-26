@@ -223,28 +223,9 @@ export function CoverModal({
               <DialogTitle className="text-lg font-bold">
                 Обложка заметки
               </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                Выберите обложку из коллекции, загрузите файл или вставьте ссылку
-              </DialogDescription>
             </div>
 
             <div className="flex items-center gap-1.5 mr-6">
-              {currentCoverUrl && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    onRemoveCover()
-                    onClose()
-                  }}
-                  className="h-7 text-xs gap-1.5 cursor-pointer text-destructive hover:text-destructive shadow-xs"
-                  title="Убрать обложку"
-                >
-                  <X size={12} />
-                  <span>Убрать</span>
-                </Button>
-              )}
               <Button
                 type="button"
                 variant="outline"

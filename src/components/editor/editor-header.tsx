@@ -50,15 +50,18 @@ export function EditorHeader({
                 "rounded-2xl border border-border/80 bg-background/95 dark:bg-zinc-900/95 p-2 shadow-lg backdrop-blur-md"
             )}
           >
-            <IconPicker onChange={onChangeIcon}>
+            <IconPicker asChild onChange={onChangeIcon}>
               <button
                 type="button"
-                className="cursor-pointer transition hover:opacity-80 active:scale-95 focus:outline-none"
+                className="cursor-pointer transition hover:opacity-80 active:scale-95 focus:outline-none flex items-center justify-center p-0 m-0 border-0 bg-transparent leading-none"
                 title="Нажмите, чтобы изменить эмодзи"
                 disabled={preview}
               >
-                <Twemoji options={{ className: "twemoji-lg" }}>
-                  <span className="text-5xl sm:text-6xl leading-none block">
+                <Twemoji
+                  options={{ className: "twemoji-lg" }}
+                  className="flex items-center justify-center leading-none"
+                >
+                  <span className="flex items-center justify-center leading-none text-5xl sm:text-6xl select-none">
                     {icon}
                   </span>
                 </Twemoji>
@@ -66,13 +69,13 @@ export function EditorHeader({
             </IconPicker>
 
             {!preview && (
-              <div className="flex flex-col gap-1 opacity-100 md:opacity-0 md:group-hover/emoji:opacity-100 transition-opacity duration-150">
+              <div className="flex flex-col gap-1 items-center justify-center opacity-100 md:opacity-0 md:group-hover/emoji:opacity-100 transition-opacity duration-150">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   onClick={handleRandomEmoji}
-                  className="h-6 w-6 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+                  className="h-6 w-6 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-zinc-100 cursor-pointer transition-colors"
                   title="Случайный эмодзи"
                 >
                   <Sparkles size={12} />
@@ -82,7 +85,7 @@ export function EditorHeader({
                   variant="ghost"
                   size="icon"
                   onClick={onRemoveIcon}
-                  className="h-6 w-6 rounded-full hover:bg-destructive/15 text-muted-foreground hover:text-destructive cursor-pointer"
+                  className="h-6 w-6 rounded-full hover:bg-destructive/20 text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-red-400 cursor-pointer transition-colors"
                   title="Удалить эмодзи"
                 >
                   <X size={12} />

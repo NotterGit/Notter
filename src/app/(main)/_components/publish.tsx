@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "convex/react"
 import { useState, useEffect } from "react"
 import { toast } from "react-hot-toast"
 import { Button } from "@/components/ui/button"
-import { Check, Copy, Eye, Globe } from "lucide-react"
+import { Check, Copy, Eye, Globe, SquareArrowOutUpRight } from "lucide-react"
 import { api } from "../../../../convex/_generated/api"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Hint } from "@/components/ui/hint"
@@ -312,7 +312,7 @@ export function Publish({ initialData }: PublishProps) {
                 size="sm"
                 variant="outline"
               >
-                Перейти
+                <SquareArrowOutUpRight /> Перейти
               </Button>
             </Link>
 

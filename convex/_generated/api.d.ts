@@ -10,6 +10,7 @@
 
 import type * as document from "../document.js";
 import type * as genId from "../genId.js";
+import type * as migrateBlocknote from "../migrateBlocknote.js";
 import type * as rateLimits from "../rateLimits.js";
 
 import type {
@@ -21,6 +22,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   document: typeof document;
   genId: typeof genId;
+  migrateBlocknote: typeof migrateBlocknote;
   rateLimits: typeof rateLimits;
 }>;
 

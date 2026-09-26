@@ -115,6 +115,7 @@ body,
 .twemoji-lg{
   width: 60px;
   height: 60px;
+  display: block;
 }
 
 @layer base {
