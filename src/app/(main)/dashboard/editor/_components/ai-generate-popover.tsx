@@ -15,6 +15,7 @@ import { AI_PROVIDERS } from "@/config/ai-providers";
 import { AiProviderId } from "@/config/types/ai.types";
 import { generateAiText } from "@/lib/ai/generate";
 import { cn } from "@/lib/utils";
+import { markdownToEditorHtml } from "@/lib/editor/markdown-to-html";
 import { getAiGeneratingPos, setAiGenerating } from "./ai-indicator-extension";
 
 interface AiGeneratePopoverProps {
@@ -168,7 +169,24 @@ export function AiGeneratePopover({
       const finalPos = getAiGeneratingPos(editor) ?? generatingTargetPosRef.current ?? targetPos;
       setAiGenerating(editor, false);
 
-      editor.chain().focus().insertContentAt(finalPos, generatedText).run();
+      const html = markdownToEditorHtml(generatedText);
+
+      // Determine smart target range
+      let insertRange: number | { from: number; to: number } = finalPos;
+      const { doc } = editor.state;
+      const from = typeof finalPos === "number" ? finalPos : finalPos.from;
+      const to = typeof finalPos === "number" ? finalPos : finalPos.to;
+
+      // If cursor is collapsed (no selection) and inside an empty block, replace the whole empty block
+      if (from === to && from >= 0 && from <= doc.content.size) {
+        const $pos = doc.resolve(from);
+        const parent = $pos.parent;
+        if (parent.isTextblock && parent.textContent === "") {
+          insertRange = { from: $pos.before(), to: $pos.after() };
+        }
+      }
+
+      editor.chain().focus().insertContentAt(insertRange, html).run();
       setIsOpen(false);
       setPrompt("");
       toast.success("Текст добавлен");
