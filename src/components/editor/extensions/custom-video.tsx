@@ -14,6 +14,11 @@ import {
   GripHorizontal,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  DEFAULT_MEDIA_ALIGNMENT,
+  DEFAULT_MEDIA_WIDTH,
+} from "@/config/const/editor.const"
+import type { VideoComponentProps } from "@/config/types/editor.types"
 import { createDragGhost, ensureMediaUrl } from "./media-utils"
 
 export function VideoComponent({
@@ -23,17 +28,7 @@ export function VideoComponent({
   selected,
   getPos,
   editor,
-}: {
-  node: {
-    attrs: Record<string, any>
-  }
-  updateAttributes: (attrs: Record<string, any>) => void
-  deleteNode: () => void
-  selected: boolean
-  getPos: () => number
-  editor: any
-  [key: string]: any
-}) {
+}: VideoComponentProps) {
   const [isResizing, setIsResizing] = useState(false)
   const isEditable = editor?.isEditable ?? true
   const [localCaption, setLocalCaption] = useState(node.attrs.caption || "")
@@ -300,7 +295,7 @@ export function VideoComponent({
           </div>
 
           <video
-            src={ensureMediaUrl(node.attrs.src)}
+            src={ensureMediaUrl(node.attrs.src || "")}
             controls
             playsInline
             preload="metadata"
@@ -397,17 +392,17 @@ export const CustomVideo = Node.create({
         }),
       },
       width: {
-        default: "100%",
+        default: DEFAULT_MEDIA_WIDTH,
         parseHTML: (el) =>
-          el.getAttribute("data-width") || el.style.width || "100%",
+          el.getAttribute("data-width") || el.style.width || DEFAULT_MEDIA_WIDTH,
         renderHTML: (attrs) => ({
           "data-width": attrs.width,
           style: `width: ${attrs.width}`,
         }),
       },
       alignment: {
-        default: "center",
-        parseHTML: (el) => el.getAttribute("data-alignment") || "center",
+        default: DEFAULT_MEDIA_ALIGNMENT,
+        parseHTML: (el) => el.getAttribute("data-alignment") || DEFAULT_MEDIA_ALIGNMENT,
         renderHTML: (attrs) => ({
           "data-alignment": attrs.alignment,
         }),

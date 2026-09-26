@@ -1,11 +1,15 @@
-export type PremiumLevel = 0 | 1 | 2 | number
+import type {
+  PremiumLevel,
+  PlanLimits,
+  ArchiveRetentionDays,
+  ArchiveRetentionOption,
+} from "@/config/types/limits.types"
 
-export type PlanLimits = {
-    documents: number
-    publicDocuments: number
-    uploadMb: number
-    aiGenerationsPerWeek: number
-    aiGenerationsPerDay?: number
+export type {
+  PremiumLevel,
+  PlanLimits,
+  ArchiveRetentionDays,
+  ArchiveRetentionOption,
 }
 
 export const FREE_LIMITS: PlanLimits = {
@@ -40,16 +44,7 @@ export const DIAMOND_LIMITS: PlanLimits = {
     aiGenerationsPerDay: 250,
 }
 
-export type ArchiveRetentionDays = 1 | 7 | 30 | 90
-
 export const DEFAULT_RETENTION_DAYS: ArchiveRetentionDays = 7
-
-export type ArchiveRetentionOption = {
-    days: ArchiveRetentionDays
-    label: string
-    requiredPremium: number
-    gemName?: string
-}
 
 export const ARCHIVE_RETENTION_OPTIONS: ArchiveRetentionOption[] = [
     { days: 1, label: "1 день", requiredPremium: 0 },

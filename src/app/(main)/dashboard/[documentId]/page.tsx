@@ -16,6 +16,8 @@ import { getUserById } from "@/api/user"
 import { getPlanLimits } from "@/lib/plan-limits"
 import { uploadFile, deleteFile } from "@/api/files"
 import type { DashboardDocumentIdPageProps as DocumentIdPageProps } from "@/config/types/main.types"
+import { SAVE_STATUS_IDLE_DELAY_MS, TITLE_DEBOUNCE_MS } from "@/config/const/editor.const"
+import type { EditorSaveStatus } from "@/config/types/editor.types"
 
 import { CoverBanner } from "@/components/editor/cover-banner"
 import { CoverModal } from "@/components/editor/cover-modal"
@@ -50,7 +52,7 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
   const removeCoverImage = useMutation(api.document.removeCoverImage)
 
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false)
-  const [saveStatus, setSaveStatus] = useState<"saving" | "saved" | "idle">("idle")
+  const [saveStatus, setSaveStatus] = useState<EditorSaveStatus>("idle")
   const [localTitle, setLocalTitle] = useState("")
 
   const titleTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -83,7 +85,7 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
           if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
           saveTimeoutRef.current = setTimeout(() => {
             setSaveStatus("idle")
-          }, 2500)
+          }, SAVE_STATUS_IDLE_DELAY_MS)
         })
         .catch(() => {
           setSaveStatus("idle")
@@ -106,7 +108,7 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
           lastEditor: username,
           lastEditTime: getCurrentEditTime(),
         })
-      }, 300)
+      }, TITLE_DEBOUNCE_MS)
     },
     [normalizedDocumentId, orgId, update, username]
   )

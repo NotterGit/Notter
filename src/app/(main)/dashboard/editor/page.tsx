@@ -31,95 +31,19 @@ import { CoverBanner } from "@/components/editor/cover-banner"
 import { CoverModal } from "@/components/editor/cover-modal"
 import { EditorHeader } from "@/components/editor/editor-header"
 
-export interface DocumentMeta {
-  title: string
-  icon: string | null
-  coverImage: string | null
-}
-
-const DEFAULT_META: DocumentMeta = {
-  title: "Проверка кастомного редактора Tiptap",
-  icon: "📝",
-  coverImage: "/defaults/default-cover.svg",
-}
-
-const STORAGE_KEY = "notter-tiptap-prototype-v3"
-const META_STORAGE_KEY = "notter-tiptap-prototype-meta-v2"
-
-const starterContent = {
-  type: "doc",
-  content: [
-    {
-      type: "paragraph",
-      content: [
-        {
-          type: "text",
-          text: "Полнофункциональный редактор с удобной палитрой цветов, поддержкой перетаскивания картинок, заголовками H1–H5, обложками и эмодзи.",
-        },
-      ],
-    },
-    {
-      type: "heading",
-      attrs: { level: 4 },
-      content: [{ type: "text", text: "Подзаголовок уровня H4 (теперь работает)" }],
-    },
-    {
-      type: "paragraph",
-      content: [
-        {
-          type: "text",
-          text: "Для H4 и H5 настроена четкая типографическая иерархия, правильные размеры шрифта и отступы.",
-        },
-      ],
-    },
-    {
-      type: "heading",
-      attrs: { level: 5 },
-      content: [{ type: "text", text: "Секция уровня H5 (компактный заголовок)" }],
-    },
-    {
-      type: "taskList",
-      content: [
-        {
-          type: "taskItem",
-          attrs: { checked: true },
-          content: [
-            {
-              type: "paragraph",
-              content: [{ type: "text", text: "Сделана поддержка H4 и H5 в тулбаре и в меню" }],
-            },
-          ],
-        },
-        {
-          type: "taskItem",
-          attrs: { checked: true },
-          content: [
-            {
-              type: "paragraph",
-              content: [{ type: "text", text: "Полная палитра текста и выделения с кастомным HEX" }],
-            },
-          ],
-        },
-        {
-          type: "taskItem",
-          attrs: { checked: true },
-          content: [
-            {
-              type: "paragraph",
-              content: [{ type: "text", text: "Кастомные медиа-блоки (фото, видео, аудио) с ресайзом и DnD" }],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-}
+import {
+  DEFAULT_EDITOR_META,
+  EDITOR_STORAGE_KEY,
+  EDITOR_META_STORAGE_KEY,
+  DEFAULT_STARTER_CONTENT,
+} from "@/config/const/editor.const"
+import type { DocumentMeta } from "@/config/types/editor.types"
 
 export default function EditorPrototypePage() {
   const { user } = useUser()
   const { organization } = useOrganization()
 
-  const [meta, setMeta] = useState<DocumentMeta>(DEFAULT_META)
+  const [meta, setMeta] = useState<DocumentMeta>(DEFAULT_EDITOR_META)
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false)
   const [previewMode, setPreviewMode] = useState(false)
   const [showToolbar, setShowToolbar] = useState(true)
@@ -166,7 +90,7 @@ export default function EditorPrototypePage() {
       TaskItem.configure({ nested: true }),
       AiIndicatorExtension,
     ],
-    content: starterContent,
+    content: DEFAULT_STARTER_CONTENT,
     editorProps: {
       attributes: {
         class: "tiptap-prototype-content focus:outline-none",
@@ -178,7 +102,7 @@ export default function EditorPrototypePage() {
     },
     onUpdate: ({ editor: currentEditor }) => {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(currentEditor.getJSON()))
+        localStorage.setItem(EDITOR_STORAGE_KEY, JSON.stringify(currentEditor.getJSON()))
         setSaveStatus("saved")
       } catch (err) {
         console.error("Failed to save to localStorage:", err)
@@ -195,7 +119,7 @@ export default function EditorPrototypePage() {
     setMeta((prev) => {
       const updated = { ...prev, ...partial }
       try {
-        localStorage.setItem(META_STORAGE_KEY, JSON.stringify(updated))
+        localStorage.setItem(EDITOR_META_STORAGE_KEY, JSON.stringify(updated))
       } catch {}
       return updated
     })
@@ -203,7 +127,7 @@ export default function EditorPrototypePage() {
 
   useEffect(() => {
     try {
-      const storedMeta = localStorage.getItem(META_STORAGE_KEY)
+      const storedMeta = localStorage.getItem(EDITOR_META_STORAGE_KEY)
       if (storedMeta) {
         setMeta(JSON.parse(storedMeta))
       }
@@ -220,25 +144,25 @@ export default function EditorPrototypePage() {
   useEffect(() => {
     if (!editor) return
     const stored =
-      localStorage.getItem(STORAGE_KEY) ||
+      localStorage.getItem(EDITOR_STORAGE_KEY) ||
       localStorage.getItem("notter_tiptap_prototype_content")
     if (stored) {
       try {
         editor.commands.setContent(JSON.parse(stored))
         setSaveStatus("saved")
       } catch {
-        localStorage.removeItem(STORAGE_KEY)
+        localStorage.removeItem(EDITOR_STORAGE_KEY)
       }
     }
   }, [editor])
 
   const reset = () => {
     if (!editor) return
-    editor.commands.setContent(starterContent)
-    setMeta(DEFAULT_META)
+    editor.commands.setContent(DEFAULT_STARTER_CONTENT)
+    setMeta(DEFAULT_EDITOR_META)
     try {
-      localStorage.removeItem(STORAGE_KEY)
-      localStorage.removeItem(META_STORAGE_KEY)
+      localStorage.removeItem(EDITOR_STORAGE_KEY)
+      localStorage.removeItem(EDITOR_META_STORAGE_KEY)
     } catch {}
     setSaveStatus("initial")
     toast.success("Редактор и свойства заметки сброшены к начальному состоянию")

@@ -2,12 +2,7 @@ import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import { type Editor } from "@tiptap/react";
-
-export interface AiIndicatorState {
-  isGenerating: boolean;
-  from: number;
-  to: number;
-}
+import type { AiIndicatorState } from "@/config/types/editor.types";
 
 export const aiIndicatorPluginKey = new PluginKey<AiIndicatorState>("aiIndicator");
 

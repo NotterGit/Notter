@@ -6,18 +6,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import toast from "react-hot-toast"
+import type { LinkPopoverProps } from "@/config/types/editor.types"
 
 export function LinkPopover({
   editor,
   isOpen,
   setIsOpen,
   children,
-}: {
-  editor: any
-  isOpen: boolean
-  setIsOpen: (open: boolean) => void
-  children: React.ReactNode
-}) {
+}: LinkPopoverProps) {
   const [url, setUrl] = useState("")
   const selectionRef = useRef<{ from: number; to: number } | null>(null)
 

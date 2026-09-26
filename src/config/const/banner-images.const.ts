@@ -1,7 +1,16 @@
-export interface BgCollectionConfig {
-  name: string;
-  folder: string;
-}
+import type { BgCollectionConfig } from "@/config/types/components.types";
+
+export type { BgCollectionConfig };
+
+export const SUPPORTED_IMAGE_EXTENSIONS = [
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".svg",
+  ".webp",
+  ".avif",
+  ".gif",
+] as const;
 
 export const bgCollectionsConfig: BgCollectionConfig[] = [
   {

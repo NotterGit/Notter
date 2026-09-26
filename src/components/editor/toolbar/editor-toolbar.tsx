@@ -40,22 +40,21 @@ import {
 import { Hint } from "@/components/ui/hint"
 import { cn } from "@/lib/utils"
 import toast from "react-hot-toast"
-import { ColorPickerMenu, TEXT_COLORS, HIGHLIGHT_COLORS } from "./color-picker"
+import {
+  DEFAULT_UPLOAD_LIMIT_MB,
+  TEXT_COLORS,
+  HIGHLIGHT_COLORS,
+} from "@/config/const/editor.const"
+import type { EditorToolbarProps } from "@/config/types/editor.types"
+import { ColorPickerMenu } from "./color-picker"
 import { LinkPopover } from "./link-popover"
 import { ImagePopover, VideoPopover, AudioPopover } from "./media-popovers"
 import { AiGeneratePopover } from "./ai-generate-popover"
 import { aiIndicatorPluginKey } from "../extensions/ai-indicator"
 
-interface EditorToolbarProps {
-  editor: Editor | null
-  uploadLimitMb?: number
-  onUploadFile?: (file: File) => Promise<string>
-  className?: string
-}
-
 export function EditorToolbar({
   editor,
-  uploadLimitMb = 10,
+  uploadLimitMb = DEFAULT_UPLOAD_LIMIT_MB,
   onUploadFile,
   className,
 }: EditorToolbarProps) {

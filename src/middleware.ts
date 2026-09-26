@@ -1,9 +1,10 @@
 import { clerkMiddleware } from "@clerk/nextjs/server"
 import { NextRequest, NextResponse } from "next/server"
-
-const DESKTOP_QUERY_PARAM = "desktop"
-const DESKTOP_COOKIE = "desktop"
-const REDIRECT_COOKIE = "redirect"
+import {
+  DESKTOP_QUERY_PARAM,
+  DESKTOP_COOKIE,
+  REDIRECT_COOKIE,
+} from "@/config/const/app.const"
 
 const isDesktopRequest = (request: NextRequest) => {
   const userAgent = request.headers.get("user-agent")?.toLowerCase() ?? ""

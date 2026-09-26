@@ -14,6 +14,8 @@ import {
   GripHorizontal,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { DEFAULT_MEDIA_ALIGNMENT } from "@/config/const/editor.const"
+import type { AudioComponentProps } from "@/config/types/editor.types"
 import { createDragGhost, ensureMediaUrl } from "./media-utils"
 
 export function AudioComponent({
@@ -23,17 +25,7 @@ export function AudioComponent({
   selected,
   getPos,
   editor,
-}: {
-  node: {
-    attrs: Record<string, any>
-  }
-  updateAttributes: (attrs: Record<string, any>) => void
-  deleteNode: () => void
-  selected: boolean
-  getPos: () => number
-  editor: any
-  [key: string]: any
-}) {
+}: AudioComponentProps) {
   const isEditable = editor?.isEditable ?? true
   const [localCaption, setLocalCaption] = useState(node.attrs.caption || "")
   const captionInputRef = useRef<HTMLInputElement>(null)
@@ -243,7 +235,7 @@ export function AudioComponent({
 
           <div className="p-3">
             <audio
-              src={ensureMediaUrl(node.attrs.src)}
+              src={ensureMediaUrl(node.attrs.src || "")}
               controls
               preload="metadata"
               className="w-full h-9 rounded-lg"
@@ -310,8 +302,8 @@ export const CustomAudio = Node.create({
         }),
       },
       alignment: {
-        default: "center",
-        parseHTML: (el) => el.getAttribute("data-alignment") || "center",
+        default: DEFAULT_MEDIA_ALIGNMENT,
+        parseHTML: (el) => el.getAttribute("data-alignment") || DEFAULT_MEDIA_ALIGNMENT,
         renderHTML: (attrs) => ({
           "data-alignment": attrs.alignment,
         }),

@@ -7,21 +7,32 @@ export interface CoverImageProps {
   preview?: boolean
 }
 
+export interface BgCollectionConfig {
+  name: string
+  folder: string
+}
+
 export interface BgCollection {
   name: string
   folder: string
   images: string[]
 }
 
-export interface EditorProps {
-  documentId: string
-  onChange: (value: string) => void
-  initialContent?: string
-  editable?: boolean
-  className?: string
-  showFooter?: boolean
-  saveStatus?: "saving" | "saved" | "idle"
-  onEditorReady?: (editor: any) => void
+export type {
+  EditorProps,
+  EditorSaveStatus,
+  DocumentMeta,
+  CoverBannerProps,
+  CoverModalProps,
+  EditorHeaderProps,
+  EditorToolbarProps,
+} from "./editor.types"
+
+export type InstallModalProps = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onInstallPwa: () => void | Promise<void>
+  canInstallPwa: boolean
 }
 
 export type InputProps = {

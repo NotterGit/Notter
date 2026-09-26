@@ -3,19 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useOrganization, useUser } from "@clerk/nextjs";
 
-export interface QualAiLimitsData {
-  account_id: string;
-  tier: string;
-  premium: number;
-  limit: number;
-  used: number;
-  remaining: number;
-  period?: string;
-  week?: string;
-  date?: string;
-  reset_at?: string;
-  is_org?: boolean;
-}
+import type { QualAiLimitsData } from "@/config/types/ai.types";
+
+export type { QualAiLimitsData };
 
 export function useQualAiLimits(customWorkspaceId?: string) {
   const { organization, isLoaded: isOrgLoaded } = useOrganization();

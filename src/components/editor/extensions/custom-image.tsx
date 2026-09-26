@@ -16,6 +16,14 @@ import {
   GripHorizontal,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  DEFAULT_MEDIA_ALIGNMENT,
+  DEFAULT_MEDIA_WIDTH,
+} from "@/config/const/editor.const"
+import type {
+  ImageDragPreviewProps,
+  ImageComponentProps,
+} from "@/config/types/editor.types"
 
 export function ImageDragPreview({
   src,
@@ -23,13 +31,7 @@ export function ImageDragPreview({
   width,
   dragPreviewRef,
   initialCoords,
-}: {
-  src: string
-  alt?: string
-  width?: string
-  dragPreviewRef: React.RefObject<HTMLDivElement | null>
-  initialCoords: { x: number; y: number }
-}) {
+}: ImageDragPreviewProps) {
   return (
     <div
       ref={dragPreviewRef}
@@ -46,7 +48,7 @@ export function ImageDragPreview({
       <div className="flex items-center gap-1.5 px-1 text-xs font-semibold text-foreground">
         <ImageIcon className="h-3.5 w-3.5 text-primary shrink-0" />
         <span>Фото</span>
-        {width && width !== "100%" && (
+        {width && width !== DEFAULT_MEDIA_WIDTH && (
           <span className="ml-auto text-[10px] font-mono text-muted-foreground/80">
             {width}
           </span>
@@ -70,17 +72,7 @@ export function ImageComponent({
   selected,
   getPos,
   editor,
-}: {
-  node: {
-    attrs: Record<string, any>
-  }
-  updateAttributes: (attrs: Record<string, any>) => void
-  deleteNode: () => void
-  selected: boolean
-  getPos: () => number
-  editor: any
-  [key: string]: any
-}) {
+}: ImageComponentProps) {
   const [isResizing, setIsResizing] = useState(false)
   const isEditable = editor?.isEditable ?? true
   const [isDragging, setIsDragging] = useState(false)
@@ -453,7 +445,7 @@ export function ImageComponent({
 
       {isDragging && typeof window !== "undefined" && createPortal(
         <ImageDragPreview
-          src={node.attrs.src}
+          src={node.attrs.src || ""}
           alt={node.attrs.alt}
           width={currentWidth}
           dragPreviewRef={dragPreviewRef}
@@ -478,17 +470,17 @@ export const CustomImage = Image.extend({
     return {
       ...this.parent?.(),
       width: {
-        default: "100%",
+        default: DEFAULT_MEDIA_WIDTH,
         parseHTML: (el) =>
-          el.getAttribute("data-width") || el.style.width || "100%",
+          el.getAttribute("data-width") || el.style.width || DEFAULT_MEDIA_WIDTH,
         renderHTML: (attrs) => ({
           "data-width": attrs.width,
           style: `width: ${attrs.width}`,
         }),
       },
       alignment: {
-        default: "center",
-        parseHTML: (el) => el.getAttribute("data-alignment") || "center",
+        default: DEFAULT_MEDIA_ALIGNMENT,
+        parseHTML: (el) => el.getAttribute("data-alignment") || DEFAULT_MEDIA_ALIGNMENT,
         renderHTML: (attrs) => ({
           "data-alignment": attrs.alignment,
         }),

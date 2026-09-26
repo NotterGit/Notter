@@ -34,6 +34,11 @@
 - `src/components/` — Shared React components.
   - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, `use-workspace-admin`, `use-document-stats`, `use-ai-settings`, `use-qualai-limits`, etc.).
   - `ui/` — Base UI components (Radix UI / custom).
+- `src/config/` — Centralized configuration architecture:
+  - `const/` — Centralized constants (`editor.const.ts`, `emojis.const.ts`, `limits.const.ts`, `banner-images.const.ts`, `components.const.ts`, `app.const.ts`, `api.const.ts`).
+  - `types/` — Domain TypeScript types (`editor.types.ts`, `limits.types.ts`, `ai.types.ts`, `components.types.ts`, `api.types.ts`, `main.types.ts`, `profile.types.ts`, `public.types.ts`, `landing.types.ts`, `stores.types.ts`).
+  - `routing/` — Navigation and route definitions (`pages.route.ts`, `api.route.ts`, `image.route.ts`, `links.route.ts`).
+  - `ai-providers.ts` — Metadata for AI model providers.
 - `src/lib/` — Utilities (PWA, Desktop App helper, image URLs, plan limits, AI generation helper, AI Markdown-to-HTML parser in `editor/markdown-to-html.ts`).
   - `backgrounds.ts` — Reads `public/bg/<folder>` and builds the cover collections (config in `src/config/const/banner-images.const.ts`).
 - `convex/` — Backend logic and Database configuration on Convex.
@@ -55,8 +60,9 @@
 
 ## Coding Guidelines
 - **TypeScript:** Strict type checks, avoid using `any`.
+- **Centralized Config & Types:** All constants must reside in `@/config/const/` and all types in `@/config/types/`. Always import constants and types directly from `@/config/...`. Never create or keep proxy/alias re-export files or duplicate declarations in component directories (e.g. `src/components/editor/`).
 - **Convex Operations:** All DB reads/writes must go through Convex mutations/queries. Verify identity via `ctx.auth.getUserIdentity()`.
-- **Imports:** Use absolute path aliases like `@/components/...` or `@/lib/...`.
+- **Imports:** Use absolute path aliases like `@/components/...`, `@/config/...`, or `@/lib/...`.
 - **Components:** Maintain modular architecture; separate layout structure, presentation, and logic.
 - Do not run `npm run dev` or `npm run build`!
 

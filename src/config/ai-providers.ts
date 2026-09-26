@@ -1,16 +1,7 @@
 import { images } from "@/config/routing/image.route";
-import { AiProviderId, AiSettingsData } from "@/config/types/ai.types";
+import { AiProviderId, AiSettingsData, ProviderMeta } from "@/config/types/ai.types";
 
-export interface ProviderMeta {
-  id: AiProviderId;
-  name: string;
-  isCustom?: boolean;
-  iconSrc?: string;
-  placeholderKey: string;
-  keyHelpUrl?: string;
-  defaultBaseUrl?: string;
-  requiresKey?: boolean;
-}
+export type { ProviderMeta };
 
 export const QUALAI_DEFAULT_MODELS = [
   "QualAI-2",

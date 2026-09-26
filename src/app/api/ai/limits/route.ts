@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-
-const QUALAI_API_URL = (process.env.QUALAI_API_URL || "http://localhost:8010").replace(/\/+$/, "");
+import { QUALAI_API_URL } from "@/config/const/api.const";
 
 export async function GET(req: NextRequest) {
   try {

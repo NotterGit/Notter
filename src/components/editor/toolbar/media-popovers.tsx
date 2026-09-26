@@ -6,12 +6,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import toast from "react-hot-toast"
+import { INLINE_MEDIA_MAX_BYTES } from "@/config/const/editor.const"
+import type {
+  ImagePopoverProps,
+  VideoPopoverProps,
+  AudioPopoverProps,
+} from "@/config/types/editor.types"
 
 const readFileAsDataUrl = (file: File): Promise<string> => {
   if (
     file.type.startsWith("video/") ||
     file.type.startsWith("audio/") ||
-    file.size > 2 * 1024 * 1024
+    file.size > INLINE_MEDIA_MAX_BYTES
   ) {
     return Promise.resolve(URL.createObjectURL(file))
   }
@@ -37,14 +43,7 @@ export function ImagePopover({
   onUploadFile,
   uploadLimitMb,
   children,
-}: {
-  isOpen: boolean
-  setIsOpen: (open: boolean) => void
-  onInsertImage: (src: string, alt?: string) => void
-  onUploadFile?: (file: File) => Promise<string>
-  uploadLimitMb: number
-  children: React.ReactNode
-}) {
+}: ImagePopoverProps) {
   const [url, setUrl] = useState("")
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -171,14 +170,7 @@ export function VideoPopover({
   onUploadFile,
   uploadLimitMb,
   children,
-}: {
-  isOpen: boolean
-  setIsOpen: (open: boolean) => void
-  onInsertVideo: (src: string, title?: string) => void
-  onUploadFile?: (file: File) => Promise<string>
-  uploadLimitMb: number
-  children: React.ReactNode
-}) {
+}: VideoPopoverProps) {
   const [url, setUrl] = useState("")
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -311,14 +303,7 @@ export function AudioPopover({
   onUploadFile,
   uploadLimitMb,
   children,
-}: {
-  isOpen: boolean
-  setIsOpen: (open: boolean) => void
-  onInsertAudio: (src: string, title?: string) => void
-  onUploadFile?: (file: File) => Promise<string>
-  uploadLimitMb: number
-  children: React.ReactNode
-}) {
+}: AudioPopoverProps) {
   const [url, setUrl] = useState("")
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)

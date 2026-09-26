@@ -1,6 +1,8 @@
-const DESKTOP_QUERY_PARAM = "desktop"
-const DESKTOP_STORAGE_KEY = "desktop"
-const DESKTOP_COOKIE = "desktop"
+import {
+  DESKTOP_QUERY_PARAM,
+  DESKTOP_STORAGE_KEY,
+  DESKTOP_COOKIE,
+} from "@/config/const/app.const"
 
 type DesktopNavigator = Navigator & {
   userAgentData?: {

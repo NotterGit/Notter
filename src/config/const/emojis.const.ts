@@ -1902,3 +1902,8 @@ export const ALL_EMOJIS: string[] = [
   "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
   "🏴󠁧󠁢󠁷󠁬󠁳󠁿"
 ]
+
+export function getRandomEmoji(): string {
+  const index = Math.floor(Math.random() * ALL_EMOJIS.length)
+  return ALL_EMOJIS[index]
+}

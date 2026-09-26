@@ -1,16 +1,6 @@
-import { AiProviderId } from "@/config/types/ai.types";
+import { AiProviderId, GenerateTextOptions } from "@/config/types/ai.types";
 
-export interface GenerateTextOptions {
-  provider: AiProviderId;
-  model: string;
-  prompt: string;
-  systemPrompt?: string;
-  apiKey?: string;
-  baseUrl?: string;
-  workspaceId?: string;
-  isOrg?: boolean;
-  signal?: AbortSignal;
-}
+export type { GenerateTextOptions };
 
 export async function generateAiText(options: GenerateTextOptions): Promise<string> {
   const { provider, model, prompt, systemPrompt, apiKey = "", baseUrl, workspaceId, isOrg, signal } = options;

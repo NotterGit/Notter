@@ -4,13 +4,7 @@
 import { Button } from "@/components/ui/button"
 import { ImageIcon, X } from "lucide-react"
 import { normalizeImageUrl } from "@/lib/image-url"
-
-interface CoverBannerProps {
-  coverUrl: string | null
-  preview: boolean
-  onOpenModal: () => void
-  onRemoveCover: () => void
-}
+import type { CoverBannerProps } from "@/config/types/editor.types"
 
 export function CoverBanner({
   coverUrl,

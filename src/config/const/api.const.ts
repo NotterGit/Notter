@@ -19,3 +19,7 @@ export const S3 = axios.create({
   baseURL: S3_BASE_URL,
   timeout: S3_TIMEOUT,
 });
+
+export const QUALAI_API_URL = (
+  process.env.QUALAI_API_URL || "http://localhost:8010"
+).replace(/\/+$/, "");

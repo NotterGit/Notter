@@ -7,19 +7,8 @@ import { Smile, ImageIcon, X, Sparkles } from "lucide-react"
 import { IconPicker } from "@/components/icon-picker"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { getRandomEmoji } from "./cover-presets"
-
-interface EditorHeaderProps {
-  title: string
-  onChangeTitle: (title: string) => void
-  icon: string | null
-  onChangeIcon: (icon: string) => void
-  onRemoveIcon: () => void
-  hasCover: boolean
-  onAddCover: () => void
-  preview: boolean
-  onEnterPress: () => void
-}
+import { getRandomEmoji } from "@/config/const/emojis.const"
+import type { EditorHeaderProps } from "@/config/types/editor.types"
 
 export function EditorHeader({
   title,

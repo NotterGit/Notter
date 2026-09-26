@@ -26,24 +26,21 @@ import {
   X,
 } from "lucide-react"
 import toast from "react-hot-toast"
-
-interface CoverModalProps {
-  isOpen: boolean
-  onClose: () => void
-  currentCoverUrl: string | null
-  onSelectCover: (url: string) => void
-  onRemoveCover: () => void
-  onUploadFile?: (file: File) => Promise<string>
-}
+import {
+  MAX_COVER_WIDTH,
+  MAX_COVER_HEIGHT,
+  COVER_COMPRESSION_QUALITY,
+} from "@/config/const/editor.const"
+import type { CoverModalProps, CoverModalTab } from "@/config/types/editor.types"
 
 /**
  * Downscales and compresses large images before storing locally in localStorage
  */
 function compressImageForStorage(
   file: File,
-  maxWidth = 1400,
-  maxHeight = 600,
-  quality = 0.82
+  maxWidth = MAX_COVER_WIDTH,
+  maxHeight = MAX_COVER_HEIGHT,
+  quality = COVER_COMPRESSION_QUALITY
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -87,9 +84,7 @@ export function CoverModal({
   onRemoveCover,
   onUploadFile,
 }: CoverModalProps) {
-  const [activeTab, setActiveTab] = useState<"gallery" | "upload" | "link">(
-    "gallery"
-  )
+  const [activeTab, setActiveTab] = useState<CoverModalTab>("gallery")
   const [activeFolder, setActiveFolder] = useState<string>("")
   const [collections, setCollections] = useState<BgCollection[]>([])
   const [isLoadingCollections, setIsLoadingCollections] = useState(true)

@@ -21,7 +21,12 @@ import { uploadFile as uploadFileOnServer } from "@/api/files"
 import { normalizeContentUrls } from "@/lib/image-url"
 import { getPlanLimits } from "@/lib/plan-limits"
 import { cn } from "@/lib/utils"
-import type { EditorProps } from "@/config/types/components.types"
+import {
+  DEFAULT_UPLOAD_LIMIT_MB,
+  EMPTY_EDITOR_DOCUMENT,
+  HEADING_LEVELS,
+} from "@/config/const/editor.const"
+import type { EditorProps } from "@/config/types/editor.types"
 import { convertBlockNoteToTiptap } from "../../convex/migrateBlocknote"
 
 import { CustomImage } from "./editor/extensions/custom-image"
@@ -47,7 +52,7 @@ export default function Editor({
   const avatar = user?.imageUrl || ""
   const username = user?.username || ""
 
-  const [uploadLimitMb, setUploadLimitMb] = useState(10)
+  const [uploadLimitMb, setUploadLimitMb] = useState(DEFAULT_UPLOAD_LIMIT_MB)
   const uploadLimitMbRef = useRef(uploadLimitMb)
   uploadLimitMbRef.current = uploadLimitMb
 
@@ -66,7 +71,7 @@ export default function Editor({
         const limit = getPlanLimits(Number(account?.premium ?? 0), isOrg).uploadMb
         setUploadLimitMb(limit)
       } catch {
-        setUploadLimitMb(10)
+        setUploadLimitMb(DEFAULT_UPLOAD_LIMIT_MB)
       }
     })()
   }, [orgId, isOrg])
@@ -114,10 +119,7 @@ export default function Editor({
   // Prepare initial content safely (converts BlockNote JSON or returns Tiptap doc)
   const getInitialDoc = useCallback((raw?: string) => {
     if (!raw) {
-      return {
-        type: "doc",
-        content: [{ type: "paragraph" }],
-      }
+      return EMPTY_EDITOR_DOCUMENT
     }
     const converted = convertBlockNoteToTiptap(raw)
     return normalizeContentUrls(converted)
@@ -137,7 +139,7 @@ export default function Editor({
         },
       }),
       Heading.configure({
-        levels: [1, 2, 3, 4, 5, 6],
+        levels: [...HEADING_LEVELS],
       }),
       TextStyle,
       Color,

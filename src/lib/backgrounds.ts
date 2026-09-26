@@ -1,17 +1,9 @@
 import fs from "fs"
 import path from "path"
-import { bgCollectionsConfig } from "@/config/const/banner-images.const"
+import { bgCollectionsConfig, SUPPORTED_IMAGE_EXTENSIONS } from "@/config/const/banner-images.const"
 import type { BgCollection } from "@/config/types/components.types"
 
-const SUPPORTED_IMAGE_EXTENSIONS = new Set([
-  ".jpg",
-  ".jpeg",
-  ".png",
-  ".svg",
-  ".webp",
-  ".avif",
-  ".gif",
-])
+const supportedImageExtensionsSet = new Set<string>(SUPPORTED_IMAGE_EXTENSIONS)
 
 export function getBackgroundCollections(): BgCollection[] {
   const publicBgPath = path.join(process.cwd(), "public", "bg")
@@ -27,7 +19,7 @@ export function getBackgroundCollections(): BgCollection[] {
           images = files
             .filter((file) => {
               const ext = path.extname(file).toLowerCase()
-              return SUPPORTED_IMAGE_EXTENSIONS.has(ext)
+              return supportedImageExtensionsSet.has(ext)
             })
             .sort((a, b) =>
               a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })

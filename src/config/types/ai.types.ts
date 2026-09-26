@@ -45,3 +45,41 @@ export interface AiSettingsStore extends AiSettingsData {
   importSettings: (data: any) => void;
 }
 
+export interface ProviderMeta {
+  id: AiProviderId;
+  name: string;
+  isCustom?: boolean;
+  iconSrc?: string;
+  placeholderKey: string;
+  keyHelpUrl?: string;
+  defaultBaseUrl?: string;
+  requiresKey?: boolean;
+}
+
+export interface QualAiLimitsData {
+  account_id: string;
+  tier: string;
+  premium: number;
+  limit: number;
+  used: number;
+  remaining: number;
+  period?: string;
+  week?: string;
+  date?: string;
+  reset_at?: string;
+  is_org?: boolean;
+}
+
+export interface GenerateTextOptions {
+  provider: AiProviderId;
+  model: string;
+  prompt: string;
+  systemPrompt?: string;
+  apiKey?: string;
+  baseUrl?: string;
+  workspaceId?: string;
+  isOrg?: boolean;
+  signal?: AbortSignal;
+}
+
+

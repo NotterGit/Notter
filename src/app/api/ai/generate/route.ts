@@ -1,18 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-
-const QUALAI_API_URL = (process.env.QUALAI_API_URL || "http://localhost:8010").replace(/\/+$/, "");
-
-interface GeneratePayload {
-  provider: "openai" | "claude" | "gemini" | "deepseek" | "qwen" | "openrouter" | "qualai" | "custom";
-  model: string;
-  prompt: string;
-  systemPrompt?: string;
-  apiKey?: string;
-  baseUrl?: string;
-  workspaceId?: string;
-  isOrg?: boolean;
-}
+import { QUALAI_API_URL } from "@/config/const/api.const";
+import type { GenerateTextOptions as GeneratePayload } from "@/config/types/ai.types";
 
 export async function POST(req: NextRequest) {
   try {

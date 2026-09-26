@@ -13,18 +13,11 @@ import { useQualAiLimits } from "@/components/hooks/use-qualai-limits";
 import { useSettings } from "@/components/hooks/use-settings";
 import { AI_PROVIDERS } from "@/config/ai-providers";
 import { AiProviderId } from "@/config/types/ai.types";
+import type { AiGeneratePopoverProps } from "@/config/types/editor.types";
 import { generateAiText } from "@/lib/ai/generate";
 import { cn } from "@/lib/utils";
 import { markdownToEditorHtml } from "@/lib/editor/markdown-to-html";
 import { getAiGeneratingPos, setAiGenerating } from "../extensions/ai-indicator";
-
-interface AiGeneratePopoverProps {
-  editor: Editor | null;
-  isOpen: boolean;
-  setIsOpen: (open: boolean) => void;
-  selectionBackupRef: React.MutableRefObject<{ from: number; to: number } | null>;
-  children: React.ReactNode;
-}
 
 export function AiGeneratePopover({
   editor,
