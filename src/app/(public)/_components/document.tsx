@@ -222,7 +222,6 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
   return (
     <main className="relative z-10 flex min-h-screen flex-col items-center px-3 pb-6 sm:px-6 sm:pb-8 lg:px-8 lg:pb-10 pt-20 sm:pt-24">
       <div className="relative mx-auto w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1536px] flex flex-col lg:flex-row items-start gap-3 lg:gap-4">
-        {/* Mobile top bar: BackButton + ModeratorPanel */}
         <div className="w-full flex items-center justify-between lg:hidden">
           <BackButton />
           {isModerator && (
@@ -243,12 +242,10 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
           )}
         </div>
 
-        {/* Desktop left sidebar: sticky BackButton */}
         <aside className="hidden lg:block shrink-0 sticky top-20 sm:top-24 z-20">
           <BackButton />
         </aside>
 
-        {/* Main note area */}
         <div className="flex-1 min-w-0 w-full">
           {isModerator && (
             <div className="hidden lg:flex justify-end mb-3">

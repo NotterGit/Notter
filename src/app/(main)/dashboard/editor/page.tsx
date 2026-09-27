@@ -198,7 +198,7 @@ export default function EditorPrototypePage() {
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
               <Sparkles size={12} />
-              Tiptap 2.x
+              Tiptap
             </span>
             <span className="text-xs text-muted-foreground">Кастомный редактор</span>
           </div>

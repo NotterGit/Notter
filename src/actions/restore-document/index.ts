@@ -20,6 +20,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   try {
     const existing = await db.document.findUnique({
       where: { id: data.id },
+      select: { id: true, userId: true, title: true, parentDocumentId: true },
     });
 
     if (!existing) {
@@ -42,28 +43,26 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     if (existing.parentDocumentId) {
       const parent = await db.document.findUnique({
         where: { id: existing.parentDocumentId },
+        select: { id: true, isArchived: true },
       });
       if (!parent || parent.isArchived) {
         updates.parentDocumentId = null;
       }
     }
 
-    const recursiveRestore = async (docId: string) => {
+    const getAllDescendantIdsToRestore = async (parentIds: string[]): Promise<string[]> => {
+      if (parentIds.length === 0) return [];
       const children = await db.document.findMany({
         where: {
-          parentDocumentId: docId,
+          parentDocumentId: { in: parentIds },
           userId: orgId,
         },
         select: { id: true },
       });
-
-      for (const child of children) {
-        await db.document.update({
-          where: { id: child.id },
-          data: { isArchived: false, archivedTime: null },
-        });
-        await recursiveRestore(child.id);
-      }
+      if (children.length === 0) return [];
+      const childIds = children.map((c) => c.id);
+      const subChildIds = await getAllDescendantIdsToRestore(childIds);
+      return [...childIds, ...subChildIds];
     };
 
     const document = await db.document.update({
@@ -71,7 +70,13 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       data: updates,
     });
 
-    await recursiveRestore(data.id);
+    const descendantIds = await getAllDescendantIdsToRestore([data.id]);
+    if (descendantIds.length > 0) {
+      await db.document.updateMany({
+        where: { id: { in: descendantIds } },
+        data: { isArchived: false, archivedTime: null },
+      });
+    }
 
     await createAuditLog({
       entityId: document.id,

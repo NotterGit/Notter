@@ -59,7 +59,6 @@ export default function Editor({
   const isMountedRef = useRef(false)
   const currentDocIdRef = useRef(documentId)
 
-  // Fetch upload size limit according to plan
   useEffect(() => {
     if (!orgId) return
 
@@ -76,7 +75,6 @@ export default function Editor({
     })()
   }, [orgId, isOrg])
 
-  // Real upload function to S3
   const handleUpload = useCallback(
     async (file: File): Promise<string> => {
       if (!orgId || !documentId) {
@@ -90,7 +88,6 @@ export default function Editor({
           : await getUserById(orgId)
         userSize = getPlanLimits(Number(userdata?.premium ?? 0), isOrg).uploadMb
       } catch {
-        // Fallback to ref limit
       }
 
       const maxSize = userSize * 1024 * 1024
@@ -116,7 +113,6 @@ export default function Editor({
     [orgId, documentId, isOrg, avatar, username]
   )
 
-  // Prepare initial content safely (converts BlockNote JSON or returns Tiptap doc)
   const getInitialDoc = useCallback((raw?: string) => {
     if (!raw) {
       return EMPTY_EDITOR_DOCUMENT
@@ -251,13 +247,11 @@ export default function Editor({
     },
   })
 
-  // Synchronize editable state
   useEffect(() => {
     if (!editor) return
     editor.setEditable(editable)
   }, [editor, editable])
 
-  // Synchronize when documentId changes (switching documents)
   useEffect(() => {
     if (!editor) return
     if (currentDocIdRef.current !== documentId) {
@@ -267,7 +261,6 @@ export default function Editor({
     }
   }, [editor, documentId, initialContent, getInitialDoc])
 
-  // Initial mount marker
   useEffect(() => {
     isMountedRef.current = true
   }, [])

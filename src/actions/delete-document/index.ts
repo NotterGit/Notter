@@ -20,6 +20,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   try {
     const existing = await db.document.findUnique({
       where: { id: data.id },
+      select: { id: true, userId: true, title: true, parentDocumentId: true },
     });
 
     if (!existing) {

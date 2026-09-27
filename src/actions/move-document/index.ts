@@ -18,6 +18,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   try {
     const existing = await db.document.findUnique({
       where: { id: data.id },
+      select: { id: true, userId: true, parentDocumentId: true, order: true },
     });
 
     if (!existing) {
@@ -59,6 +60,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         isArchived: false,
         id: { not: data.id },
       },
+      select: { id: true, order: true, parentDocumentId: true },
       orderBy: { order: "asc" },
     });
 
@@ -68,19 +70,28 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         : siblings.length;
     siblings.splice(newOrder, 0, existing);
 
-    await Promise.all(
-      siblings.map((doc, idx) =>
-        db.document.update({
+    const updatePromises = siblings
+      .map((doc, idx) => {
+        const isCurrent = doc.id === data.id;
+        const orderChanged = doc.order !== idx;
+        const parentChanged = doc.parentDocumentId !== targetParentId;
+        if (!orderChanged && !parentChanged && !isCurrent) {
+          return null;
+        }
+        return db.document.update({
           where: { id: doc.id },
           data: {
             order: idx,
             parentDocumentId: targetParentId,
-            ...(doc.id === data.id && data.lastEditor ? { lastEditor: data.lastEditor } : {}),
-            ...(doc.id === data.id && data.lastEditTime ? { lastEditTime: data.lastEditTime } : {}),
+            ...(isCurrent && data.lastEditor ? { lastEditor: data.lastEditor } : {}),
+            ...(isCurrent && data.lastEditTime ? { lastEditTime: data.lastEditTime } : {}),
           },
-        })
-      )
-    );
+          select: { id: true },
+        });
+      })
+      .filter(Boolean);
+
+    await Promise.all(updatePromises);
 
     const updated = await db.document.findUnique({
       where: { id: data.id },

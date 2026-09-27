@@ -40,7 +40,6 @@ export function AiGeneratePopover({
   const generatingTargetPosRef = useRef<{ from: number; to: number } | null>(null);
   const initializedRef = useRef<boolean>(false);
 
-  // Initialize model/provider once per open, without clearing existing prompt or interrupting loading
   useEffect(() => {
     if (!isOpen) {
       initializedRef.current = false;
@@ -62,7 +61,6 @@ export function AiGeneratePopover({
     setCustomModelMode(!prov?.models?.length);
   }, [isOpen, isLoading, activeProviderId, providers, refreshQualAiLimits]);
 
-  // Clean up if component unmounts
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) {
@@ -164,13 +162,11 @@ export function AiGeneratePopover({
 
       const html = markdownToEditorHtml(generatedText);
 
-      // Determine smart target range
       let insertRange: number | { from: number; to: number } = finalPos;
       const { doc } = editor.state;
       const from = typeof finalPos === "number" ? finalPos : finalPos.from;
       const to = typeof finalPos === "number" ? finalPos : finalPos.to;
 
-      // If cursor is collapsed (no selection) and inside an empty block, replace the whole empty block
       if (from === to && from >= 0 && from <= doc.content.size) {
         const $pos = doc.resolve(from);
         const parent = $pos.parent;

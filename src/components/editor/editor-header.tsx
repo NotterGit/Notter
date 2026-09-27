@@ -35,7 +35,6 @@ export function EditorHeader({
         hasCover && "pt-0"
       )}
     >
-      {/* Emoji display */}
       {icon && (
         <div
           className={cn(
@@ -93,7 +92,6 @@ export function EditorHeader({
         </div>
       )}
 
-      {/* Hover action bar to add icon or cover if not present */}
       {!preview && (!icon || !hasCover) && (
         <div
           className={cn(
@@ -144,7 +142,6 @@ export function EditorHeader({
         </div>
       )}
 
-      {/* Document Title (Заголовок документа) */}
       <div className="relative w-full">
         {preview ? (
           <h1 className="break-words text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">

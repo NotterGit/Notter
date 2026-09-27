@@ -107,6 +107,8 @@ export function Navigation({ children }: NavigationProps) {
     const [isInstalled, setIsInstalled] = useState(false)
     const [isInstallModalOpen, setIsInstallModalOpen] = useState(false)
 
+    const currentPremiumLevel = limits?.premiumLevel
+
     useEffect(() => {
         let isMounted = true
 
@@ -116,7 +118,7 @@ export function Navigation({ children }: NavigationProps) {
             try {
                 const profile = isOrg ? await getOrgById(orgId) : await getUserById(orgId)
                 if (profile && isMounted && profile.premium !== undefined) {
-                    if (!limits || limits.premiumLevel !== profile.premium) {
+                    if (currentPremiumLevel === undefined || currentPremiumLevel !== profile.premium) {
                         await executeSyncWorkspacePlan({
                             userId: orgId,
                             premiumLevel: profile.premium,
@@ -132,7 +134,7 @@ export function Navigation({ children }: NavigationProps) {
         return () => {
             isMounted = false
         }
-    }, [orgId, isOrg, limits, executeSyncWorkspacePlan])
+    }, [orgId, isOrg, currentPremiumLevel, executeSyncWorkspacePlan])
 
     useEffect(() => {
         setPromptInstall(getPwaPromptInstall())

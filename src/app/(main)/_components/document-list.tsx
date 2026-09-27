@@ -184,7 +184,6 @@ export function DocumentList({
       ? Array.from(selectedDocIds)
       : [draggableId]
 
-    // 1. Handled dropping to archive
     if (destination?.droppableId === "archive-drop-target") {
       if (isOrg && !isAdmin) {
         toast.error("Только администраторы могут архивировать заметки")
@@ -236,7 +235,6 @@ export function DocumentList({
       return
     }
 
-    // 2. Handled nesting (combine onto another note)
     if (combine) {
       const targetParentId = combine.draggableId
 
@@ -253,7 +251,6 @@ export function DocumentList({
       const movingDocs = documents.filter((d) => movingIds.includes(d._id))
       if (!movingDocs.length) return
 
-      // Source updates for all affected parents
       const sourceParentKeys = new Set<string>()
       for (const doc of movingDocs) {
         const pKey = doc.parentDocument ? (doc.parentDocument as string) : "root"
@@ -314,7 +311,6 @@ export function DocumentList({
       return
     }
 
-    // 3. Handled reordering or dropping between notes
     if (!destination) {
       return
     }
@@ -415,7 +411,6 @@ export function DocumentList({
       return
     }
 
-    // Multi-item reordering between notes
     const movingDocs = documents.filter((d) => movingIds.includes(d._id))
     if (!movingDocs.length) return
 

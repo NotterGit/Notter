@@ -7,14 +7,11 @@ datasource db {
   relationMode = "prisma"
 }
 
-// -------------------------------------------------------------
 // Notter Models
-// -------------------------------------------------------------
-
 model Document {
   id               String     @id @default(uuid())
   title            String
-  userId           String     // Clerk user ID or organization ID
+  userId           String 
   userName         String?
   creatorName      String?
   shortId          String     @unique
@@ -40,6 +37,9 @@ model Document {
   @@index([userId])
   @@index([userId, parentDocumentId])
   @@index([parentDocumentId])
+  @@index([userId, isArchived, order])
+  @@index([userId, isArchived, isPublished])
+  @@index([userId, isArchived, archivedTime])
   @@map("Documents")
 }
 
@@ -72,10 +72,7 @@ model NoteAuditLog {
   @@map("NoteAuditLogs")
 }
 
-// -------------------------------------------------------------
 // Notter-Todo Models (Preserved in shared database)
-// -------------------------------------------------------------
-
 model Board {
   id        String   @id @default(uuid())
   orgId     String

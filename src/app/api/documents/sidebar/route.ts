@@ -42,6 +42,29 @@ export async function GET(req: Request) {
 
     const documents = await db.document.findMany({
       where: whereClause,
+      select: {
+        id: true,
+        title: true,
+        userId: true,
+        userName: true,
+        creatorName: true,
+        shortId: true,
+        isShort: true,
+        isArchived: true,
+        archivedTime: true,
+        isPinned: true,
+        parentDocumentId: true,
+        icon: true,
+        coverImage: true,
+        isPublished: true,
+        lastEditor: true,
+        lastEditTime: true,
+        verified: true,
+        views: true,
+        order: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       orderBy: { order: "asc" },
     });
 

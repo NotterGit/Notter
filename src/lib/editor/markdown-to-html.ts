@@ -9,7 +9,6 @@ export function cleanAiMarkdown(text: string): string {
   if (!text) return "";
   let cleaned = text.replace(/\r\n?/g, "\n").trim();
 
-  // If the entire output is wrapped in a markdown/md/plain code block, extract its content
   const codeBlockMatch = cleaned.match(/^```(?:markdown|md)?\n([\s\S]*?)\n```$/i);
   if (codeBlockMatch && codeBlockMatch[1]) {
     cleaned = codeBlockMatch[1].trim();
@@ -52,11 +51,9 @@ export function createEditorMarkdownParser(): MarkdownIt {
           const checked = match[1].toLowerCase() === "x";
           const matchLength = match[0].length;
 
-          // Configure list item for Tiptap's TaskItem extension
           grandParentToken.attrSet("data-type", "taskItem");
           grandParentToken.attrSet("data-checked", String(checked));
 
-          // Strip the "[ ] " or "[x] " prefix from the token content
           currentToken.content = text.slice(matchLength);
           if (currentToken.children && currentToken.children.length > 0) {
             const firstChild = currentToken.children[0];
@@ -64,9 +61,7 @@ export function createEditorMarkdownParser(): MarkdownIt {
               firstChild.content = firstChild.content.slice(matchLength);
             }
           }
-
-          // Ensure the paragraph tags are rendered around task item text
-          // (Tiptap TaskItem extension requires a paragraph block child)
+          
           prevToken.hidden = false;
           for (let k = i + 1; k < tokens.length; k++) {
             if (tokens[k].type === "paragraph_close") {
@@ -75,7 +70,6 @@ export function createEditorMarkdownParser(): MarkdownIt {
             }
           }
 
-          // Find the enclosing bullet list and mark it as taskList
           let depth = 0;
           for (let j = i - 2; j >= 0; j--) {
             const tokType = tokens[j].type;

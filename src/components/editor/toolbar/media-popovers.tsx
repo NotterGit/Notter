@@ -79,7 +79,6 @@ export function ImagePopover({
       onInsertImage(src, file.name)
       setIsOpen(false)
     } catch {
-      // Error is handled in onUploadFile
     } finally {
       setIsUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ""
@@ -206,7 +205,6 @@ export function VideoPopover({
       onInsertVideo(src, file.name)
       setIsOpen(false)
     } catch {
-      // Handled in onUploadFile
     } finally {
       setIsUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ""
@@ -339,7 +337,6 @@ export function AudioPopover({
       onInsertAudio(src, file.name)
       setIsOpen(false)
     } catch {
-      // Handled in onUploadFile
     } finally {
       setIsUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ""

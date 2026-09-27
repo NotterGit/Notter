@@ -29,6 +29,19 @@ export function Title({ initialData }: TitleProps) {
   })
   const [title, setTitle] = useState(initialData.title || "Новая заметка")
   const [isEditing, setIsEditing] = useState(false)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+
+  const saveTitle = (newTitle: string) => {
+    const trimmed = newTitle.trim() || "Новая заметка"
+    if (trimmed === initialData.title) return
+    executeUpdate({
+      id: initialData._id,
+      title: trimmed,
+      userId: orgId,
+      lastEditor: user?.username as string,
+      lastEditTime: getCurrentEditTime(),
+    })
+  }
 
   const enableInput = () => {
     setTitle(initialData.title)
@@ -41,17 +54,20 @@ export function Title({ initialData }: TitleProps) {
 
   const disabledInput = () => {
     setIsEditing(false)
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+      debounceRef.current = null
+    }
+    saveTitle(title)
   }
 
   const onChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setTitle(event.target.value)
-    executeUpdate({
-      id: initialData._id,
-      title: event.target.value || "Новая заметка",
-      userId: orgId,
-      lastEditor: user?.username as string,
-      lastEditTime: getCurrentEditTime(),
-    })
+    const val = event.target.value
+    setTitle(val)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      saveTitle(val)
+    }, 400)
   }
 
   const onKeyDown = (event: React.KeyboardEvent) => {

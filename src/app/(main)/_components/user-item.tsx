@@ -248,13 +248,11 @@ export function UserItem() {
           className="ml-1 flex w-64 flex-col items-start rounded-xl border-white/60 bg-white p-3 shadow-xl dark:border-white/10 dark:bg-zinc-950 overflow-visible"
           align="start"
         >
-          {/* Quick-switch Workspaces / Organizations list */}
           <div className="w-full">
             <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Пространства
             </div>
             <div className="flex flex-col gap-0.5">
-              {/* Personal Workspace item */}
               <button
                 type="button"
                 disabled={!isOrg || Boolean(switchingOrgId)}
@@ -290,7 +288,6 @@ export function UserItem() {
                 ) : null}
               </button>
 
-              {/* Organization items */}
               {isOrgListLoaded &&
                 userMemberships?.data?.map((mem) => {
                   const org = mem.organization
@@ -352,9 +349,7 @@ export function UserItem() {
 
           <DropdownMenuSeparator className="my-2 w-full" />
 
-          {/* Active Workspace Container (Organization or Personal) at the bottom */}
           <div ref={accountMenuRef} className="relative w-full">
-            {/* Pop-up menu appearing ABOVE the container */}
             {isAccountMenuOpen && (
               <div className="absolute bottom-full left-0 right-0 mb-1.5 z-50 rounded-xl border border-white/60 bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/95 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2">
                 {isOrg ? (

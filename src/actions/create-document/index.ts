@@ -46,10 +46,16 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     }
 
     let shortId = generateRandomId(4);
-    let exists = await db.document.findUnique({ where: { shortId } });
+    let exists = await db.document.findUnique({
+      where: { shortId },
+      select: { id: true },
+    });
     while (exists) {
       shortId = generateRandomId(4);
-      exists = await db.document.findUnique({ where: { shortId } });
+      exists = await db.document.findUnique({
+        where: { shortId },
+        select: { id: true },
+      });
     }
 
     const parentDocId = data.parentDocumentId ?? data.parentDocument ?? null;

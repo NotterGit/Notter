@@ -26,6 +26,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
             ...(data.lastEditor ? { lastEditor: data.lastEditor } : {}),
             ...(data.lastEditTime ? { lastEditTime: data.lastEditTime } : {}),
           },
+          select: { id: true },
         })
       )
     );

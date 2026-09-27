@@ -87,7 +87,6 @@ export const AiIndicatorExtension = Extension.create({
                 );
               }
 
-              // Full-width shimmering bar without text
               const widget = Decoration.widget(
                 safePos,
                 () => {

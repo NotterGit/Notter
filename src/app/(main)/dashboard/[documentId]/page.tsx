@@ -15,7 +15,7 @@ import { getUserById } from "@/api/user"
 import { getPlanLimits } from "@/lib/plan-limits"
 import { uploadFile, deleteFile } from "@/api/files"
 import type { DashboardDocumentIdPageProps as DocumentIdPageProps } from "@/config/types/main.types"
-import { SAVE_STATUS_IDLE_DELAY_MS, TITLE_DEBOUNCE_MS } from "@/config/const/editor.const"
+import { SAVE_STATUS_IDLE_DELAY_MS, TITLE_DEBOUNCE_MS, CONTENT_DEBOUNCE_MS } from "@/config/const/editor.const"
 import type { EditorSaveStatus } from "@/config/types/editor.types"
 import { fetcher } from "@/lib/fetcher"
 import { API } from "@/config/routing/api.route"
@@ -47,6 +47,7 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
     queryKey: ["document", normalizedDocumentId],
     queryFn: () => fetcher(API.DOCUMENTS.BY_ID(normalizedDocumentId!)),
     enabled: Boolean(normalizedDocumentId && (isSignedIn || isLoaded)),
+    staleTime: 60 * 1000,
   })
 
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false)
@@ -56,8 +57,15 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
   const titleTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const editorRef = useRef<any>(null)
+  const pendingContentRef = useRef<string | null>(null)
+  const lastSavedContentRef = useRef<string | null>(null)
 
-  // Sync title from document
+  useEffect(() => {
+    if (document?.content !== undefined && lastSavedContentRef.current === null) {
+      lastSavedContentRef.current = document.content
+    }
+  }, [document?.content])
+
   useEffect(() => {
     if (document?.title !== undefined) {
       setLocalTitle(document.title)
@@ -65,38 +73,65 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
     }
   }, [document?.title])
 
-  // Handle note content updates
+  const flushSave = useCallback(() => {
+    const contentToSave = pendingContentRef.current
+    if (contentToSave === null || !normalizedDocumentId || !orgId) return
+    if (contentToSave === lastSavedContentRef.current) {
+      pendingContentRef.current = null
+      setSaveStatus("idle")
+      return
+    }
+
+    setSaveStatus("saving")
+    pendingContentRef.current = null
+    lastSavedContentRef.current = contentToSave
+
+    updateDocument({
+      id: normalizedDocumentId,
+      content: contentToSave,
+      userId: orgId,
+      lastEditor: username,
+      lastEditTime: getCurrentEditTime(),
+    })
+      .then((res) => {
+        if (res.data) {
+          setSaveStatus("saved")
+          if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+          saveTimeoutRef.current = setTimeout(() => {
+            setSaveStatus("idle")
+          }, SAVE_STATUS_IDLE_DELAY_MS)
+        } else {
+          setSaveStatus("idle")
+        }
+      })
+      .catch(() => {
+        setSaveStatus("idle")
+      })
+  }, [normalizedDocumentId, orgId, username])
+
   const onChange = useCallback(
     (content: string) => {
       if (!normalizedDocumentId || !orgId) return
+      if (content === lastSavedContentRef.current) return
 
+      pendingContentRef.current = content
       setSaveStatus("saving")
-      updateDocument({
-        id: normalizedDocumentId,
-        content,
-        userId: orgId,
-        lastEditor: username,
-        lastEditTime: getCurrentEditTime(),
-      })
-        .then((res) => {
-          if (res.data) {
-            setSaveStatus("saved")
-            if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
-            saveTimeoutRef.current = setTimeout(() => {
-              setSaveStatus("idle")
-            }, SAVE_STATUS_IDLE_DELAY_MS)
-          } else {
-            setSaveStatus("idle")
-          }
-        })
-        .catch(() => {
-          setSaveStatus("idle")
-        })
+
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+      saveTimeoutRef.current = setTimeout(() => {
+        flushSave()
+      }, CONTENT_DEBOUNCE_MS)
     },
-    [normalizedDocumentId, orgId, username]
+    [normalizedDocumentId, orgId, flushSave]
   )
 
-  // Handle title updates with smooth debouncing
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+      flushSave()
+    }
+  }, [flushSave])
+
   const handleTitleChange = useCallback(
     (newTitle: string) => {
       setLocalTitle(newTitle)
@@ -117,7 +152,6 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
     [normalizedDocumentId, orgId, queryClient, username]
   )
 
-  // Handle icon updates
   const handleIconChange = useCallback(
     (icon: string) => {
       if (!normalizedDocumentId || !orgId) return
@@ -135,7 +169,6 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
     [normalizedDocumentId, orgId, queryClient, username]
   )
 
-  // Handle icon removal
   const handleRemoveIcon = useCallback(() => {
     if (!normalizedDocumentId || !orgId) return
     removeIcon({
@@ -147,7 +180,6 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
     })
   }, [normalizedDocumentId, orgId, queryClient])
 
-  // Handle cover selection (preset or external link)
   const handleSelectCover = useCallback(
     (url: string) => {
       if (!normalizedDocumentId || !orgId) return
@@ -164,7 +196,6 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
     [normalizedDocumentId, orgId, queryClient, username]
   )
 
-  // Handle cover removal
   const handleRemoveCover = useCallback(async () => {
     if (!normalizedDocumentId || !orgId) return
 
@@ -190,7 +221,6 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
     })
   }, [normalizedDocumentId, orgId, document?.coverImage, queryClient])
 
-  // Handle cover upload to server S3
   const handleUploadCoverFile = useCallback(
     async (file: File): Promise<string> => {
       if (!normalizedDocumentId || !orgId) {
@@ -230,7 +260,6 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
     return <Error404 />
   }
 
-  // Loading skeleton matching the wide card layout
   if (isDocumentLoading || document === undefined) {
     return (
       <div className="relative overflow-hidden pb-40">
@@ -267,7 +296,6 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
 
   return (
     <div className="relative pb-40">
-      {/* Ambient background glows */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="pointer-events-none absolute -left-16 top-16 h-64 w-64 rounded-full bg-logo-yellow/20 blur-3xl" />
         <div className="pointer-events-none absolute -right-12 bottom-12 h-72 w-72 rounded-full bg-logo-cyan/15 blur-3xl" />

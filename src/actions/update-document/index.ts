@@ -20,6 +20,11 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   try {
     const existing = await db.document.findUnique({
       where: { id },
+      select: {
+        id: true,
+        userId: true,
+        shortId: true,
+      },
     });
 
     if (!existing) {
@@ -33,6 +38,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     if (values.shortId && values.shortId !== existing.shortId) {
       const conflict = await db.document.findUnique({
         where: { shortId: values.shortId },
+        select: { id: true },
       });
       if (conflict) {
         return { error: "Данный короткий адрес уже занят" };
@@ -46,8 +52,17 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       },
     });
 
-    revalidatePath(pages.DASHBOARD(document.id));
-    revalidatePath(pages.DASHBOARD());
+    const isStructuralChange =
+      values.title !== undefined ||
+      values.parentDocumentId !== undefined ||
+      values.order !== undefined ||
+      values.isPublished !== undefined ||
+      values.shortId !== undefined;
+
+    if (isStructuralChange) {
+      revalidatePath(pages.DASHBOARD(document.id));
+      revalidatePath(pages.DASHBOARD());
+    }
 
     return { data: document };
   } catch (error) {

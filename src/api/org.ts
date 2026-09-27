@@ -119,6 +119,5 @@ export async function updateOrg(
   return Boolean(result?.updated);
 }
 
-// Aliases for compatibility
 export const getById = getOrgById;
 export const getByUsername = getOrgByUsername;

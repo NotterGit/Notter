@@ -21,6 +21,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   try {
     const existing = await db.document.findUnique({
       where: { id: data.id },
+      select: { id: true, userId: true, title: true },
     });
 
     if (!existing) {
@@ -33,23 +34,20 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
     const now = new Date();
 
-    const archiveChildren = async (parentId: string) => {
+    const getAllDescendantIds = async (parentIds: string[]): Promise<string[]> => {
+      if (parentIds.length === 0) return [];
       const children = await db.document.findMany({
         where: {
-          parentDocumentId: parentId,
+          parentDocumentId: { in: parentIds },
           userId: orgId,
           isArchived: false,
         },
         select: { id: true },
       });
-
-      for (const child of children) {
-        await db.document.update({
-          where: { id: child.id },
-          data: { isArchived: true, archivedTime: now },
-        });
-        await archiveChildren(child.id);
-      }
+      if (children.length === 0) return [];
+      const childIds = children.map((c) => c.id);
+      const subChildIds = await getAllDescendantIds(childIds);
+      return [...childIds, ...subChildIds];
     };
 
     const document = await db.document.update({
@@ -57,7 +55,13 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       data: { isArchived: true, archivedTime: now },
     });
 
-    await archiveChildren(data.id);
+    const descendantIds = await getAllDescendantIds([data.id]);
+    if (descendantIds.length > 0) {
+      await db.document.updateMany({
+        where: { id: { in: descendantIds } },
+        data: { isArchived: true, archivedTime: now },
+      });
+    }
 
     const user = await getUserById(orgId).catch(() => null);
     const retentionDays = user?.archived_settings?.retentionDays ?? 7;

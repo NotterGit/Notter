@@ -1,8 +1,6 @@
 import type * as React from "react"
 import type { Editor } from "@tiptap/react"
 
-// --- Status & Core Props ---
-
 export type EditorSaveStatus = "saving" | "saved" | "idle"
 
 export interface EditorProps {
@@ -16,15 +14,11 @@ export interface EditorProps {
   onEditorReady?: (editor: Editor) => void
 }
 
-// --- Document & Prototype Metadata ---
-
 export interface DocumentMeta {
   title: string
   icon: string | null
   coverImage: string | null
 }
-
-// --- Media & Alignment ---
 
 export type MediaAlignment = "left" | "center" | "right"
 
@@ -78,8 +72,6 @@ export type ImageComponentProps = EditorMediaNodeViewProps<CustomImageAttributes
 export type VideoComponentProps = EditorMediaNodeViewProps<CustomVideoAttributes>
 export type AudioComponentProps = EditorMediaNodeViewProps<CustomAudioAttributes>
 
-// --- Selection & Indicator ---
-
 export interface TextSelectionRange {
   from: number
   to: number
@@ -90,8 +82,6 @@ export interface AiIndicatorState {
   from: number
   to: number
 }
-
-// --- Toolbar & Color Picker ---
 
 export interface ColorPreset {
   name: string
@@ -124,8 +114,6 @@ export interface LinkPopoverProps {
   children: React.ReactNode
 }
 
-// --- Media Popovers ---
-
 export interface MediaPopoverBaseProps {
   isOpen: boolean
   setIsOpen: (open: boolean) => void
@@ -153,8 +141,6 @@ export interface AiGeneratePopoverProps {
   selectionBackupRef: React.MutableRefObject<TextSelectionRange | null>
   children: React.ReactNode
 }
-
-// --- Header & Cover ---
 
 export interface EditorHeaderProps {
   title: string

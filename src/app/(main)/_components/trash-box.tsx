@@ -3,7 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Clock, Loader2, Search, Trash, Undo } from "lucide-react" 
 import { useParams, useRouter } from "next/navigation" 
-import { useEffect, useState } from "react" 
+import { useEffect, useRef, useState } from "react" 
 import { toast } from "react-hot-toast"
 import { API } from "@/config/routing/api.route"
 import { fetcher } from "@/lib/fetcher"
@@ -68,27 +68,27 @@ export function TrashBox(){
   const [now, setNow] = useState<number>(Date.now())
 
   const retentionDays = archiveSettings?.retentionDays ?? DEFAULT_RETENTION_DAYS
+  const cleanedRef = useRef(false)
 
-  // Clean expired documents on mount
   useEffect(() => {
-    if (orgId) {
+    if (orgId && !cleanedRef.current) {
+      cleanedRef.current = true
       executeCleanExpiredTrash({ userId: orgId }).catch(() => {})
     }
   }, [orgId, executeCleanExpiredTrash])
 
-  // Update timer every 10 seconds for a live countdown
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(Date.now())
-    }, 10000)
+    }, 60000)
     return () => clearInterval(timer)
   }, [])
 
   const nextCleanupMs = getNextCleanupTime(documents ?? [], retentionDays, now)
 
-  // Auto-clean if a document expired while viewer is open
   useEffect(() => {
-    if (nextCleanupMs !== null && nextCleanupMs <= 0 && orgId) {
+    if (nextCleanupMs !== null && nextCleanupMs <= 0 && orgId && !cleanedRef.current) {
+      cleanedRef.current = true
       executeCleanExpiredTrash({ userId: orgId }).catch(() => {})
     }
   }, [nextCleanupMs, orgId, executeCleanExpiredTrash])

@@ -6,7 +6,7 @@
 - **Find unused code/dependencies:** `npm run knip`
 - **Prisma generate:** `npx prisma generate`
 - **Prisma push:** `PRISMA_SCHEMA_ENGINE_BINARY="/run/current-system/sw/bin/schema-engine" npx prisma db push`
-- **Start dev server:** `npm run dev` (or `npm run dev:https` for HTTPS)
+- **Start dev server (Turbopack):** `npm run dev` (or `npm run dev:https` for HTTPS, `npm run dev:webpack` for Webpack)
 - **Build production app:** `npm run build`
 - **Start production server:** `npm run start`
 - **Build desktop application (pake-cli):**
@@ -42,7 +42,7 @@
 
 ## Tech Stack & Core Features
 - **Authentication:** Clerk (`@clerk/nextjs`) with multi-session support and middleware session synchronization.
-- **Database & ORM:** Prisma ORM with MariaDB via `@prisma/adapter-mariadb` driver adapter. Database is shared with `notter-todo` on `casaos` (`mysql`), maintaining PascalCase tables (`Documents`, `NoteAuditLogs`, `Board`, `List`, `Card`, `AuditLog`). User archive settings and workspaces are managed on the primary NotterAPI backend (`users` collection).
+- **Database & ORM:** Prisma ORM with MariaDB via `@prisma/adapter-mariadb` driver adapter (connection pool limit 15, protocol compression enabled). Database is shared with `notter-todo` on `casaos` (`mysql`), maintaining PascalCase tables (`Documents`, `NoteAuditLogs`, `Board`, `List`, `Card`, `AuditLog`) with composite indexes for user document filters. User archive settings and workspaces are managed on the primary NotterAPI backend (`users` collection).
 - **Data Fetching & Mutations:**
   - Client reads use TanStack Query (`@tanstack/react-query`) fetching from internal Next.js REST API routes (`/api/documents/*`).
   - Client mutations use Server Actions (`src/actions/*`) wrapped with `useAction` hook (`use-action.ts`).

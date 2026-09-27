@@ -3,8 +3,9 @@
   "version": "0.8.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -H 0.0.0.0",
-    "dev:https": "next dev --experimental-https",
+    "dev": "next dev --turbo -H 0.0.0.0",
+    "dev:webpack": "next dev -H 0.0.0.0",
+    "dev:https": "next dev --turbo --experimental-https",
     "postinstall": "npm rebuild @tailwindcss/oxide || true",
     "build": "next build",
     "start": "next start",

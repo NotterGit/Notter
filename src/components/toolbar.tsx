@@ -51,17 +51,35 @@ export function Toolbar({ initialData, preview }: ToolbarProps) {
     }, 0)
   }
 
-  const disableInput = () => setIsEditing(false)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
-  const onInput = (value: string) => {
-    setValue(value)
+  const saveTitle = (newTitle: string) => {
+    const trimmed = newTitle.trim() || "Новая заметка"
+    if (trimmed === initialData.title) return
     executeUpdate({
       id: initialData._id,
-      title: value || "Новая заметка",
+      title: trimmed,
       userId: orgId,
       lastEditor: user?.username as string,
       lastEditTime: getCurrentEditTime(),
     })
+  }
+
+  const disableInput = () => {
+    setIsEditing(false)
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+      debounceRef.current = null
+    }
+    saveTitle(value)
+  }
+
+  const onInput = (val: string) => {
+    setValue(val)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      saveTitle(val)
+    }, 400)
   }
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {

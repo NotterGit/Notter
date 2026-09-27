@@ -1,7 +1,5 @@
 import type { ColorPreset, DocumentMeta, MediaAlignment } from "@/config/types/editor.types"
 
-// --- Palette & Colors ---
-
 export const TEXT_COLORS: ColorPreset[] = [
   { name: "По умолчанию", value: "inherit", bg: "#64748b" },
   { name: "Черный", value: "#000000", bg: "#000000" },
@@ -33,8 +31,6 @@ export const HIGHLIGHT_COLORS: ColorPreset[] = [
   { name: "Персиковый", value: "#ffedd5", bg: "#ffedd5" },
 ]
 
-// --- Media & Alignment ---
-
 export const DEFAULT_UPLOAD_LIMIT_MB = 10
 export const INLINE_MEDIA_MAX_BYTES = 2 * 1024 * 1024
 
@@ -46,33 +42,26 @@ export const MEDIA_ACCEPTED_IMAGE_TYPES = "image/*"
 export const MEDIA_ACCEPTED_VIDEO_TYPES = "video/*"
 export const MEDIA_ACCEPTED_AUDIO_TYPES = "audio/*"
 
-// --- Image Compression for Cover ---
-
 export const MAX_COVER_WIDTH = 1400
 export const MAX_COVER_HEIGHT = 600
 export const COVER_COMPRESSION_QUALITY = 0.82
 
-// --- Headings & Typography ---
-
 export const HEADING_LEVELS = [1, 2, 3, 4, 5, 6] as const
-
-// --- Timing & Delays ---
 
 export const SAVE_STATUS_IDLE_DELAY_MS = 2500
 export const TITLE_DEBOUNCE_MS = 300
-
-// --- Default Content & Storage ---
+export const CONTENT_DEBOUNCE_MS = 1000
 
 export const EMPTY_EDITOR_DOCUMENT = {
   type: "doc",
   content: [{ type: "paragraph" }],
 }
 
-export const EDITOR_STORAGE_KEY = "notter-tiptap-prototype-v3"
-export const EDITOR_META_STORAGE_KEY = "notter-tiptap-prototype-meta-v2"
+export const EDITOR_STORAGE_KEY = "notter-editor"
+export const EDITOR_META_STORAGE_KEY = "notter-editor-meta"
 
 export const DEFAULT_EDITOR_META: DocumentMeta = {
-  title: "Проверка кастомного редактора Tiptap",
+  title: "Notter Editor V2",
   icon: "📝",
   coverImage: "/defaults/default-cover.svg",
 }
