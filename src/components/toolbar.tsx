@@ -1,28 +1,44 @@
 "use client"
 
 import { ElementRef, useRef, useState } from "react"
-import { useMutation } from "convex/react"
 import TextareaAutosize from "react-textarea-autosize"
 import { ImageIcon, Smile, X } from "lucide-react"
 import { useOrganization, useUser } from "@clerk/nextjs"
+import { useQueryClient } from "@tanstack/react-query"
 import Twemoji from "react-twemoji"
 
 import { Button } from "./ui/button"
-import { api } from "../../convex/_generated/api"
+import { updateDocument } from "@/actions/update-document"
+import { removeIcon as removeIconAction } from "@/actions/remove-icon"
+import { useAction } from "@/hooks/use-action"
 import { IconPicker } from "./icon-picker"
 import { useCoverImage } from "./hooks/use-cover-image"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
 import type { ToolbarProps } from "@/config/types/components.types"
 
 export function Toolbar({ initialData, preview }: ToolbarProps) {
+  const queryClient = useQueryClient()
   const inputRef = useRef<ElementRef<"textarea">>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [value, setValue] = useState(initialData.title)
   const { user } = useUser()
   const { organization } = useOrganization()
   const orgId = organization?.id !== undefined ? organization.id : user?.id as string
-  const update = useMutation(api.document.update)
-  const removeIcon = useMutation(api.document.removeIcon)
+
+  const { execute: executeUpdate } = useAction(updateDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["document", initialData._id] })
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+    },
+  })
+
+  const { execute: executeRemoveIcon } = useAction(removeIconAction, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["document", initialData._id] })
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+    },
+  })
+
   const coverImage = useCoverImage()
 
   const enableInput = () => {
@@ -39,7 +55,7 @@ export function Toolbar({ initialData, preview }: ToolbarProps) {
 
   const onInput = (value: string) => {
     setValue(value)
-    update({
+    executeUpdate({
       id: initialData._id,
       title: value || "Новая заметка",
       userId: orgId,
@@ -56,7 +72,7 @@ export function Toolbar({ initialData, preview }: ToolbarProps) {
   }
 
   const onIconSelect = (icon: string) => {
-    update({
+    executeUpdate({
       id: initialData._id,
       icon,
       userId: orgId,
@@ -66,7 +82,7 @@ export function Toolbar({ initialData, preview }: ToolbarProps) {
   }
 
   const onRemoveIcon = () => {
-    removeIcon({
+    executeRemoveIcon({
       id: initialData._id,
       userId: orgId,
     })

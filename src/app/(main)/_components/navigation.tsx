@@ -6,8 +6,12 @@ import { Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, FileTex
 import { useParams, useRouter } from "next/navigation"
 import { ElementRef, useEffect, useRef, useState } from "react"
 import { useMediaQuery } from 'usehooks-ts'
-import { useMutation, useQuery } from "convex/react"
-import { api } from "../../../../convex/_generated/api"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { API } from "@/config/routing/api.route"
+import { fetcher } from "@/lib/fetcher"
+import { createDocument } from "@/actions/create-document"
+import { syncWorkspacePlan as syncWorkspacePlanAction } from "@/actions/sync-workspace-plan"
+import { useAction } from "@/hooks/use-action"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "react-hot-toast"
@@ -22,7 +26,7 @@ import { Navbar } from "./navbar"
 import Link from "next/link"
 import { pages } from "@/config/routing/pages.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
-import { createDocumentWithFallback, getCreateDocumentErrorMessage } from "@/api/document-limit"
+import { getCreateDocumentErrorMessage } from "@/api/document-limit"
 import { getUserById } from "@/api/user"
 import { getOrgById } from "@/api/org"
 import type { BeforeInstallPromptEvent } from "@/config/types/components.types"
@@ -66,13 +70,21 @@ export function Navigation({ children }: NavigationProps) {
 
     const seacrh = useSearch()
     const params = useParams()
+    const queryClient = useQueryClient()
     const { user } = useUser()
     const { organization } = useOrganization()
     const isMobile = useMediaQuery("(max-width: 768px)")
-    const create = useMutation(api.document.create)
-    const syncWorkspacePlan = useMutation(api.document.syncWorkspacePlan)
     const isOrg = organization?.id !== undefined
     const orgId = isOrg ? organization?.id as string : user?.id as string
+
+    const { execute: executeCreate } = useAction(createDocument, {
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+            queryClient.invalidateQueries({ queryKey: ["workspace-limits", orgId] })
+            router.push(pages.DASHBOARD(data.id))
+        },
+    })
+    const { execute: executeSyncWorkspacePlan } = useAction(syncWorkspacePlanAction)
 
     const isResizingRef = useRef(false)
     const sidebarRef = useRef<ElementRef<"aside">>(null)
@@ -80,7 +92,17 @@ export function Navigation({ children }: NavigationProps) {
     const [isResetting, setIsResetting] = useState(false)
     const [isCollapsed, setIsCollapsed] = useState(isMobile)
 
-    const limits = useQuery(api.document.getWorkspaceLimits, orgId ? { userId: orgId } : "skip")
+    const { data: limits } = useQuery<{
+        documentCount: number
+        publicDocumentCount: number
+        premiumLevel: number
+        documentLimit: number
+        publicDocumentLimit: number
+    }>({
+        queryKey: ["workspace-limits", orgId],
+        queryFn: () => fetcher(API.DOCUMENTS.LIMITS(orgId)),
+        enabled: Boolean(orgId),
+    })
     const [promptInstall, setPromptInstall] = useState<BeforeInstallPromptEvent | null>(null)
     const [isInstalled, setIsInstalled] = useState(false)
     const [isInstallModalOpen, setIsInstallModalOpen] = useState(false)
@@ -95,7 +117,7 @@ export function Navigation({ children }: NavigationProps) {
                 const profile = isOrg ? await getOrgById(orgId) : await getUserById(orgId)
                 if (profile && isMounted && profile.premium !== undefined) {
                     if (!limits || limits.premiumLevel !== profile.premium) {
-                        await syncWorkspacePlan({
+                        await executeSyncWorkspacePlan({
                             userId: orgId,
                             premiumLevel: profile.premium,
                             isOrg,
@@ -110,7 +132,7 @@ export function Navigation({ children }: NavigationProps) {
         return () => {
             isMounted = false
         }
-    }, [orgId, isOrg, limits, syncWorkspacePlan])
+    }, [orgId, isOrg, limits, executeSyncWorkspacePlan])
 
     useEffect(() => {
         setPromptInstall(getPwaPromptInstall())
@@ -152,7 +174,7 @@ export function Navigation({ children }: NavigationProps) {
     }
 
     const handleCreate = () => {
-        const promise = createDocumentWithFallback(create, {
+        const promise = executeCreate({
             title: "Новая заметка",
             userId: orgId,
             lastEditor: user?.username as string,
@@ -161,9 +183,8 @@ export function Navigation({ children }: NavigationProps) {
             premiumLevel: limits?.premiumLevel,
             isOrg,
         })
-            .then((documentId) => {
-                router.push(pages.DASHBOARD(documentId))
-                return documentId
+            .then((data) => {
+                return data.id
             })
 
         toast.promise(promise, {

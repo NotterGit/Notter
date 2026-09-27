@@ -1,10 +1,13 @@
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
-import { useMutation, useQuery } from "convex/react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState, useEffect } from "react"
 import { toast } from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { Check, Copy, Eye, Globe, SquareArrowOutUpRight } from "lucide-react"
-import { api } from "../../../../convex/_generated/api"
+import { API } from "@/config/routing/api.route"
+import { fetcher } from "@/lib/fetcher"
+import { updateDocument } from "@/actions/update-document"
+import { useAction } from "@/hooks/use-action"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Hint } from "@/components/ui/hint"
 import { useOrigin } from "../../../components/hooks/use-origin"
@@ -21,12 +24,20 @@ import { getCurrentEditTime } from "@/lib/last-edit-time"
 
 export function Publish({ initialData }: PublishProps) {
   const origin = useOrigin()
-  const update = useMutation(api.document.update)
+  const queryClient = useQueryClient()
   const { user } = useUser()
   const { organization } = useOrganization()
   const { isOrg, isAdmin } = useWorkspaceAdmin()
 
   const orgId = (isOrg ? organization?.id : user?.id) as string
+
+  const { execute: executeUpdate } = useAction(updateDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["document", initialData._id] })
+      queryClient.invalidateQueries({ queryKey: ["workspace-limits", orgId] })
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+    },
+  })
 
   const [copied, setCopied] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -41,7 +52,14 @@ export function Publish({ initialData }: PublishProps) {
     setIsShortUrl(Boolean(initialData.isShort))
   }, [initialData.isShort])
 
-  const workspaceLimits = useQuery(api.document.getWorkspaceLimits, orgId ? { userId: orgId } : "skip")
+  const { data: workspaceLimits } = useQuery<{
+    publicDocumentCount: number
+    publicDocumentLimit: number
+  }>({
+    queryKey: ["workspace-limits", orgId],
+    queryFn: () => fetcher(API.DOCUMENTS.LIMITS(orgId)),
+    enabled: Boolean(orgId),
+  })
   const currentPublicDocuments = workspaceLimits?.publicDocumentCount
   const publicDocumentLimit = workspaceLimits?.publicDocumentLimit ?? 10
 
@@ -66,15 +84,15 @@ export function Publish({ initialData }: PublishProps) {
 
     if (userData?.premium === 0 && next) {
       setIsShortUrl(false)
-      setCustomShortId(initialData.shortId)
+      setCustomShortId(initialData.shortId || "")
       toast.error("Для использования коротких ссылок нужен премиум уровня 1 или 2")
       return
     }
 
     setIsShortUrl(next)
-    setCustomShortId(initialData.shortId)
+    setCustomShortId(initialData.shortId || "")
     setEditingShortId(false)
-    update({
+    executeUpdate({
       id: initialData._id,
       isPublished: initialData.isPublished,
       userId: orgId,
@@ -115,7 +133,7 @@ export function Publish({ initialData }: PublishProps) {
 
     setPreviousShortId(customShortId)
     try {
-      await update({
+      await executeUpdate({
         id: initialData._id,
         isPublished: initialData.isPublished,
         userId: orgId,
@@ -126,7 +144,7 @@ export function Publish({ initialData }: PublishProps) {
       })
       toast.success("Ссылка успешно обновлена!")
     } catch (error: any) {
-      if (error.message.includes("Short ID already exists")) {
+      if (typeof error === "string" && error.includes("Short ID already exists")) {
         toast.error("Такая ссылка уже существует")
         setCustomShortId(previousShortId)
       } else {
@@ -165,15 +183,13 @@ export function Publish({ initialData }: PublishProps) {
       return
     }
     setIsSubmitting(true)
-    const promise = update({
+    const promise = executeUpdate({
       id: initialData._id,
       isPublished: true,
       userId: orgId,
       lastEditor: user?.username as string,
       lastEditTime: getCurrentEditTime(),
       isShort: isShortUrl,
-      premiumLevel: userData?.premium,
-      isOrg,
     }).finally(() => setIsSubmitting(false))
 
     toast.promise(promise, {
@@ -190,7 +206,7 @@ export function Publish({ initialData }: PublishProps) {
     }
 
     setIsSubmitting(true)
-    const promise = update({
+    const promise = executeUpdate({
       id: initialData._id,
       isPublished: false,
       userId: orgId,

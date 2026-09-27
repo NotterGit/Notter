@@ -1,21 +1,26 @@
-import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { useQuery } from "@tanstack/react-query";
+import { fetcher } from "@/lib/fetcher";
+import { API } from "@/config/routing/api.route";
 import type { UseDocumentStatsFunction } from "@/config/types/api.types";
 
-export const useDocumentStats: UseDocumentStatsFunction = (userId) => {
-  const args = userId ? { userId } : "skip";
+interface StatsResponse {
+  documentCount?: number;
+  documentPublicCount?: number;
+  documentVerifiedCount?: number;
+}
 
-  const documentCount = useQuery(api.document.getDocumentCount, args);
-  const documentPublicCount = useQuery(api.document.getPublicDocumentCount, args);
-  const documentVerifiedCount = useQuery(api.document.getVerifiedDocumentCount, args);
+export const useDocumentStats: UseDocumentStatsFunction = (userId) => {
+  const { data, isSuccess } = useQuery<StatsResponse>({
+    queryKey: ["document-stats", userId],
+    queryFn: () => fetcher(API.DOCUMENTS.STATS(userId || undefined)),
+    enabled: Boolean(userId),
+    staleTime: 1000 * 60,
+  });
 
   return {
-    documentCount,
-    documentPublicCount,
-    documentVerifiedCount,
-    isReady:
-      documentCount !== undefined &&
-      documentPublicCount !== undefined &&
-      documentVerifiedCount !== undefined,
+    documentCount: data?.documentCount,
+    documentPublicCount: data?.documentPublicCount,
+    documentVerifiedCount: data?.documentVerifiedCount,
+    isReady: isSuccess && data !== undefined,
   };
 };

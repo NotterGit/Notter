@@ -1,0 +1,45 @@
+"use server";
+
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
+import { createSafeAction } from "@/lib/create-safe-action";
+import { revalidatePath } from "next/cache";
+import { pages } from "@/config/routing/pages.route";
+import { RemoveIcon } from "./schema";
+import { InputType, ReturnType } from "./types";
+
+const handler = async (data: InputType): Promise<ReturnType> => {
+  const { userId: clerkUserId, orgId: clerkOrgId } = await auth();
+  const orgId = data.userId || clerkOrgId || clerkUserId;
+  if (!clerkUserId || !orgId) {
+    return { error: "Не авторизован" };
+  }
+
+  try {
+    const existing = await db.document.findUnique({
+      where: { id: data.id },
+    });
+
+    if (!existing) {
+      return { error: "Заметка не найдена" };
+    }
+
+    if (existing.userId !== orgId && existing.userId !== clerkUserId) {
+      return { error: "Доступ запрещен" };
+    }
+
+    const document = await db.document.update({
+      where: { id: data.id },
+      data: { icon: null },
+    });
+
+    revalidatePath(pages.DASHBOARD(document.id));
+
+    return { data: document };
+  } catch (error) {
+    console.error("[REMOVE_ICON_ERROR]", error);
+    return { error: "Не удалось удалить иконку" };
+  }
+};
+
+export const removeIcon = createSafeAction(RemoveIcon, handler);

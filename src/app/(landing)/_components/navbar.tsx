@@ -3,7 +3,6 @@
 import Image from "next/image"
 import Link from "next/link"
 import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from "@clerk/nextjs"
-import { useConvexAuth } from "convex/react"
 
 import { useEffect, useState } from "react"
 
@@ -20,8 +19,7 @@ import { useScrollTop } from "../../../components/hooks/use-scroll-top"
 export function Navbar({ logo = true }: NavbarProps) {
   const scrolled = useScrollTop()
   const { isLoaded } = useAuth()
-  const { isLoading } = useConvexAuth()
-  const authLoading = !isLoaded || isLoading
+  const authLoading = !isLoaded
 
   const [isBeta, setIsBeta] = useState(false)
 

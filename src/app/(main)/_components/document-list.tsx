@@ -3,7 +3,13 @@
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
-import { useMutation, useQuery } from "convex/react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { API } from "@/config/routing/api.route"
+import { fetcher } from "@/lib/fetcher"
+import { reorderDocuments } from "@/actions/reorder-documents"
+import { archiveDocument } from "@/actions/archive-document"
+import { updateDocument } from "@/actions/update-document"
+import { useAction } from "@/hooks/use-action"
 import { Archive, FileText , Plus } from "lucide-react"
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { useMediaQuery } from "usehooks-ts"
@@ -16,8 +22,6 @@ import {
 } from "@hello-pangea/dnd"
 import toast from "react-hot-toast"
 
-import { api } from "../../../../convex/_generated/api"
-import type { Id } from "../../../../convex/_generated/dataModel"
 import { Item } from "./item"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { TrashBox } from "./trash-box"
@@ -25,7 +29,7 @@ import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
 import { cn } from "@/lib/utils"
 import { pages } from "@/config/routing/pages.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
-import type { DocumentListProps } from "@/config/types/main.types"
+import type { DocumentListProps, DocumentTreeItem } from "@/config/types/main.types"
 import {
   buildChildrenMap,
   flattenTree,
@@ -39,14 +43,30 @@ export function DocumentList({
 }: DocumentListProps) {
   const params = useParams()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { user } = useUser()
   const { organization } = useOrganization()
   const { isOrg, isAdmin } = useWorkspaceAdmin()
   const isMobile = useMediaQuery("(max-width: 768px)")
 
-  const reorder = useMutation(api.document.reorder)
-  const archive = useMutation(api.document.archive)
-  const update = useMutation(api.document.update)
+  const orgId = organization?.id !== undefined ? organization.id : (user?.id as string)
+
+  const { execute: executeReorder } = useAction(reorderDocuments, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+    },
+  })
+  const { execute: executeArchive } = useAction(archiveDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+      queryClient.invalidateQueries({ queryKey: ["documents", "trash", orgId] })
+    },
+  })
+  const { execute: executeUpdate } = useAction(updateDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+    },
+  })
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [draggingDocId, setDraggingDocId] = useState<string | null>(null)
@@ -54,10 +74,10 @@ export function DocumentList({
   const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set())
   const [lastSelectedDocId, setLastSelectedDocId] = useState<string | null>(null)
 
-  const orgId = organization?.id !== undefined ? organization.id : (user?.id as string)
-
-  const documents = useQuery(api.document.getAllSidebar, {
-    userId: orgId,
+  const { data: documents } = useQuery<DocumentTreeItem[]>({
+    queryKey: ["documents", "sidebar", orgId],
+    queryFn: () => fetcher(API.DOCUMENTS.SIDEBAR(orgId)),
+    enabled: Boolean(orgId),
   })
 
   useEffect(() => {
@@ -161,8 +181,8 @@ export function DocumentList({
 
     const isSelectionDrag = selectedDocIds.has(draggableId)
     const movingIds = isSelectionDrag
-      ? (Array.from(selectedDocIds) as Id<"documents">[])
-      : [draggableId as Id<"documents">]
+      ? Array.from(selectedDocIds)
+      : [draggableId]
 
     // 1. Handled dropping to archive
     if (destination?.droppableId === "archive-drop-target") {
@@ -175,7 +195,7 @@ export function DocumentList({
       if (!movingDocs.length) return
 
       for (const doc of movingDocs) {
-        void update({
+        void executeUpdate({
           id: doc._id,
           isPublished: false,
           userId: orgId,
@@ -186,7 +206,7 @@ export function DocumentList({
 
       const promise = Promise.all(
         movingDocs.map((doc) =>
-          archive({
+          executeArchive({
             id: doc._id,
             userId: orgId,
           })
@@ -196,7 +216,7 @@ export function DocumentList({
           typeof params?.documentId === "string" ? params.documentId : undefined
         if (
           currentDocId &&
-          (movingIds.includes(currentDocId as Id<"documents">) ||
+          (movingIds.includes(currentDocId) ||
             movingIds.some((id) => isDescendant(id, currentDocId, documents)))
         ) {
           router.push(pages.DASHBOARD())
@@ -218,7 +238,7 @@ export function DocumentList({
 
     // 2. Handled nesting (combine onto another note)
     if (combine) {
-      const targetParentId = combine.draggableId as Id<"documents">
+      const targetParentId = combine.draggableId
 
       if (movingIds.includes(targetParentId)) {
         toast.error("Нельзя переместить заметку внутрь самой себя")
@@ -243,13 +263,13 @@ export function DocumentList({
       }
 
       let sourceUpdates: Array<{
-        id: Id<"documents">
+        id: string
         order: number
-        parentDocument?: Id<"documents">
+        parentDocument?: string | null
       }> = []
 
       for (const pKey of sourceParentKeys) {
-        const pId = pKey === "root" ? undefined : (pKey as Id<"documents">)
+        const pId = pKey === "root" ? null : pKey
         const siblings = (childrenMap.get(pKey) || []).filter(
           (d) => !movingIds.includes(d._id)
         )
@@ -276,7 +296,7 @@ export function DocumentList({
         [targetParentId]: true,
       }))
 
-      const promise = reorder({
+      const promise = executeReorder({
         userId: orgId,
         items: [...sourceUpdates, ...targetUpdates],
         lastEditor: user?.username as string,
@@ -326,7 +346,7 @@ export function DocumentList({
       }
 
       const sourceParentId = draggedDoc.parentDocument
-        ? (draggedDoc.parentDocument as Id<"documents">)
+        ? (draggedDoc.parentDocument as string)
         : undefined
 
       const isSameParent = sourceParentId === targetParentId
@@ -335,9 +355,9 @@ export function DocumentList({
         .filter((d) => d._id !== singleId)
 
       let itemsToUpdate: Array<{
-        id: Id<"documents">
+        id: string
         order: number
-        parentDocument?: Id<"documents">
+        parentDocument?: string | null
       }> = []
 
       if (isSameParent) {
@@ -348,13 +368,13 @@ export function DocumentList({
         itemsToUpdate = newSiblings.map((doc, index) => ({
           id: doc._id,
           order: index,
-          parentDocument: sourceParentId,
+          parentDocument: sourceParentId ?? null,
         }))
       } else {
         const sourceUpdates = sourceSiblings.map((doc, index) => ({
           id: doc._id,
           order: index,
-          parentDocument: sourceParentId,
+          parentDocument: sourceParentId ?? null,
         }))
 
         const targetSiblings = (childrenMap.get(targetParentId ?? "root") || [])
@@ -365,7 +385,7 @@ export function DocumentList({
         const targetUpdates = targetSiblings.map((doc, index) => ({
           id: doc._id,
           order: index,
-          parentDocument: targetParentId,
+          parentDocument: targetParentId ?? null,
         }))
 
         itemsToUpdate = [...sourceUpdates, ...targetUpdates]
@@ -378,7 +398,7 @@ export function DocumentList({
         }
       }
 
-      const promise = reorder({
+      const promise = executeReorder({
         userId: orgId,
         items: itemsToUpdate,
         lastEditor: user?.username as string,
@@ -424,13 +444,13 @@ export function DocumentList({
     }
 
     let sourceUpdates: Array<{
-      id: Id<"documents">
+      id: string
       order: number
-      parentDocument?: Id<"documents">
+      parentDocument?: string | null
     }> = []
 
     for (const pKey of sourceParentKeys) {
-      const pId = pKey === "root" ? undefined : (pKey as Id<"documents">)
+      const pId = pKey === "root" ? null : pKey
       if (pId === targetParentId) continue
 
       const siblings = (childrenMap.get(pKey) || []).filter(
@@ -455,7 +475,7 @@ export function DocumentList({
     const targetUpdates = newTargetSiblings.map((doc, index) => ({
       id: doc._id,
       order: index,
-      parentDocument: targetParentId,
+      parentDocument: targetParentId ?? null,
     }))
 
     if (targetParentId) {
@@ -465,7 +485,7 @@ export function DocumentList({
       }))
     }
 
-    const promise = reorder({
+    const promise = executeReorder({
       userId: orgId,
       items: [...sourceUpdates, ...targetUpdates],
       lastEditor: user?.username as string,

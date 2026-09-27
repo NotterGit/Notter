@@ -1,8 +1,6 @@
 import { useEffect } from "react";
 import { useOrganization, useUser } from "@clerk/nextjs";
-import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-
+import { syncWorkspacePlan } from "@/actions/sync-workspace-plan";
 import { createOrg, getOrgById, updateOrg } from "@/api/org";
 import { useDocumentStats } from "@/components/hooks/use-document-stats";
 import type { UseRequestOrgFunction } from "@/config/types/api.types";
@@ -10,7 +8,6 @@ import type { UseRequestOrgFunction } from "@/config/types/api.types";
 export const useRequestOrg: UseRequestOrgFunction = () => {
   const { organization, isLoaded } = useOrganization();
   const { isSignedIn } = useUser();
-  const syncWorkspacePlan = useMutation(api.document.syncWorkspacePlan);
   const { documentCount, documentPublicCount, documentVerifiedCount, isReady } =
     useDocumentStats(organization?.id);
 
@@ -31,7 +28,7 @@ export const useRequestOrg: UseRequestOrgFunction = () => {
     };
 
     syncOrgPlan();
-  }, [isLoaded, isSignedIn, organization?.id, syncWorkspacePlan]);
+  }, [isLoaded, isSignedIn, organization?.id]);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !organization || !isReady) return;
@@ -98,7 +95,6 @@ export const useRequestOrg: UseRequestOrgFunction = () => {
     documentPublicCount,
     documentVerifiedCount,
     isReady,
-    syncWorkspacePlan,
   ]);
 
   return null;

@@ -1,73 +1,65 @@
 # Notter — Notion-like note-taking application
 
 ## Development Commands
+- **Check TypeScript types:** `npx tsc --noEmit`
+- **Linter checks:** `npm run lint`
+- **Find unused code/dependencies:** `npm run knip`
+- **Prisma generate:** `npx prisma generate`
+- **Prisma push:** `PRISMA_SCHEMA_ENGINE_BINARY="/run/current-system/sw/bin/schema-engine" npx prisma db push`
 - **Start dev server:** `npm run dev` (or `npm run dev:https` for HTTPS)
 - **Build production app:** `npm run build`
 - **Start production server:** `npm run start`
-- **Linter checks:** `npm run lint`
-- **Find unused code/dependencies:** `npm run knip`
 - **Build desktop application (pake-cli):**
   - Windows (MSI): `npm run pake:windows`
   - Linux (DEB, AppImage, RPM): `npm run pake:linux`
   - macOS (DMG): `npm run pake:macos`
   - All platforms: `npm run pake:all`
-  - Dev/Beta (dev.notter.su):
-    - Build: `npm run pake:dev`
-    - Windows (MSI): `npm run pake:dev:windows`
-- **Troubleshooting:**
-  - If Next.js/Tailwind CSS compilation fails with a missing `lightningcss` binary error on Linux, ensure `lightningcss-linux-x64-gnu` is installed.
+- **Rules for AI Assistant:**
+  - **CRITICAL:** Do NOT run `npm run dev` or `npm run build`! Only verify code using `npx tsc --noEmit` and `npm run lint`.
 
 ## Project Structure
-- `public/` — Static assets organized by domain (`ai-icons/`, `badges/`, `bg/` (cover collections per folder), `defaults/`, `fonts/`, `icons/`, `images/`, `landing/`, `logos/`).
-- `src/api/` — Backend REST API client (`client.ts`, `user.ts`, `org.ts`, `s3.ts`, `admin.ts`, `files.ts`, `document-limit.ts`, `image.ts`) modeled after `notter-todo`.
-- `src/app/` — Next.js 15 App Router routes.
+- `public/` — Static assets organized by domain (`ai-icons/`, `badges/`, `bg/`, `defaults/`, `fonts/`, `icons/`, `images/`, `landing/`, `logos/`).
+- `prisma/` — Database schema (`schema.prisma`) defining `Document` (`documents`), `ArchiveSettings` (`archive_settings`), `Workspace` (`workspaces`), `NoteAuditLog` (`note_audit_logs`), and preserved `notter-todo` models (`Board`, `List`, `Card`, `AuditLog`) for shared MariaDB database.
+- `src/actions/` — Server Actions following the `notter-todo` safe-action pattern (`index.ts`, `schema.ts`, `types.ts` via `createSafeAction`):
+  - `create-document/`, `update-document/`, `archive-document/`, `restore-document/`, `delete-document/`, `reorder-documents/`, `move-document/`, `remove-icon/`, `remove-cover/`, `increment-views/`, `set-archive-retention/`, `clean-expired-trash/`, `sync-workspace-plan/`.
+- `src/api/` — Backend REST API clients (`client.ts`, `user.ts`, `org.ts`, `s3.ts`, `admin.ts`, `files.ts`, `document-limit.ts`, `image.ts`).
+- `src/app/` — Next.js 15 App Router:
   - `(landing)/` — Welcome and landing page.
   - `(main)/` — Primary application workspace (dashboard, document editor/viewer).
   - `(profile)/` — Profile, user, and organization settings.
   - `(public)/` — Publicly shared document views (accessible without auth).
+  - `api/documents/` — Route handlers for sidebar tree, trash, search, document limits, stats, archive settings, short URLs, and document by ID.
   - `api/image/route.ts` — S3 image proxy route handler (`/api/image`).
-  - `api/ai/generate/route.ts` — AI text generation route handler (`/api/ai/generate`) proxying OpenAI, Claude, Gemini, DeepSeek, QualAI (self-hosted QualAI backend at `QUALAI_API_URL`, defaults to `http://localhost:8010`, weekly workspace limits: Free 10/week, Amber 50/week personal / 100/week orgs, Diamond 250/week), and custom OpenAI-compatible endpoints.
-  - `api/ai/limits/route.ts` — QualAI weekly generation limits status route handler (`/api/ai/limits`), workspace-scoped for users and organizations.
+  - `api/ai/` — AI generation (`/api/ai/generate`) and weekly limit checking (`/api/ai/limits`).
   - `api/backgrounds/route.ts` — Cover collection listing route handler (`/api/backgrounds`).
-  - `globals.css` — Global styles (Tailwind CSS v4).
-  - `manifest.ts` — Dynamic PWA manifest.
-- `src/components/` — Shared React components.
-  - `hooks/` — Custom React hooks (`use-settings`, `use-search`, `use-scroll-top`, `use-workspace-admin`, `use-document-stats`, `use-ai-settings`, `use-qualai-limits`, etc.).
-  - `ui/` — Base UI components (Radix UI / custom).
-- `src/config/` — Centralized configuration architecture:
-  - `const/` — Centralized constants (`editor.const.ts`, `emojis.const.ts`, `limits.const.ts`, `banner-images.const.ts`, `components.const.ts`, `app.const.ts`, `api.const.ts`).
-  - `types/` — Domain TypeScript types (`editor.types.ts`, `limits.types.ts`, `ai.types.ts`, `components.types.ts`, `api.types.ts`, `main.types.ts`, `profile.types.ts`, `public.types.ts`, `landing.types.ts`, `stores.types.ts`).
-  - `routing/` — Navigation and route definitions (`pages.route.ts`, `api.route.ts`, `image.route.ts`, `links.route.ts`).
-  - `ai-providers.ts` — Metadata for AI model providers.
-- `src/lib/` — Utilities (PWA, Desktop App helper, image URLs, plan limits, AI generation helper, AI Markdown-to-HTML parser in `editor/markdown-to-html.ts`).
-  - `backgrounds.ts` — Reads `public/bg/<folder>` and builds the cover collections (config in `src/config/const/banner-images.const.ts`).
-- `convex/` — Backend logic and Database configuration on Convex.
-  - `schema.ts` — Database schema (defines `documents`, `archiveSettings`, and `workspace` tables).
-  - `document.ts` — Queries and mutations for document CRUD, workspace plan synchronization, and archive auto-cleanup.
-  - `rateLimits.ts` — API rate limiter implementation.
+- `src/components/` — Shared React components, Modals, Providers (`query-provider.tsx`, `clerk-theme-provider.tsx`), and hooks.
+- `src/config/` — Centralized configuration:
+  - `const/` — Constants (`editor.const.ts`, `limits.const.ts`, `banner-images.const.ts`, `components.const.ts`, `app.const.ts`, `api.const.ts`).
+  - `types/` — TypeScript domain types (`editor.types.ts`, `limits.types.ts`, `ai.types.ts`, `components.types.ts`, `api.types.ts`, `main.types.ts`, `profile.types.ts`, `public.types.ts`, `landing.types.ts`, `actions.types.ts`).
+  - `routing/` — Navigation paths (`pages.route.ts`, `api.route.ts`, `image.route.ts`, `links.route.ts`).
+- `src/hooks/` — Application hooks (`use-action.ts`, `use-mobile.ts`, etc.).
+- `src/lib/` — Utilities (`db.ts` with MariaDB driver adapter, `create-safe-action.ts`, `audit-log.ts`, `fetcher.ts`, `gen-id.ts`, `document-tree.ts`, `document-id.ts`, `image-url.ts`, `plan-limits.ts`).
 
 ## Tech Stack & Core Features
 - **Authentication:** Clerk (`@clerk/nextjs`) with multi-session support and middleware session synchronization.
+- **Database & ORM:** Prisma ORM with MariaDB via `@prisma/adapter-mariadb` driver adapter. Database is shared with `notter-todo` on `casaos` (`mysql`), keeping all tables isolated (`documents`, `archive_settings`, `workspaces`, `note_audit_logs`).
+- **Data Fetching & Mutations:**
+  - Client reads use TanStack Query (`@tanstack/react-query`) fetching from internal Next.js REST API routes (`/api/documents/*`).
+  - Client mutations use Server Actions (`src/actions/*`) wrapped with `useAction` hook (`use-action.ts`).
 - **Styling:** Tailwind CSS v4 with `@tailwindcss/postcss`.
-- **Editor:** Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, custom extensions for resizable images, video with captions, audio with player, AI text generation with `markdown-it` parsing into native Tiptap blocks, color/highlight pickers, S3 media uploads, and ProseMirror JSON schema) for all production documents (`src/components/editor.tsx`, `src/app/(main)/dashboard/[documentId]/`) and prototype sandbox (`src/app/(main)/dashboard/editor/`) with unified card layout, CoverBanner, CoverModal with S3 upload support, and EditorHeader with floating emoji badge. BlockNote migration utilities located in `convex/migrateBlocknote.ts` and `convex/document.ts:migrateAllDocumentsToTiptap`.
-- **Database:** Convex Cloud. Document table schema features fields like `title`, `userId`, `isAcrhived`, `archivedTime`, `isPinned`, `parentDocument`, `order`, `content`, `coverImage`, `icon`, `isPublished`, etc. `archiveSettings` stores `userId` and `retentionDays` (1, 7, 30 days for Amber, 90 days for Diamond). `workspace` stores `userId`, `premiumLevel`, and `isOrg`.
-- **Convex Indexes:**
-  - `documents.by_user`: `["userId"]`
-  - `documents.by_user_parent`: `["userId", "parentDocument"]`
-  - `archiveSettings.by_user`: `["userId"]`
-  - `workspace.by_user`: `["userId"]`
+- **Editor:** Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, custom extensions for resizable images, video, audio, AI text generation, color/highlight pickers, S3 media uploads) for all production documents and editor sandbox.
 - **Desktop Packaging:** Pake-cli integration for packaging web app into lightweight desktop builds.
 
 ## Coding Guidelines
-- **TypeScript:** Strict type checks, avoid using `any`.
-- **Centralized Config & Types:** All constants must reside in `@/config/const/` and all types in `@/config/types/`. Always import constants and types directly from `@/config/...`. Never create or keep proxy/alias re-export files or duplicate declarations in component directories (e.g. `src/components/editor/`).
-- **Convex Operations:** All DB reads/writes must go through Convex mutations/queries. Verify identity via `ctx.auth.getUserIdentity()`.
-- **Imports:** Use absolute path aliases like `@/components/...`, `@/config/...`, or `@/lib/...`.
+- **TypeScript:** Strict type checks (`npx tsc --noEmit`), avoid using `any`.
+- **Centralized Config & Types:** All constants must reside in `@/config/const/` and all types in `@/config/types/`. Always import constants and types directly from `@/config/...`. Never create or keep proxy/alias re-export files or duplicate declarations in component directories.
+- **Server Actions Pattern:** Structure all mutations under `src/actions/<action-name>/` with `schema.ts`, `types.ts`, and `index.ts`. Always validate input via Zod and wrap handlers with `createSafeAction`.
+- **Database Access:** Access MariaDB exclusively through `db` (`@/lib/db`) using Prisma Client. Never execute raw unvalidated SQL.
+- **Imports:** Use absolute path aliases like `@/components/...`, `@/config/...`, `@/actions/...`, `@/lib/...`.
 - **Components:** Maintain modular architecture; separate layout structure, presentation, and logic.
-- Do not run `npm run dev` or `npm run build`!
 
 ## Auto-Update Rule (English Only)
 > [!IMPORTANT]
-> When modifying the project (adding packages, modifying scripts in `package.json`, updating the Convex schema in `convex/schema.ts`, changing folder structures, or adjusting authentication/APIs), the AI assistant **MUST** update this `CLAUDE.md` file to reflect these changes.
+> When modifying the project (adding packages, modifying scripts in `package.json`, updating Prisma schema in `prisma/schema.prisma`, changing folder structures, or adjusting authentication/APIs), the AI assistant **MUST** update this `CLAUDE.md` file to reflect these changes.
 > **Language:** This file must ALWAYS be maintained in English.
 > **Line Limit:** The file must remain concise and strictly **under 200 lines** to preserve context window capacity.

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Id } from "../../../../convex/_generated/dataModel";
 import { useUser } from "@clerk/nextjs";
 import { checkModerator } from "@/api/user";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
@@ -8,8 +7,9 @@ import { Check, FileJson, Loader2, Menu, Trash, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
-import { useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { deleteDocument } from "@/actions/delete-document";
+import { updateDocument } from "@/actions/update-document";
+import { useAction } from "@/hooks/use-action";
 import { useRouter } from "next/navigation";
 import { ConfirmModal } from "@/components/modal/confirm-modal";
 import { pages } from "@/config/routing/pages.route";
@@ -33,8 +33,8 @@ export function ModeratorPanel({
   const [isDialogOpen, setDialogOpen] = useState(false);
   const { user: clerkUser } = useUser();
   const [isModerator, setIsModerator] = useState(false);
-  const remove = useMutation(api.document.remove);
-  const update = useMutation(api.document.update);
+  const { execute: executeRemove } = useAction(deleteDocument);
+  const { execute: executeUpdate } = useAction(updateDocument);
   const router = useRouter();
 
   const [localShortId, setLocalShortId] = useState(shortId || "");
@@ -74,7 +74,7 @@ export function ModeratorPanel({
 
   const handleUpdate = async (field: string, value: any, actionDescription: string) => {
     try {
-      await update({
+      await executeUpdate({
         id: _id,
         userId,
         [field]: value,
@@ -83,7 +83,7 @@ export function ModeratorPanel({
       toast.success("Обновлено успешно");
       return true;
     } catch (err: any) {
-      const errorMessage = err.message || "Ошибка при обновлении";
+      const errorMessage = typeof err === "string" ? err : err?.message || "Ошибка при обновлении";
       toast.error(errorMessage);
       return false;
     }
@@ -133,8 +133,8 @@ export function ModeratorPanel({
     }
   };
 
-  const onRemove = async (documentId: Id<"documents">) => {
-    const promise = remove({
+  const onRemove = async (documentId: string) => {
+    const promise = executeRemove({
       id: documentId,
       userId,
     });

@@ -17,8 +17,8 @@ import {
 import { toast } from "react-hot-toast";
 import { Switch } from "@/components/ui/switch";
 import { useUser } from "@clerk/nextjs";
-import { useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { syncWorkspacePlan as syncWorkspacePlanAction } from "@/actions/sync-workspace-plan";
+import { useAction } from "@/hooks/use-action";
 import type { UserProps } from "@/config/types/profile.types";
 import { getPlanLimits } from "@/lib/plan-limits";
 
@@ -30,7 +30,7 @@ export function ModeratorPanel({ user }: UserProps) {
   const { user: clerkUser } = useUser();
   const isOrg = user?._id.startsWith("org_");
   const [isModerator, setIsModerator] = useState(false);
-  const syncWorkspacePlan = useMutation(api.document.syncWorkspacePlan);
+  const { execute: executeSyncWorkspacePlan } = useAction(syncWorkspacePlanAction);
 
   const [premium, setPremium] = useState(user?.premium ?? 0);
   const [isUserModerator, setIsUserModerator] = useState(
@@ -130,7 +130,7 @@ export function ModeratorPanel({ user }: UserProps) {
         : await setUserPremium(user._id, premium, sendEmail);
 
       if (result) {
-        await syncWorkspacePlan({
+        await executeSyncWorkspacePlan({
           userId: user._id,
           premiumLevel: premium,
           isOrg: Boolean(isOrg),

@@ -51,4 +51,4 @@ export const ARCHIVE_RETENTION_OPTIONS: ArchiveRetentionOption[] = [
     { days: 7, label: "7 дней", requiredPremium: 0 },
     { days: 30, label: "30 дней", requiredPremium: 1, gemName: "Amber" },
     { days: 90, label: "90 дней", requiredPremium: 2, gemName: "Diamond" },
-]
+]

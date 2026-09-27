@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { useMutation, useQuery } from "convex/react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { toast } from "react-hot-toast"
 import Twemoji from "react-twemoji"
@@ -30,15 +30,18 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useMoveNote } from "@/components/hooks/use-move-note"
 import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
-import { api } from "../../../convex/_generated/api"
-import type { Doc, Id } from "../../../convex/_generated/dataModel"
+import { API } from "@/config/routing/api.route"
+import { fetcher } from "@/lib/fetcher"
+import { moveDocument as moveDocumentAction } from "@/actions/move-document"
+import { useAction } from "@/hooks/use-action"
+import type { DocumentTreeItem } from "@/config/types/main.types"
 import { buildChildrenMap, isDescendant } from "@/lib/document-tree"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
 import { cn } from "@/lib/utils"
 
 function matchesSearch(
-  doc: Doc<"documents">,
-  childrenMap: Map<string, Doc<"documents">[]>,
+  doc: DocumentTreeItem,
+  childrenMap: Map<string, DocumentTreeItem[]>,
   query: string
 ): boolean {
   const q = query.toLowerCase().trim()
@@ -53,15 +56,24 @@ export function MoveNoteModal() {
   const { user } = useUser()
   const { organization } = useOrganization()
   const { isOrg } = useWorkspaceAdmin()
+  const queryClient = useQueryClient()
 
   const orgId = isOrg ? (organization?.id as string) : (user?.id as string)
 
-  const documents = useQuery(
-    api.document.getAllSidebar,
-    isOpen && orgId ? { userId: orgId } : "skip"
-  )
+  const { data: documents } = useQuery<DocumentTreeItem[]>({
+    queryKey: ["documents", "sidebar", orgId],
+    queryFn: () => fetcher(API.DOCUMENTS.SIDEBAR(orgId)),
+    enabled: Boolean(isOpen && orgId),
+  })
 
-  const moveDocument = useMutation(api.document.move)
+  const { execute: executeMove } = useAction(moveDocumentAction, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+      if (documentId) {
+        queryClient.invalidateQueries({ queryKey: ["document", documentId] })
+      }
+    },
+  })
 
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
@@ -112,9 +124,9 @@ export function MoveNoteModal() {
 
     setIsSubmitting(true)
 
-    const promise = moveDocument({
-      id: documentId as Id<"documents">,
-      parentDocument: selectedTargetId ? (selectedTargetId as Id<"documents">) : undefined,
+    const promise = executeMove({
+      id: documentId,
+      parentDocument: selectedTargetId ?? null,
       userId: orgId,
       lastEditor: user?.username as string,
       lastEditTime: getCurrentEditTime(),

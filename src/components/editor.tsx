@@ -27,7 +27,7 @@ import {
   HEADING_LEVELS,
 } from "@/config/const/editor.const"
 import type { EditorProps } from "@/config/types/editor.types"
-import { convertBlockNoteToTiptap } from "../../convex/migrateBlocknote"
+import { convertBlockNoteToTiptap } from "@/lib/editor/migrate-blocknote"
 
 import { CustomImage } from "./editor/extensions/custom-image"
 import { CustomVideo } from "./editor/extensions/custom-video"

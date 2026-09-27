@@ -3,7 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useOrganization, useUser } from "@clerk/nextjs";
 import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin";
-import { useMutation, useQuery } from "convex/react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { API } from "@/config/routing/api.route";
+import { fetcher } from "@/lib/fetcher";
+import { archiveDocument } from "@/actions/archive-document";
+import { restoreDocument } from "@/actions/restore-document";
+import { updateDocument } from "@/actions/update-document";
+import { useAction } from "@/hooks/use-action";
 import { toast } from "react-hot-toast";
 import {
   DropdownMenu,
@@ -23,8 +29,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Id } from "../../../../convex/_generated/dataModel";
-import { api } from "../../../../convex/_generated/api";
 import { useEffect, useState } from "react";
 import { useMoveNote } from "@/components/hooks/use-move-note";
 
@@ -38,16 +42,39 @@ import type { Org, User } from "@/config/types/api.types";
 
 export function Menu({ documentId }: MenuProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user } = useUser();
   const { organization } = useOrganization();
   const { isOrg, isAdmin } = useWorkspaceAdmin();
   const orgId = isOrg ? organization?.id as string : user?.id as string;
-  const archive = useMutation(api.document.archive);
-  const restore = useMutation(api.document.restore);
-  const update = useMutation(api.document.update);
-  const doc = useQuery(api.document.getById, {
-    documentId: documentId as Id<"documents">,
-    userId: orgId,
+
+  const { execute: executeArchive } = useAction(archiveDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["documents", "trash", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["document", documentId] });
+    },
+  });
+
+  const { execute: executeRestore } = useAction(restoreDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["documents", "trash", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["document", documentId] });
+    },
+  });
+
+  const { execute: executeUpdate } = useAction(updateDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["document", documentId] });
+    },
+  });
+
+  const { data: doc } = useQuery<any>({
+    queryKey: ["document", documentId],
+    queryFn: () => fetcher(API.DOCUMENTS.BY_ID(documentId, { userId: orgId })),
+    enabled: Boolean(documentId && orgId),
   });
 
   const [openModal, setOpenModal] = useState(false);
@@ -77,7 +104,7 @@ export function Menu({ documentId }: MenuProps) {
     if (!doc) return;
 
     const isCurrentlyPinned = Boolean(doc.isPinned);
-    const promise = update({
+    const promise = executeUpdate({
       id: documentId,
       userId: orgId,
       isPinned: !isCurrentlyPinned,
@@ -98,15 +125,15 @@ export function Menu({ documentId }: MenuProps) {
       return;
     }
 
-    update({
+    executeUpdate({
       id: documentId,
       userId: orgId,
       isPublished: false,
       lastEditor: user?.username as string,
       lastEditTime: getCurrentEditTime()
-    })
+    }).catch(() => {})
 
-    const promise = archive({
+    const promise = executeArchive({
       id: documentId,
       userId: orgId,
     });
@@ -126,14 +153,14 @@ export function Menu({ documentId }: MenuProps) {
       return;
     }
 
-    update({
+    executeUpdate({
       id: documentId,
       userId: orgId,
       lastEditor: user?.username as string,
       lastEditTime: getCurrentEditTime()
-    })
+    }).catch(() => {})
 
-    const promise = restore({
+    const promise = executeRestore({
       id: documentId,
       userId: orgId,
     });
@@ -175,7 +202,7 @@ export function Menu({ documentId }: MenuProps) {
               contentToSave = typeof parsed.content === "string" ? parsed.content : JSON.stringify(parsed.content);
             }
 
-            const promise = update({
+            const promise = executeUpdate({
               id: documentId,
               userId: orgId,
               content: contentToSave,

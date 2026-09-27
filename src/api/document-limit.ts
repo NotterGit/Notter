@@ -1,14 +1,13 @@
-import { Id } from "../../convex/_generated/dataModel";
 import { FREE_LIMITS } from "@/config/const/limits.const";
 
 export const getCreateDocumentErrorMessage = (error: unknown) => {
-  const message = error instanceof Error ? error.message : "";
+  const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
 
   if (message.includes("Rate limit exceeded")) {
     return "Вы превысили лимит на создание документов. Попробуйте позже";
   }
 
-  if (message.includes("Rate limited note")) {
+  if (message.includes("Rate limited note") || message.includes("лимита на создание")) {
     const [, rawLimit] = message.split(":");
     const documentLimit = Number(rawLimit) || FREE_LIMITS.documents;
 
@@ -20,23 +19,23 @@ export const getCreateDocumentErrorMessage = (error: unknown) => {
     return `Вы достигли лимита на публикацию в ${Number(rawLimit) || 10} публичных заметок`;
   }
 
-  return "Не удалось создать заметку";
+  return message || "Не удалось создать заметку";
 };
 
-type CreateDocumentArgs = {
+export type CreateDocumentArgs = {
   title: string;
   userId: string;
   lastEditor: string;
   creatorName: string;
   lastEditTime?: string;
-  parentDocument?: Id<"documents">;
+  parentDocument?: string | null;
   premiumLevel?: number;
   isOrg?: boolean;
 };
 
-type CreateDocumentMutation = (
+export type CreateDocumentMutation = (
   args: CreateDocumentArgs
-) => Promise<Id<"documents">>;
+) => Promise<string>;
 
 export const createDocumentWithFallback = async (
   create: CreateDocumentMutation,

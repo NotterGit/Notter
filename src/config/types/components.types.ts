@@ -1,6 +1,6 @@
 import type { DropzoneOptions } from "react-dropzone"
 import type * as React from "react"
-import type { Doc } from "../../../convex/_generated/dataModel"
+import type { DocumentTreeItem } from "@/lib/document-tree"
 
 export interface CoverImageProps {
   url?: string
@@ -52,7 +52,7 @@ export interface IconPickerPorps {
 }
 
 export interface ToolbarProps {
-  initialData: Doc<"documents">
+  initialData: DocumentTreeItem
   preview?: boolean
 }
 

@@ -1,15 +1,12 @@
 import { useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-
+import { syncWorkspacePlan } from "@/actions/sync-workspace-plan";
 import { createUser, getUserById, updateUser } from "@/api/user";
 import { useDocumentStats } from "@/components/hooks/use-document-stats";
 import type { UseRequestUserFunction } from "@/config/types/api.types";
 
 export const useRequestUser: UseRequestUserFunction = () => {
   const { user, isLoaded, isSignedIn } = useUser();
-  const syncWorkspacePlan = useMutation(api.document.syncWorkspacePlan);
   const { documentCount, documentPublicCount, documentVerifiedCount, isReady } =
     useDocumentStats(user?.id);
 
@@ -30,7 +27,7 @@ export const useRequestUser: UseRequestUserFunction = () => {
     };
 
     syncPlan();
-  }, [isLoaded, isSignedIn, user?.id, syncWorkspacePlan]);
+  }, [isLoaded, isSignedIn, user?.id]);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !user?.username || !isReady) return;
@@ -90,7 +87,6 @@ export const useRequestUser: UseRequestUserFunction = () => {
     documentPublicCount,
     documentVerifiedCount,
     isReady,
-    syncWorkspacePlan,
   ]);
 
   return null;

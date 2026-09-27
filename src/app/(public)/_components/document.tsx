@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
-import { useMutation, useQuery } from "convex/react"
+import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CoverBanner } from "@/components/editor/cover-banner"
 import { EditorHeader } from "@/components/editor/editor-header"
 import Error404 from "@/app/not-found"
 import { Separator } from "@/components/ui/separator"
-import { api } from "../../../../convex/_generated/api"
+import { API } from "@/config/routing/api.route"
+import { fetcher } from "@/lib/fetcher"
+import { incrementViews as incrementViewsAction } from "@/actions/increment-views"
+import { useAction } from "@/hooks/use-action"
 import { getOrgByUsername } from "@/api/org"
 import { checkModerator, getUserByUsername } from "@/api/user"
 import { ModeratorPanel } from "./moderatorPanel"
@@ -17,7 +20,7 @@ import { pages } from "@/config/routing/pages.route"
 import type { PublicDocumentComponentProps, UserInterface } from "@/config/types/public.types"
 import type { Org, User } from "@/config/types/api.types"
 import { useOrganization, useUser } from "@clerk/nextjs"
-import { isValidConvexId } from "@/lib/convex-id"
+import { isValidDocumentId } from "@/lib/document-id"
 import { IframeModal } from "@/app/(main)/_components/iframe-modal"
 import { useOrigin } from "@/components/hooks/use-origin"
 import BackButton from "@/components/back-button"
@@ -50,35 +53,36 @@ function Footer({ name, team, logo }: UserInterface) {
 export default function DocumentIdPage({ params, iframe = false }: PublicDocumentComponentProps) {
   const origin = useOrigin()
   const isShort = params.documentId.length >= 4 && params.documentId.length <= 30
-  const documentId = isValidConvexId(params.documentId) ? params.documentId : null
+  const documentId = isValidDocumentId(params.documentId) ? params.documentId : null
   const [profile, setProfile] = useState<User | Org | null>(null)
   const [isModerator, setIsModerator] = useState<boolean | undefined>(undefined)
   const { user: clerkUser } = useUser()
   const { organization } = useOrganization()
-  const incrementViews = useMutation(api.document.incrementViews)
+  const { execute: executeIncrementViews } = useAction(incrementViewsAction)
   const setNavbarLogo = usePublicNavbar()
+  const currentUserId = organization?.id ?? clerkUser?.id
 
-  const document = useQuery(
-    isShort ? api.document.getByShortId : api.document.getById,
-    isShort
-      ? {
-          shortId: params.documentId,
-        }
-      : documentId
-        ? {
-            documentId,
-            alwaysView: isModerator,
-            userId: organization?.id ?? clerkUser?.id,
-          }
-        : "skip"
-  )
+  const { data: document, isLoading: documentLoading } = useQuery<any>({
+    queryKey: ["document", params.documentId, isShort, isModerator, currentUserId],
+    queryFn: () => {
+      if (isShort) {
+        return fetcher(API.DOCUMENTS.BY_SHORT_ID(params.documentId))
+      }
+      return fetcher(
+        API.DOCUMENTS.BY_ID(documentId!, {
+          alwaysView: isModerator,
+          userId: currentUserId,
+        })
+      )
+    },
+    enabled: Boolean(isShort || (documentId && isModerator !== undefined)),
+  })
 
   useEffect(() => {
     if (document?._id && document.isPublished && !document.isAcrhived) {
-      incrementViews({ id: document._id })
+      executeIncrementViews({ id: document._id }).catch(() => {})
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [document?._id])
+  }, [document?._id, document?.isPublished, document?.isAcrhived, executeIncrementViews])
 
   useEffect(() => {
     const fetchProfile = async () => {

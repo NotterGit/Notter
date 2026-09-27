@@ -2,12 +2,13 @@ import { cn } from "@/lib/utils";
 import { FileText , Pin } from "lucide-react";
 import Image from "next/image";
 import { normalizeImageUrl } from "@/lib/image-url";
-import { api } from "../../../../convex/_generated/api";
-import { useQuery } from "convex/react";
+import { useQuery } from "@tanstack/react-query";
+import { API } from "@/config/routing/api.route";
+import { fetcher } from "@/lib/fetcher";
+import type { DocumentTreeItem } from "@/config/types/main.types";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Twemoji from "react-twemoji";
-import { Id } from "../../../../convex/_generated/dataModel";
 import toast from "react-hot-toast";
 import { updateUser } from "@/api/user";
 import { useUser } from "@clerk/nextjs";
@@ -29,10 +30,17 @@ export function DocumentList({
   const { user: clerkUser } = useUser();
   const isOrg = user._id.startsWith("org_")
 
-  const documents = useQuery(api.document.getSidebar, {
-    parentDocument: parentDocumentId,
-    userId: user?._id,
-    publicSorted,
+  const { data: documents } = useQuery<DocumentTreeItem[]>({
+    queryKey: ["documents", "sidebar", user?._id, parentDocumentId ?? "root", publicSorted],
+    queryFn: () =>
+      fetcher(
+        API.DOCUMENTS.SIDEBAR({
+          userId: user?._id,
+          parentDocument: parentDocumentId ?? null,
+          publicSorted,
+        })
+      ),
+    enabled: Boolean(user?._id),
   });
 
   const onToggleExpand = (documentId: string) => {

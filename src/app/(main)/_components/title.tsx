@@ -1,11 +1,12 @@
 "use client"
 
 import { ChangeEvent, useRef, useState } from "react"
-import { useMutation } from "convex/react"
 import { useOrganization, useUser } from "@clerk/nextjs"
+import { useQueryClient } from "@tanstack/react-query"
 import Twemoji from "react-twemoji"
 
-import { api } from "../../../../convex/_generated/api"
+import { updateDocument } from "@/actions/update-document"
+import { useAction } from "@/hooks/use-action"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -14,11 +15,18 @@ import { getCurrentEditTime } from "@/lib/last-edit-time"
 import type { TitleProps } from "@/config/types/main.types"
 
 export function Title({ initialData }: TitleProps) {
+  const queryClient = useQueryClient()
   const inputRef = useRef<HTMLInputElement>(null)
-  const update = useMutation(api.document.update)
   const { user } = useUser()
   const { organization } = useOrganization()
   const orgId = organization?.id !== undefined ? organization.id : user?.id as string
+
+  const { execute: executeUpdate } = useAction(updateDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["document", initialData._id] })
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+    },
+  })
   const [title, setTitle] = useState(initialData.title || "Новая заметка")
   const [isEditing, setIsEditing] = useState(false)
 
@@ -37,7 +45,7 @@ export function Title({ initialData }: TitleProps) {
 
   const onChange = (event: ChangeEvent<HTMLInputElement>) => {
     setTitle(event.target.value)
-    update({
+    executeUpdate({
       id: initialData._id,
       title: event.target.value || "Новая заметка",
       userId: orgId,

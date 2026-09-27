@@ -2,14 +2,13 @@
 
 import { use, useEffect, useRef, useState, useCallback } from "react"
 import dynamic from "next/dynamic"
-import { useOrganization, useUser } from "@clerk/nextjs"
-import { useConvexAuth, useMutation, useQuery } from "convex/react"
+import { useAuth, useOrganization, useUser } from "@clerk/nextjs"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import toast from "react-hot-toast"
 
-import { api } from "../../../../../convex/_generated/api"
 import { Skeleton } from "@/components/ui/skeleton"
 import Error404 from "@/app/not-found"
-import { isValidConvexId } from "@/lib/convex-id"
+import { isValidDocumentId } from "@/lib/document-id"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
 import { getOrgById } from "@/api/org"
 import { getUserById } from "@/api/user"
@@ -18,6 +17,12 @@ import { uploadFile, deleteFile } from "@/api/files"
 import type { DashboardDocumentIdPageProps as DocumentIdPageProps } from "@/config/types/main.types"
 import { SAVE_STATUS_IDLE_DELAY_MS, TITLE_DEBOUNCE_MS } from "@/config/const/editor.const"
 import type { EditorSaveStatus } from "@/config/types/editor.types"
+import { fetcher } from "@/lib/fetcher"
+import { API } from "@/config/routing/api.route"
+import { updateDocument } from "@/actions/update-document"
+import { removeIcon } from "@/actions/remove-icon"
+import { removeCover } from "@/actions/remove-cover"
+import type { DocumentTreeItem } from "@/lib/document-tree"
 
 import { CoverBanner } from "@/components/editor/cover-banner"
 import { CoverModal } from "@/components/editor/cover-modal"
@@ -27,29 +32,22 @@ const Editor = dynamic(() => import("@/components/editor"), { ssr: false })
 
 export default function DocumentIdPage({ params }: DocumentIdPageProps) {
   const { documentId } = use(params)
-  const normalizedDocumentId = isValidConvexId(documentId) ? documentId : null
+  const normalizedDocumentId = isValidDocumentId(documentId) ? documentId : null
 
+  const queryClient = useQueryClient()
   const { user } = useUser()
   const { organization } = useOrganization()
-  const { isAuthenticated } = useConvexAuth()
+  const { isLoaded, isSignedIn } = useAuth()
   const isOrg = organization?.id !== undefined
   const orgId = isOrg ? organization.id : (user?.id as string)
   const avatar = user?.imageUrl || ""
   const username = user?.username || ""
 
-  const document = useQuery(
-    api.document.getById,
-    isAuthenticated && normalizedDocumentId && orgId
-      ? {
-          documentId: normalizedDocumentId,
-          userId: orgId,
-        }
-      : "skip"
-  )
-
-  const update = useMutation(api.document.update)
-  const removeIcon = useMutation(api.document.removeIcon)
-  const removeCoverImage = useMutation(api.document.removeCoverImage)
+  const { data: document, isLoading: isDocumentLoading } = useQuery<DocumentTreeItem | null>({
+    queryKey: ["document", normalizedDocumentId],
+    queryFn: () => fetcher(API.DOCUMENTS.BY_ID(normalizedDocumentId!)),
+    enabled: Boolean(normalizedDocumentId && (isSignedIn || isLoaded)),
+  })
 
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false)
   const [saveStatus, setSaveStatus] = useState<EditorSaveStatus>("idle")
@@ -73,25 +71,29 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
       if (!normalizedDocumentId || !orgId) return
 
       setSaveStatus("saving")
-      update({
+      updateDocument({
         id: normalizedDocumentId,
         content,
         userId: orgId,
         lastEditor: username,
         lastEditTime: getCurrentEditTime(),
       })
-        .then(() => {
-          setSaveStatus("saved")
-          if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
-          saveTimeoutRef.current = setTimeout(() => {
+        .then((res) => {
+          if (res.data) {
+            setSaveStatus("saved")
+            if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+            saveTimeoutRef.current = setTimeout(() => {
+              setSaveStatus("idle")
+            }, SAVE_STATUS_IDLE_DELAY_MS)
+          } else {
             setSaveStatus("idle")
-          }, SAVE_STATUS_IDLE_DELAY_MS)
+          }
         })
         .catch(() => {
           setSaveStatus("idle")
         })
     },
-    [normalizedDocumentId, orgId, update, username]
+    [normalizedDocumentId, orgId, username]
   )
 
   // Handle title updates with smooth debouncing
@@ -101,31 +103,36 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
       if (titleTimeoutRef.current) clearTimeout(titleTimeoutRef.current)
       titleTimeoutRef.current = setTimeout(() => {
         if (!normalizedDocumentId || !orgId) return
-        update({
+        updateDocument({
           id: normalizedDocumentId,
           title: newTitle || "Новая заметка",
           userId: orgId,
           lastEditor: username,
           lastEditTime: getCurrentEditTime(),
+        }).then(() => {
+          queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
         })
       }, TITLE_DEBOUNCE_MS)
     },
-    [normalizedDocumentId, orgId, update, username]
+    [normalizedDocumentId, orgId, queryClient, username]
   )
 
   // Handle icon updates
   const handleIconChange = useCallback(
     (icon: string) => {
       if (!normalizedDocumentId || !orgId) return
-      update({
+      updateDocument({
         id: normalizedDocumentId,
         icon,
         userId: orgId,
         lastEditor: username,
         lastEditTime: getCurrentEditTime(),
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["document", normalizedDocumentId] })
+        queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
       })
     },
-    [normalizedDocumentId, orgId, update, username]
+    [normalizedDocumentId, orgId, queryClient, username]
   )
 
   // Handle icon removal
@@ -134,22 +141,27 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
     removeIcon({
       id: normalizedDocumentId,
       userId: orgId,
+    }).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["document", normalizedDocumentId] })
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
     })
-  }, [normalizedDocumentId, orgId, removeIcon])
+  }, [normalizedDocumentId, orgId, queryClient])
 
   // Handle cover selection (preset or external link)
   const handleSelectCover = useCallback(
     (url: string) => {
       if (!normalizedDocumentId || !orgId) return
-      update({
+      updateDocument({
         id: normalizedDocumentId,
         coverImage: url,
         userId: orgId,
         lastEditor: username,
         lastEditTime: getCurrentEditTime(),
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["document", normalizedDocumentId] })
       })
     },
-    [normalizedDocumentId, orgId, update, username]
+    [normalizedDocumentId, orgId, queryClient, username]
   )
 
   // Handle cover removal
@@ -164,9 +176,11 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
       }
     }
 
-    const promise = removeCoverImage({
+    const promise = removeCover({
       id: normalizedDocumentId,
       userId: orgId,
+    }).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["document", normalizedDocumentId] })
     })
 
     toast.promise(promise, {
@@ -174,7 +188,7 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
       success: "Обложка удалена",
       error: "Ошибка при удалении обложки",
     })
-  }, [normalizedDocumentId, orgId, document?.coverImage, removeCoverImage])
+  }, [normalizedDocumentId, orgId, document?.coverImage, queryClient])
 
   // Handle cover upload to server S3
   const handleUploadCoverFile = useCallback(
@@ -197,7 +211,7 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
         throw new Error("Upload failed")
       }
 
-      await update({
+      await updateDocument({
         id: normalizedDocumentId,
         coverImage: fileUrl,
         userId: orgId,
@@ -205,17 +219,19 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
         lastEditTime: getCurrentEditTime(),
       })
 
+      queryClient.invalidateQueries({ queryKey: ["document", normalizedDocumentId] })
+
       return fileUrl
     },
-    [normalizedDocumentId, orgId, isOrg, avatar, username, update]
+    [normalizedDocumentId, orgId, isOrg, avatar, username, queryClient]
   )
 
   if (normalizedDocumentId === null) {
     return <Error404 />
   }
 
-  // Loading skeleton matching the new wide card layout
-  if (document === undefined) {
+  // Loading skeleton matching the wide card layout
+  if (isDocumentLoading || document === undefined) {
     return (
       <div className="relative overflow-hidden pb-40">
         <div className="pointer-events-none absolute -left-16 top-16 h-64 w-64 rounded-full bg-logo-yellow/20 blur-3xl" />
@@ -247,7 +263,7 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
     return <Error404 />
   }
 
-  const isArchived = Boolean(document.isAcrhived)
+  const isArchived = Boolean(document.isArchived || document.isAcrhived)
 
   return (
     <div className="relative pb-40">
@@ -283,10 +299,10 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
           />
 
           <Editor
-            initialContent={document.content}
+            initialContent={document.content ?? undefined}
             onChange={onChange}
             editable={!isArchived}
-            documentId={document._id}
+            documentId={document.id || document._id}
             saveStatus={saveStatus}
             onEditorReady={(editor) => {
               editorRef.current = editor

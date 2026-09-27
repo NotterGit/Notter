@@ -1,4 +1,5 @@
-import type { Doc, Id } from "../../../convex/_generated/dataModel"
+import type { DocumentTreeItem, FlatTreeItem } from "@/lib/document-tree"
+export type { DocumentTreeItem, FlatTreeItem }
 import type { LucideIcon } from "lucide-react"
 import type {
   DraggableProvidedDraggableProps,
@@ -11,16 +12,16 @@ export interface NavbarProps {
 }
 
 export interface TitleProps {
-  initialData: Doc<"documents">
+  initialData: DocumentTreeItem
 }
 
 export interface MenuProps {
-  documentId: Id<"documents">;
+  documentId: string;
 }
 
 export interface ItemProps {
-  id?: Id<"documents">
-  documentIcon?: string
+  id?: string
+  documentIcon?: string | null
   active?: boolean
   expanded?: boolean
   isSearch?: boolean
@@ -34,7 +35,7 @@ export interface ItemProps {
   lastEditor?: string
   lastEditTime?: string
   creatorName?: string
-  createdAt?: number | string
+  createdAt?: number | string | Date
   verified?: boolean
   isPinned?: boolean
   isDragging?: boolean
@@ -52,18 +53,18 @@ export interface ItemProps {
 }
 
 export interface BannerProps {
-  documentId: Id<"documents">;
+  documentId: string;
 }
 
 export interface DocumentListProps {
-  parentDocumentId?: Id<"documents">
+  parentDocumentId?: string
   level?: number
-  data?: Doc<"documents">[]
+  data?: DocumentTreeItem[]
   onCreateDocument?: () => void
 }
 
 export interface PublishProps {
-  initialData: Doc<"documents">
+  initialData: DocumentTreeItem
 }
 
 export interface DashboardDocumentIdPageProps {

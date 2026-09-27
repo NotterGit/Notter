@@ -4,29 +4,36 @@ import { cn } from "@/lib/utils"
 import Image from "next/image" 
 import { Button } from "./ui/button" 
 import { ImageIcon, X } from "lucide-react" 
-import { useMutation, useQuery } from "convex/react" 
-import { useParams } from "next/navigation" 
-import { Skeleton } from "./ui/skeleton" 
-import { api } from "../../convex/_generated/api" 
-import { useCoverImage } from "./hooks/use-cover-image" 
 import { useOrganization, useUser } from "@clerk/nextjs"
+import { useQueryClient } from "@tanstack/react-query"
 import { deleteFile } from "@/api/files"
 import { normalizeImageUrl } from "@/lib/image-url"
-import type { CoverImageProps } from "@/config/types/components.types";
+import type { CoverImageProps } from "@/config/types/components.types"
 import toast from "react-hot-toast"
-import { isValidConvexId } from "@/lib/convex-id"
+import { isValidDocumentId } from "@/lib/document-id"
+import { useParams } from "next/navigation"
+import { useCoverImage } from "./hooks/use-cover-image"
+import { Skeleton } from "./ui/skeleton"
+import { removeCover } from "@/actions/remove-cover"
+import { useAction } from "@/hooks/use-action"
 
 export function Cover({ url, preview }: CoverImageProps){
   const { user } = useUser()
   const { organization } = useOrganization()
+  const queryClient = useQueryClient()
 
   const orgId = organization?.id ?? user?.id
   const params = useParams() 
-  const documentId = typeof params.documentId === "string" && isValidConvexId(params.documentId)
+  const documentId = typeof params.documentId === "string" && isValidDocumentId(params.documentId)
     ? params.documentId
     : null
   const coverImage = useCoverImage() 
-  const removeCoverImage = useMutation(api.document.removeCoverImage) 
+  const { execute: executeRemoveCover } = useAction(removeCover, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["document", documentId] })
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+    },
+  })
   
   const onRemove = async () => {
     if (!documentId || !orgId || !url) {
@@ -35,7 +42,7 @@ export function Cover({ url, preview }: CoverImageProps){
 
     await deleteFile(orgId, url)
 
-    const promise = removeCoverImage({
+    const promise = executeRemoveCover({
       id: documentId,
       userId: orgId
     });
