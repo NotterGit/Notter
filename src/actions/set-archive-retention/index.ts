@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
-import { db } from "@/lib/db";
+import { updateUser } from "@/api/user";
 import { createSafeAction } from "@/lib/create-safe-action";
 import { isArchiveRetentionAllowed } from "@/lib/plan-limits";
 import { SetArchiveRetention } from "./schema";
@@ -24,18 +24,17 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   }
 
   try {
-    const settings = await db.archiveSettings.upsert({
-      where: { userId: data.userId },
-      create: {
-        userId: data.userId,
-        retentionDays: data.retentionDays,
-      },
-      update: {
+    await updateUser(data.userId, {
+      archived_settings: {
         retentionDays: data.retentionDays,
       },
     });
 
-    return { data: settings };
+    return {
+      data: {
+        retentionDays: data.retentionDays,
+      },
+    };
   } catch (error) {
     console.error("[SET_ARCHIVE_RETENTION_ERROR]", error);
     return { error: "Не удалось сохранить настройки архива" };

@@ -1,5 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
+import { getUserById } from "@/api/user";
+import { getOrgById } from "@/api/org";
 import { NextResponse } from "next/server";
 import { getDocumentLimit, getPublicDocumentLimit } from "@/lib/plan-limits";
 import type { PremiumLevel } from "@/config/const/limits.const";
@@ -17,20 +19,22 @@ export async function GET(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const [documentCount, publicDocumentCount, plan] = await Promise.all([
+    const isTargetOrg = targetUserId.startsWith("org_") || isOrgParam;
+
+    const [documentCount, publicDocumentCount, targetUser, targetOrg] = await Promise.all([
       db.document.count({
         where: { userId: targetUserId, isArchived: false },
       }),
       db.document.count({
         where: { userId: targetUserId, isArchived: false, isPublished: true },
       }),
-      db.workspace.findUnique({
-        where: { userId: targetUserId },
-      }),
+      isTargetOrg ? Promise.resolve(null) : getUserById(targetUserId).catch(() => null),
+      isTargetOrg ? getOrgById(targetUserId).catch(() => null) : Promise.resolve(null),
     ]);
 
-    const premiumLevel = Math.max(plan?.premiumLevel ?? 0, fallbackPremium) as PremiumLevel;
-    const isOrg = plan?.isOrg ?? isOrgParam ?? targetUserId.startsWith("org_");
+    const userPremium = targetUser?.workspaces?.premiumLevel ?? targetUser?.premium ?? targetOrg?.premium ?? 0;
+    const premiumLevel = Math.max(userPremium, fallbackPremium) as PremiumLevel;
+    const isOrg = isTargetOrg || Boolean(targetOrg);
 
     return NextResponse.json({
       documentCount,

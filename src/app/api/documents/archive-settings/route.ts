@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { db } from "@/lib/db";
+import { getUserById } from "@/api/user";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -13,11 +13,10 @@ export async function GET(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const settings = await db.archiveSettings.findUnique({
-      where: { userId: targetUserId },
-    });
+    const user = await getUserById(targetUserId);
+    const retentionDays = user?.archived_settings?.retentionDays ?? 7;
 
-    return NextResponse.json(settings ?? { userId: targetUserId, retentionDays: 7 });
+    return NextResponse.json({ userId: targetUserId, retentionDays });
   } catch (error) {
     console.error("[DOCUMENTS_ARCHIVE_SETTINGS_GET]", error);
     return new NextResponse("Internal Error", { status: 500 });

@@ -40,30 +40,7 @@ model Document {
   @@index([userId])
   @@index([userId, parentDocumentId])
   @@index([parentDocumentId])
-  @@map("documents")
-}
-
-model ArchiveSettings {
-  id            String   @id @default(uuid())
-  userId        String   @unique
-  retentionDays Int      @default(7)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@index([userId])
-  @@map("archive_settings")
-}
-
-model Workspace {
-  id           String   @id @default(uuid())
-  userId       String   @unique
-  premiumLevel Int      @default(0)
-  isOrg        Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([userId])
-  @@map("workspaces")
+  @@map("Documents")
 }
 
 enum ACTION {
@@ -92,7 +69,7 @@ model NoteAuditLog {
   updatedAt   DateTime         @updatedAt
 
   @@index([orgId])
-  @@map("note_audit_logs")
+  @@map("NoteAuditLogs")
 }
 
 // -------------------------------------------------------------

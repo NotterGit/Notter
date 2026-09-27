@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
-import { db } from "@/lib/db";
+import { updateUser } from "@/api/user";
 import { createSafeAction } from "@/lib/create-safe-action";
 import { SyncWorkspacePlan } from "./schema";
 import { InputType, ReturnType } from "./types";
@@ -14,20 +14,22 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   }
 
   try {
-    const workspace = await db.workspace.upsert({
-      where: { userId: data.userId },
-      create: {
+    if (!data.isOrg) {
+      await updateUser(data.userId, {
+        workspaces: {
+          premiumLevel: data.premiumLevel,
+          isOrg: false,
+        },
+      }).catch(() => {});
+    }
+
+    return {
+      data: {
         userId: data.userId,
         premiumLevel: data.premiumLevel,
         isOrg: data.isOrg,
       },
-      update: {
-        premiumLevel: data.premiumLevel,
-        isOrg: data.isOrg,
-      },
-    });
-
-    return { data: workspace };
+    };
   } catch (error) {
     console.error("[SYNC_WORKSPACE_PLAN_ERROR]", error);
     return { error: "Не удалось синхронизировать тариф" };

@@ -6,6 +6,7 @@ import { createSafeAction } from "@/lib/create-safe-action";
 import { createAuditLog } from "@/lib/audit-log";
 import { ACTION, NOTE_ENTITY_TYPE } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { getUserById } from "@/api/user";
 import { pages } from "@/config/routing/pages.route";
 import { ArchiveDocument } from "./schema";
 import { InputType, ReturnType } from "./types";
@@ -58,10 +59,8 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
     await archiveChildren(data.id);
 
-    const archiveSetting = await db.archiveSettings.findUnique({
-      where: { userId: orgId },
-    });
-    const retentionDays = archiveSetting?.retentionDays ?? 7;
+    const user = await getUserById(orgId).catch(() => null);
+    const retentionDays = user?.archived_settings?.retentionDays ?? 7;
     const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
 
     await db.document.deleteMany({
