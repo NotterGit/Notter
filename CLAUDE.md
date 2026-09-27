@@ -21,8 +21,8 @@
 - `public/` — Static assets organized by domain (`ai-icons/`, `badges/`, `bg/`, `defaults/`, `fonts/`, `icons/`, `images/`, `landing/`, `logos/`).
 - `prisma/` — Database schema (`schema.prisma`) defining `Document` (`Documents`), `NoteAuditLog` (`NoteAuditLogs`), and preserved `notter-todo` models (`Board`, `List`, `Card`, `AuditLog`) for shared MariaDB database.
 - `src/actions/` — Server Actions following the `notter-todo` safe-action pattern (`index.ts`, `schema.ts`, `types.ts` via `createSafeAction`):
-  - `create-document/`, `update-document/`, `archive-document/`, `restore-document/`, `delete-document/`, `reorder-documents/`, `move-document/`, `remove-icon/`, `remove-cover/`, `increment-views/`, `set-archive-retention/`, `clean-expired-trash/`, `sync-workspace-plan/`.
-- `src/api/` — Backend REST API clients (`client.ts`, `user.ts`, `org.ts`, `s3.ts`, `admin.ts`, `files.ts`, `document-limit.ts`, `image.ts`). User `archived_settings` and `workspaces` are stored directly on the NotterAPI backend.
+  - `create-document/`, `update-document/`, `archive-document/`, `restore-document/`, `delete-document/`, `reorder-documents/`, `move-document/`, `remove-icon/`, `remove-cover/`, `increment-views/`, `set-archive-retention/`, `clean-expired-trash/`.
+- `src/api/` — Backend REST API clients (`client.ts`, `user.ts`, `org.ts`, `s3.ts`, `admin.ts`, `files.ts`, `document-limit.ts`, `image.ts`). User `archived_settings` are stored directly on the NotterAPI backend.
 - `src/app/` — Next.js 15 App Router:
   - `(landing)/` — Welcome and landing page.
   - `(main)/` — Primary application workspace (dashboard, document editor/viewer).
@@ -42,7 +42,7 @@
 
 ## Tech Stack & Core Features
 - **Authentication:** Clerk (`@clerk/nextjs`) with multi-session support and middleware session synchronization.
-- **Database & ORM:** Prisma ORM with MariaDB via `@prisma/adapter-mariadb` driver adapter (connection pool limit 15, protocol compression enabled). Database is shared with `notter-todo` on `casaos` (`mysql`), maintaining PascalCase tables (`Documents`, `NoteAuditLogs`, `Board`, `List`, `Card`, `AuditLog`) with composite indexes for user document filters. User archive settings and workspaces are managed on the primary NotterAPI backend (`users` collection).
+- **Database & ORM:** Prisma ORM with MariaDB via `@prisma/adapter-mariadb` driver adapter (connection pool limit 15, protocol compression enabled). Database is shared with `notter-todo` on `casaos` (`mysql`), maintaining PascalCase tables (`Documents`, `NoteAuditLogs`, `Board`, `List`, `Card`, `AuditLog`) with composite indexes for user document filters. User archive settings are managed on the primary NotterAPI backend (`users` collection).
 - **Data Fetching & Mutations:**
   - Client reads use TanStack Query (`@tanstack/react-query`) fetching from internal Next.js REST API routes (`/api/documents/*`).
   - Client mutations use Server Actions (`src/actions/*`) wrapped with `useAction` hook (`use-action.ts`).

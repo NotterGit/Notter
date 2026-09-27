@@ -32,7 +32,7 @@ export async function GET(req: Request) {
       isTargetOrg ? getOrgById(targetUserId).catch(() => null) : Promise.resolve(null),
     ]);
 
-    const userPremium = targetUser?.workspaces?.premiumLevel ?? targetUser?.premium ?? targetOrg?.premium ?? 0;
+    const userPremium = targetUser?.premium ?? targetOrg?.premium ?? 0;
     const premiumLevel = Math.max(userPremium, fallbackPremium) as PremiumLevel;
     const isOrg = isTargetOrg || Boolean(targetOrg);
 

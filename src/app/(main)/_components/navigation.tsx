@@ -10,7 +10,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { API } from "@/config/routing/api.route"
 import { fetcher } from "@/lib/fetcher"
 import { createDocument } from "@/actions/create-document"
-import { syncWorkspacePlan as syncWorkspacePlanAction } from "@/actions/sync-workspace-plan"
 import { useAction } from "@/hooks/use-action"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -84,7 +83,6 @@ export function Navigation({ children }: NavigationProps) {
             router.push(pages.DASHBOARD(data.id))
         },
     })
-    const { execute: executeSyncWorkspacePlan } = useAction(syncWorkspacePlanAction)
 
     const isResizingRef = useRef(false)
     const sidebarRef = useRef<ElementRef<"aside">>(null)
@@ -106,35 +104,6 @@ export function Navigation({ children }: NavigationProps) {
     const [promptInstall, setPromptInstall] = useState<BeforeInstallPromptEvent | null>(null)
     const [isInstalled, setIsInstalled] = useState(false)
     const [isInstallModalOpen, setIsInstallModalOpen] = useState(false)
-
-    const currentPremiumLevel = limits?.premiumLevel
-
-    useEffect(() => {
-        let isMounted = true
-
-        const syncPlan = async () => {
-            if (!orgId) return
-
-            try {
-                const profile = isOrg ? await getOrgById(orgId) : await getUserById(orgId)
-                if (profile && isMounted && profile.premium !== undefined) {
-                    if (currentPremiumLevel === undefined || currentPremiumLevel !== profile.premium) {
-                        await executeSyncWorkspacePlan({
-                            userId: orgId,
-                            premiumLevel: profile.premium,
-                            isOrg,
-                        })
-                    }
-                }
-            } catch {}
-        }
-
-        syncPlan()
-
-        return () => {
-            isMounted = false
-        }
-    }, [orgId, isOrg, currentPremiumLevel, executeSyncWorkspacePlan])
 
     useEffect(() => {
         setPromptInstall(getPwaPromptInstall())
