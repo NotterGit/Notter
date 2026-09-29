@@ -3,24 +3,47 @@
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
-import { useMutation } from "convex/react"
-import { api } from "../../../../convex/_generated/api"
 import { toast } from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { useOrganization, useUser } from "@clerk/nextjs"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { pages } from "@/config/routing/pages.route"
 import { images } from "@/config/routing/image.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
-import { createDocumentWithFallback, getCreateDocumentErrorMessage, getCreateDocumentLimitOptions } from "@/api/document-limit"
+import { getCreateDocumentErrorMessage } from "@/api/document-limit"
+import { createDocument } from "@/actions/create-document"
+import { useAction } from "@/hooks/use-action"
+import { fetcher } from "@/lib/fetcher"
+import { API } from "@/config/routing/api.route"
 
 export default function Dashboard() {
-    const create = useMutation(api.document.create)
     const router = useRouter()
+    const queryClient = useQueryClient()
     const { user } = useUser()
     const { organization } = useOrganization()
     const isOrg = organization?.id !== undefined
     const orgId = isOrg ? organization?.id as string : user?.id as string
+
+    const { data: limits } = useQuery<{
+        documentCount: number
+        publicDocumentCount: number
+        premiumLevel: number
+        documentLimit: number
+        publicDocumentLimit: number
+    }>({
+        queryKey: ["workspace-limits", orgId],
+        queryFn: () => fetcher(API.DOCUMENTS.LIMITS(orgId)),
+        enabled: Boolean(orgId),
+    })
+
+    const { execute: executeCreate } = useAction(createDocument, {
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+            queryClient.invalidateQueries({ queryKey: ["workspace-limits", orgId] })
+            router.push(pages.DASHBOARD(data.id))
+        },
+    })
     
     useEffect(() => {
         const orgName = organization?.name || organization?.slug
@@ -34,19 +57,15 @@ export default function Dashboard() {
     }, [isOrg, organization?.slug, organization?.name, user?.fullName, user?.firstName, user?.lastName, user?.username])
     
     const onCreate = () => {
-        const promise = getCreateDocumentLimitOptions(orgId, isOrg)
-            .then((limitOptions) => createDocumentWithFallback(create, { 
-                title: "Новая заметка",
-                userId: orgId,
-                creatorName: isOrg ? organization?.slug as string : user?.username as string,
-                lastEditor: user?.username as string,
-                lastEditTime: getCurrentEditTime(),
-                ...limitOptions,
-            }))
-            .then((documentId) => {
-                router.push(pages.DASHBOARD(documentId));
-                return documentId
-            })
+        const promise = executeCreate({ 
+            title: "Новая заметка",
+            userId: orgId,
+            creatorName: isOrg ? organization?.slug as string : user?.username as string,
+            lastEditor: user?.username as string,
+            lastEditTime: getCurrentEditTime(),
+            premiumLevel: limits?.premiumLevel,
+            isOrg,
+        })
         
         toast.promise(promise, {
             loading: "Создание заметки...",
@@ -54,7 +73,6 @@ export default function Dashboard() {
             error: getCreateDocumentErrorMessage
         })
     }
-    
     
     return (
         <div className="relative flex h-full items-center justify-center overflow-hidden px-4 py-6 sm:px-8">

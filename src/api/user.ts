@@ -129,6 +129,5 @@ export const checkModerator = async (_id: string): Promise<boolean> => {
   return data?.moderator ?? false;
 };
 
-// Aliases for compatibility
 export const getById = getUserById;
 export const getByUsername = getUserByUsername;

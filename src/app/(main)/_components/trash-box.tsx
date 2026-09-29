@@ -1,12 +1,16 @@
 "use client" 
 
-import { useMutation, useQuery } from "convex/react" 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Clock, Loader2, Search, Trash, Undo } from "lucide-react" 
 import { useParams, useRouter } from "next/navigation" 
-import { useEffect, useState } from "react" 
+import { useEffect, useRef, useState } from "react" 
 import { toast } from "react-hot-toast"
-import { api } from "../../../../convex/_generated/api" 
-import { Id } from "../../../../convex/_generated/dataModel" 
+import { API } from "@/config/routing/api.route"
+import { fetcher } from "@/lib/fetcher"
+import { restoreDocument } from "@/actions/restore-document"
+import { deleteDocument } from "@/actions/delete-document"
+import { cleanExpiredTrash as cleanExpiredTrashAction } from "@/actions/clean-expired-trash"
+import { useAction } from "@/hooks/use-action"
 import { Input } from "@/components/ui/input" 
 import { ConfirmModal } from "@/components/modal/confirm-modal" 
 import { Button } from "@/components/ui/button"
@@ -25,49 +29,69 @@ import {
 export function TrashBox(){
   const router = useRouter() 
   const params = useParams() 
+  const queryClient = useQueryClient()
   const { user } = useUser()
   const { organization } = useOrganization()
   const { isOrg, isAdmin } = useWorkspaceAdmin()
   const orgId = organization?.id !== undefined ? organization?.id as string : user?.id as string
-  const documents = useQuery(api.document.getTrash, {
-    userId: orgId
+
+  const { data: documents } = useQuery<any[]>({
+    queryKey: ["documents", "trash", orgId],
+    queryFn: () => fetcher(API.DOCUMENTS.TRASH(orgId)),
+    enabled: Boolean(orgId),
   })
-  const archiveSettings = useQuery(
-    api.document.getArchiveSettings,
-    orgId ? { userId: orgId } : "skip"
-  )
-  const restore = useMutation(api.document.restore) 
-  const remove = useMutation(api.document.remove) 
-  const cleanExpiredTrash = useMutation(api.document.cleanExpiredTrash)
+  const { data: archiveSettings } = useQuery<{ retentionDays: number }>({
+    queryKey: ["archive-settings", orgId],
+    queryFn: () => fetcher(API.DOCUMENTS.ARCHIVE_SETTINGS(orgId)),
+    enabled: Boolean(orgId),
+  })
+
+  const { execute: executeRestore } = useAction(restoreDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", "trash", orgId] })
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+    },
+  })
+  const { execute: executeRemove } = useAction(deleteDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", "trash", orgId] })
+      queryClient.invalidateQueries({ queryKey: ["workspace-limits", orgId] })
+    },
+  })
+  const { execute: executeCleanExpiredTrash } = useAction(cleanExpiredTrashAction, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", "trash", orgId] })
+    },
+  })
 
   const [search, setSearch] = useState("") 
   const [now, setNow] = useState<number>(Date.now())
 
   const retentionDays = archiveSettings?.retentionDays ?? DEFAULT_RETENTION_DAYS
+  const cleanedRef = useRef(false)
 
-  // Clean expired documents on mount
   useEffect(() => {
-    if (orgId) {
-      cleanExpiredTrash({ userId: orgId }).catch(() => {})
+    if (orgId && !cleanedRef.current) {
+      cleanedRef.current = true
+      executeCleanExpiredTrash({ userId: orgId }).catch(() => {})
     }
-  }, [orgId, cleanExpiredTrash])
+  }, [orgId, executeCleanExpiredTrash])
 
-  // Update timer every 10 seconds for a live countdown
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(Date.now())
-    }, 10000)
+    }, 60000)
     return () => clearInterval(timer)
   }, [])
 
   const nextCleanupMs = getNextCleanupTime(documents ?? [], retentionDays, now)
 
-  // Auto-clean if a document expired while viewer is open
   useEffect(() => {
-    if (nextCleanupMs !== null && nextCleanupMs <= 0 && orgId) {
-      cleanExpiredTrash({ userId: orgId }).catch(() => {})
+    if (nextCleanupMs !== null && nextCleanupMs <= 0 && orgId && !cleanedRef.current) {
+      cleanedRef.current = true
+      executeCleanExpiredTrash({ userId: orgId }).catch(() => {})
     }
-  }, [nextCleanupMs, orgId, cleanExpiredTrash])
+  }, [nextCleanupMs, orgId, executeCleanExpiredTrash])
 
   const filteredDocuments = documents?.filter((document) => {
     return document.title.toLowerCase().includes(search.toLowerCase()) 
@@ -79,7 +103,7 @@ export function TrashBox(){
 
   const onRestore = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    documentId: Id<"documents">,
+    documentId: string,
   ) => {
     event.stopPropagation() 
     if (isOrg && !isAdmin) {
@@ -87,7 +111,7 @@ export function TrashBox(){
       return
     }
 
-    const promise = restore({
+    const promise = executeRestore({
       id: documentId,
       userId: orgId
     }) 
@@ -99,13 +123,13 @@ export function TrashBox(){
     }) 
   } 
 
-  const onRemove = (documentId: Id<"documents">) => {
+  const onRemove = (documentId: string) => {
     if (isOrg && !isAdmin) {
       toast.error("Только администраторы могут удалять заметки")
       return
     }
 
-    const promise = remove({
+    const promise = executeRemove({
       id: documentId,
       userId: orgId
     }) 
@@ -133,7 +157,7 @@ export function TrashBox(){
 
     const promise = Promise.all(
       documents.map((document) =>
-        remove({
+        executeRemove({
           id: document._id,
           userId: orgId,
         })
@@ -185,9 +209,6 @@ export function TrashBox(){
             </span>
           )}
         </div>
-        <span className="shrink-0 text-[10px] text-muted-foreground/70 ml-2">
-          {documents && documents.length > 0 ? `(${retentionDays} дн.)` : "Архив пуст"}
-        </span>
       </div>
 
       <div

@@ -3,7 +3,8 @@ import localFont from "next/font/local"
 import { Toaster } from "react-hot-toast"
 
 import "./globals.css"
-import ConvexClientProvider from "@/components/providers/convex-provider"
+import { ClerkThemeProvider } from "@/components/providers/clerk-theme-provider"
+import { QueryProvider } from "@/components/providers/query-provider"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { ThemeIcons } from "@/components/theme-icons"
 import { images } from "@/config/routing/image.route"
@@ -61,29 +62,31 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ConvexClientProvider>
-            <Toaster
-              position="bottom-center"
-              containerStyle={{
-                zIndex: 100000,
-              }}
-              toastOptions={{
-                style: {
-                  color: "black",
-                  background: "white",
-                  fontSize: "13px",
-                  borderRadius: "5px",
-                },
-                iconTheme: {
-                  primary: "black",
-                  secondary: "white",
-                },
-              }}
-            />
-            <PwaProvider />
-            <ThemeIcons />
-            {children}
-          </ConvexClientProvider>
+          <ClerkThemeProvider>
+            <QueryProvider>
+              <Toaster
+                position="bottom-center"
+                containerStyle={{
+                  zIndex: 100000,
+                }}
+                toastOptions={{
+                  style: {
+                    color: "black",
+                    background: "white",
+                    fontSize: "13px",
+                    borderRadius: "5px",
+                  },
+                  iconTheme: {
+                    primary: "black",
+                    secondary: "white",
+                  },
+                }}
+              />
+              <PwaProvider />
+              <ThemeIcons />
+              {children}
+            </QueryProvider>
+          </ClerkThemeProvider>
         </ThemeProvider>
       </body>
     </html>

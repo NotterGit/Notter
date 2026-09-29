@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  relationMode = "prisma"
+}
+
+// Notter Models
+model Document {
+  id               String     @id @default(uuid())
+  title            String
+  userId           String 
+  userName         String?
+  creatorName      String?
+  shortId          String     @unique
+  isShort          Boolean    @default(false)
+  isArchived       Boolean    @default(false)
+  archivedTime     DateTime?
+  isPinned         Boolean    @default(false)
+  parentDocumentId String?
+  parentDocument   Document?  @relation("DocumentHierarchy", fields: [parentDocumentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children         Document[] @relation("DocumentHierarchy")
+  content          String?    @db.LongText
+  coverImage       String?    @db.Text
+  icon             String?
+  isPublished      Boolean    @default(false)
+  lastEditor       String?
+  lastEditTime     String?
+  verified         Boolean    @default(false)
+  views            Int        @default(0)
+  order            Int        @default(0)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([userId, parentDocumentId])
+  @@index([parentDocumentId])
+  @@index([userId, isArchived, order])
+  @@index([userId, isArchived, isPublished])
+  @@index([userId, isArchived, archivedTime])
+  @@map("Documents")
+}
+
+enum ACTION {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum NOTE_ENTITY_TYPE {
+  DOCUMENT
+  SETTINGS
+  WORKSPACE
+}
+
+model NoteAuditLog {
+  id          String           @id @default(uuid())
+  orgId       String
+  action      ACTION
+  entityId    String
+  entityType  NOTE_ENTITY_TYPE
+  entityTitle String
+  userId      String
+  userImage   String?          @db.Text
+  userName    String?          @db.Text
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([orgId])
+  @@map("NoteAuditLogs")
+}
+
+// Notter-Todo Models (Preserved in shared database)
+model Board {
+  id        String   @id @default(uuid())
+  orgId     String
+  title     String
+  image     String   @default("/bg/bg_1.jpg") @db.Text
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+  lists     List[]
+  public    Boolean  @default(false)
+
+  @@index([orgId])
+}
+
+model List {
+  id        String   @id @default(uuid())
+  title     String
+  order     Int
+  color     String?
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards     Card[]
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+
+  @@index([boardId, order])
+}
+
+model Card {
+  id          String   @id @default(uuid())
+  title       String
+  order       Int
+  description String
+  color       String?
+  listId      String
+  list        List     @relation(fields: [listId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updateAt    DateTime @updatedAt
+
+  @@index([listId, order])
+}
+
+enum ENTITY_TYPE {
+  BOARD
+  LIST
+  CARD
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  orgId       String
+  action      ACTION
+  entityId    String
+  entityType  ENTITY_TYPE
+  entityTitle String
+  userId      String
+  userImage   String      @db.Text
+  userName    String      @db.Text
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([orgId, createdAt])
+  @@index([orgId, entityId, entityType])
+  @@index([userId])
+}

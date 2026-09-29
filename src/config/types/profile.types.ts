@@ -1,4 +1,3 @@
-import type { Id } from "../../../convex/_generated/dataModel"
 import type * as React from "react"
 import type { Org, User } from "./api.types"
 
@@ -21,7 +20,7 @@ export interface DocumentListProps {
   user: User | Org;
   profile: string;
   setProfile: React.Dispatch<React.SetStateAction<User | Org | null>>;
-  parentDocumentId?: Id<"documents">;
+  parentDocumentId?: string;
   level?: number;
   publicSorted?: boolean;
 }

@@ -17,8 +17,11 @@ import { Check, ChevronDown, LogOut, Settings, User } from "lucide-react"
 import { isDesktopApp } from "@/lib/desktop-app"
 import { VersionBadge } from "../version-badge"
 import { cn } from "@/lib/utils"
-import { useMutation, useQuery } from "convex/react"
-import { api } from "../../../convex/_generated/api"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { API } from "@/config/routing/api.route"
+import { fetcher } from "@/lib/fetcher"
+import { setArchiveRetention as setArchiveRetentionAction } from "@/actions/set-archive-retention"
+import { useAction } from "@/hooks/use-action"
 import { toast } from "react-hot-toast"
 import Image from "next/image"
 import { images } from "@/config/routing/image.route"
@@ -34,6 +37,7 @@ import {
   isArchiveRetentionAllowed,
   pluralize,
 } from "@/lib/archive"
+import { AiAgentSettings } from "./ai-agent-settings"
 
 const readRedirectPreference = () => {
   if (typeof window === "undefined") return false
@@ -56,6 +60,7 @@ export function SettingsModal() {
   const clerk = useClerk()
   const { organization } = useOrganization()
   const { isOrg, isAdmin } = useWorkspaceAdmin()
+  const queryClient = useQueryClient()
   const [isPrivated, setIsPrivated] = useState<boolean>(false)
   const [watermark, setWatermark] = useState<boolean>(false)
   const [redirect, setRedirect] = useState<boolean>(false)
@@ -64,11 +69,16 @@ export function SettingsModal() {
   const id = isOrg ? organization?.id : user?.id
 
   const canEdit = (userData?.owner === user?.id || isAdmin) || !isOrg
-  const archiveSettings = useQuery(
-    api.document.getArchiveSettings,
-    id ? { userId: id } : "skip"
-  )
-  const setArchiveRetention = useMutation(api.document.setArchiveRetention)
+  const { data: archiveSettings } = useQuery<{ retentionDays: number }>({
+    queryKey: ["archive-settings", id],
+    queryFn: () => fetcher(API.DOCUMENTS.ARCHIVE_SETTINGS(id)),
+    enabled: Boolean(id),
+  })
+  const { execute: executeSetArchiveRetention } = useAction(setArchiveRetentionAction, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["archive-settings", id] })
+    },
+  })
   const [retentionDays, setRetentionDays] = useState<number>(DEFAULT_RETENTION_DAYS)
 
   useEffect(() => {
@@ -89,7 +99,7 @@ export function SettingsModal() {
 
     if (id) {
       try {
-        await setArchiveRetention({
+        await executeSetArchiveRetention({
           userId: id,
           retentionDays: days,
           premiumLevel: premium,
@@ -153,8 +163,6 @@ export function SettingsModal() {
     localStorage.setItem("redirect", value ? "true" : "false")
     document.cookie = `redirect=${value ? "true" : "false"}; Path=/; Max-Age=31536000; SameSite=Lax`
   }
-
-  // backdrop modal (simplified)
 
   const backdropId = "clerk-backdrop-overlay"
   const intervalRef = useRef<number | null>(null)
@@ -230,11 +238,9 @@ export function SettingsModal() {
     }
   }, [])
 
-  // backdrop modal end
-
   return (
     <Dialog open={settings.isOpen} onOpenChange={settings.onClose}>
-      <DialogContent>
+      <DialogContent className="max-h-[85vh] overflow-y-auto max-w-lg">
         <DialogHeader className="border-b pb-3">
           <h2 className="text-lg font-medium">Настройки</h2>
         </DialogHeader>
@@ -368,6 +374,8 @@ export function SettingsModal() {
             </DropdownMenu>
           </div>
         )}
+
+        <AiAgentSettings />
 
         <Separator />
 

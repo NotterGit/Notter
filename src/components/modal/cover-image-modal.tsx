@@ -7,29 +7,37 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog" 
 import { useState } from "react" 
-import { useMutation } from "convex/react" 
 import { useParams } from "next/navigation" 
 import { useCoverImage } from "../hooks/use-cover-image" 
-import { api } from "../../../convex/_generated/api" 
 import { DragAndDrop } from "../drag-and-drop" 
 import { useOrganization, useUser } from "@clerk/nextjs"
+import { useQueryClient } from "@tanstack/react-query"
 import { uploadFile } from "@/api/files"
 import { getUserById } from "@/api/user";
 import { getOrgById } from "@/api/org";
 import toast from "react-hot-toast"
-import { isValidConvexId } from "@/lib/convex-id"
+import { isValidDocumentId } from "@/lib/document-id"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
+import { getPlanLimits } from "@/lib/plan-limits"
+import { updateDocument } from "@/actions/update-document"
+import { useAction } from "@/hooks/use-action"
 
 export function CoverImageModal(){
   const params = useParams() 
-  const documentId = typeof params.documentId === "string" && isValidConvexId(params.documentId)
+  const queryClient = useQueryClient()
+  const documentId = typeof params.documentId === "string" && isValidDocumentId(params.documentId)
     ? params.documentId
     : null
 
   const [file, setFile] = useState<File>()
   const [isSubmitting, setIsSubmitting] = useState(false) 
 
-  const update = useMutation(api.document.update) 
+  const { execute: executeUpdate } = useAction(updateDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["document", documentId] })
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+    },
+  })
   const coverImage = useCoverImage()
 
   const { user } = useUser()
@@ -52,10 +60,7 @@ export function CoverImageModal(){
       await getOrgById(orgId) : 
       await getUserById(orgId);
 
-    const userSize = 
-      userdata?.premium == 1 ? 3 
-      : userdata?.premium == 2 ? 10 
-      : 1;
+    const userSize = getPlanLimits(Number(userdata?.premium ?? 0), isOrg).uploadMb;
     const maxSize = userSize * 1024 * 1024
 
     if (file.size > maxSize) {
@@ -74,7 +79,7 @@ export function CoverImageModal(){
       return;
     }
 
-    await update({
+    await executeUpdate({
       id: documentId,
       coverImage: fileUrl,
       userId: orgId,

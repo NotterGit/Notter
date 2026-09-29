@@ -2,13 +2,15 @@
 
 import Twemoji from "react-twemoji"
 import { Archive, ArrowRight, Calendar, Check, ChevronDown, ChevronRight, FolderInput, History, LucideIcon, MoreHorizontal, Pin, PinOff, Plus, Trash } from "lucide-react"
-import { Id } from "../../../../convex/_generated/dataModel"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "react-hot-toast"
 import { useRouter } from "next/navigation"
-import { useMutation } from "convex/react"
-import { api } from "../../../../convex/_generated/api"
+import { useQueryClient } from "@tanstack/react-query"
+import { createDocument } from "@/actions/create-document"
+import { archiveDocument } from "@/actions/archive-document"
+import { updateDocument } from "@/actions/update-document"
+import { useAction } from "@/hooks/use-action"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
@@ -17,7 +19,7 @@ import { pages } from "@/config/routing/pages.route"
 
 import { formatLastEditTime, getCurrentEditTime } from "@/lib/last-edit-time"
 import type { ItemProps } from "@/config/types/main.types";
-import { createDocumentWithFallback, getCreateDocumentErrorMessage, getCreateDocumentLimitOptions } from "@/api/document-limit"
+import { getCreateDocumentErrorMessage } from "@/api/document-limit"
 
 export function Item({
     label, 
@@ -51,14 +53,33 @@ export function Item({
     innerRef,
 }: ItemProps){
     const router = useRouter()
-    const create = useMutation(api.document.create)
-    const archive = useMutation(api.document.archive)
-    const update = useMutation(api.document.update)
+    const queryClient = useQueryClient()
     const { user } = useUser()
     const { organization } = useOrganization()
     const { isOrg, isAdmin } = useWorkspaceAdmin()
     const orgId = isOrg ? organization?.id as string : user?.id as string
     const moveNote = useMoveNote()
+
+    const { execute: executeCreate } = useAction(createDocument, {
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+            queryClient.invalidateQueries({ queryKey: ["workspace-limits", orgId] })
+        },
+    })
+    const { execute: executeArchive } = useAction(archiveDocument, {
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+            queryClient.invalidateQueries({ queryKey: ["documents", "trash", orgId] })
+        },
+    })
+    const { execute: executeUpdate } = useAction(updateDocument, {
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+            if (id) {
+                queryClient.invalidateQueries({ queryKey: ["document", id] })
+            }
+        },
+    })
 
     const onMove = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>
@@ -74,7 +95,7 @@ export function Item({
         event.stopPropagation()
         if (!id) return
 
-        const promise = update({
+        const promise = executeUpdate({
             id,
             isPinned: !isPinned,
             userId: orgId,
@@ -98,14 +119,14 @@ export function Item({
             toast.error("Только администраторы могут архивировать заметки")
             return
         }
-        update({
+        executeUpdate({
             id: id,
             isPublished: false,
             userId: orgId,
             lastEditor: user?.username as string,
             lastEditTime: getCurrentEditTime()
-        })
-        const promise = archive({
+        }).catch(() => {})
+        const promise = executeArchive({
             id, 
             userId: orgId
         })
@@ -129,21 +150,20 @@ export function Item({
         event.stopPropagation();
         if (!id) return;
     
-        const promise = getCreateDocumentLimitOptions(orgId, isOrg)
-            .then((limitOptions) => createDocumentWithFallback(create, {
-                title: "Новая заметка",
-                parentDocument: id,
-                userId: orgId,
-                lastEditor: user?.username as string,
-                creatorName: isOrg ? organization?.slug ?? "" : user?.username ?? "",
-                lastEditTime: getCurrentEditTime(),
-                ...limitOptions,
-            })).then((documentId) => {
+        const promise = executeCreate({
+            title: "Новая заметка",
+            parentDocument: id,
+            userId: orgId,
+            lastEditor: user?.username as string,
+            creatorName: isOrg ? organization?.slug ?? "" : user?.username ?? "",
+            lastEditTime: getCurrentEditTime(),
+            isOrg,
+        }).then((data) => {
             if (!expanded) {
                 onExpand?.()
             }
-            router.push(pages.DASHBOARD(documentId))
-            return documentId
+            router.push(pages.DASHBOARD(data.id))
+            return data.id
         })
 
         toast.promise(promise, {
@@ -225,7 +245,7 @@ export function Item({
                 <Icon className={cn("mr-2 h-[17px] w-[17px] shrink-0 text-muted-foreground", isArchiveTarget && "text-red-600 dark:text-red-400")}/>
             )}
             
-            <span className="truncate">
+            <span className={cn("truncate", isDragging && "font-bold text-foreground")}>
                 <Twemoji options={{ className: "twemoji" }}>
                     {label}
                 </Twemoji>

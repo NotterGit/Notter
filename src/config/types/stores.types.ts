@@ -24,4 +24,4 @@ export type MoveNoteStore = {
   documentId?: string
   onOpen: (documentId: string) => void
   onClose: () => void
-}
+}

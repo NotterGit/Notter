@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-
 import { createUser, getUserById, updateUser } from "@/api/user";
 import { useDocumentStats } from "@/components/hooks/use-document-stats";
 import type { UseRequestUserFunction } from "@/config/types/api.types";

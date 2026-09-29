@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react"
 import { FileText  } from "lucide-react"
 import { useOrganization, useUser } from "@clerk/nextjs"
-import { useQuery } from "convex/react"
+import { useQuery } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import Twemoji from "react-twemoji"
 
-import { api } from "../../convex/_generated/api"
+import { API } from "@/config/routing/api.route"
+import { fetcher } from "@/lib/fetcher"
+import type { DocumentTreeItem } from "@/config/types/main.types"
 import { pages } from "@/config/routing/pages.route"
 import { useSearch } from "./hooks/use-search"
 import {
@@ -27,10 +29,11 @@ export function SearchCommand() {
   const toggle = useSearch((store) => store.toggle)
   const isOpen = useSearch((store) => store.isOpen)
   const onClose = useSearch((store) => store.onClose)
-  const documents = useQuery(
-    api.document.getSearch,
-    isOpen && orgId ? { userId: orgId } : "skip"
-  )
+  const { data: documents } = useQuery<DocumentTreeItem[]>({
+    queryKey: ["documents", "search", orgId],
+    queryFn: () => fetcher(API.DOCUMENTS.SEARCH(orgId)),
+    enabled: Boolean(isOpen && orgId),
+  })
   const [isMounted, setIsMounted] = useState(false)
   const [searchValue, setSearchValue] = useState("")
 

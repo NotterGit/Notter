@@ -1,11 +1,12 @@
 "use client"
 
 import { ChangeEvent, useRef, useState } from "react"
-import { useMutation } from "convex/react"
 import { useOrganization, useUser } from "@clerk/nextjs"
+import { useQueryClient } from "@tanstack/react-query"
 import Twemoji from "react-twemoji"
 
-import { api } from "../../../../convex/_generated/api"
+import { updateDocument } from "@/actions/update-document"
+import { useAction } from "@/hooks/use-action"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -14,13 +15,33 @@ import { getCurrentEditTime } from "@/lib/last-edit-time"
 import type { TitleProps } from "@/config/types/main.types"
 
 export function Title({ initialData }: TitleProps) {
+  const queryClient = useQueryClient()
   const inputRef = useRef<HTMLInputElement>(null)
-  const update = useMutation(api.document.update)
   const { user } = useUser()
   const { organization } = useOrganization()
   const orgId = organization?.id !== undefined ? organization.id : user?.id as string
+
+  const { execute: executeUpdate } = useAction(updateDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["document", initialData._id] })
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+    },
+  })
   const [title, setTitle] = useState(initialData.title || "Новая заметка")
   const [isEditing, setIsEditing] = useState(false)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+
+  const saveTitle = (newTitle: string) => {
+    const trimmed = newTitle.trim() || "Новая заметка"
+    if (trimmed === initialData.title) return
+    executeUpdate({
+      id: initialData._id,
+      title: trimmed,
+      userId: orgId,
+      lastEditor: user?.username as string,
+      lastEditTime: getCurrentEditTime(),
+    })
+  }
 
   const enableInput = () => {
     setTitle(initialData.title)
@@ -33,17 +54,20 @@ export function Title({ initialData }: TitleProps) {
 
   const disabledInput = () => {
     setIsEditing(false)
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+      debounceRef.current = null
+    }
+    saveTitle(title)
   }
 
   const onChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setTitle(event.target.value)
-    update({
-      id: initialData._id,
-      title: event.target.value || "Новая заметка",
-      userId: orgId,
-      lastEditor: user?.username as string,
-      lastEditTime: getCurrentEditTime(),
-    })
+    const val = event.target.value
+    setTitle(val)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      saveTitle(val)
+    }, 400)
   }
 
   const onKeyDown = (event: React.KeyboardEvent) => {

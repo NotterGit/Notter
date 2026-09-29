@@ -139,7 +139,6 @@ export const Delete = async <T>(
   }
 };
 
-// Aliases for full compatibility
 export const apiGet = Get;
 export const apiPost = Post;
 export const apiPut = Put;
