@@ -3,6 +3,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { createAuditLog } from "@/lib/audit-log";
+import { ACTION, NOTE_ENTITY_TYPE } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { pages } from "@/config/routing/pages.route";
 import { MoveDocument } from "./schema";
@@ -96,6 +98,16 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     const updated = await db.document.findUnique({
       where: { id: data.id },
     });
+
+    if (updated) {
+      await createAuditLog({
+        entityId: updated.id,
+        entityTitle: updated.title,
+        entityType: NOTE_ENTITY_TYPE.DOCUMENT,
+        action: ACTION.UPDATE,
+        orgId,
+      });
+    }
 
     revalidatePath(pages.DASHBOARD());
     revalidatePath(pages.DASHBOARD(data.id));

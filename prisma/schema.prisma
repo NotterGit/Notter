@@ -69,6 +69,9 @@ model NoteAuditLog {
   updatedAt   DateTime         @updatedAt
 
   @@index([orgId])
+  @@index([orgId, createdAt])
+  @@index([orgId, entityId, entityType])
+  @@index([userId])
   @@map("NoteAuditLogs")
 }
 

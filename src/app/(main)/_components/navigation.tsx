@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, FileText , Search, Settings2, PlusCircle } from "lucide-react"
+import { Activity, Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, FileText , Search, Settings2, PlusCircle } from "lucide-react"
 
 import { useParams, useRouter } from "next/navigation"
 import { ElementRef, useEffect, useRef, useState } from "react"
@@ -19,8 +19,9 @@ import { InstallModal } from "@/components/modal/install-modal"
 import { UserItem } from "./user-item"
 import { Item } from "./item"
 import { DocumentList } from "./document-list"
-import { useSearch } from "../../../components/hooks/use-search"
-import { useSettings } from "../../../components/hooks/use-settings"
+import { useSearch } from "@/components/hooks/use-search"
+import { useSettings } from "@/components/hooks/use-settings"
+import { useAuditModal } from "@/components/hooks/use-audit-modal"
 import { Navbar } from "./navbar"
 import Link from "next/link"
 import { pages } from "@/config/routing/pages.route"
@@ -68,6 +69,7 @@ export function Navigation({ children }: NavigationProps) {
     }, [settings])
 
     const seacrh = useSearch()
+    const auditModal = useAuditModal()
     const params = useParams()
     const queryClient = useQueryClient()
     const { user } = useUser()
@@ -239,6 +241,7 @@ export function Navigation({ children }: NavigationProps) {
                         <UserItem />
                         <Item label="Поиск" icon={Search} isSearch onClick={seacrh.onOpen} />
                         <Item label="Настройки" icon={Settings2} onClick={settings.onOpen} shortcut="k" />
+                        <Item label="Журнал аудита" icon={Activity} onClick={() => auditModal.onOpen()} />
                         {!isInstalled ? (
                             <>
                                 <Item label="Перейти в ToDo" icon={Check} onClick={() => {router.push(links.TODO_DASHBOARD)}} hasArrow />

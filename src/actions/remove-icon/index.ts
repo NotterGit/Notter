@@ -3,6 +3,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { createAuditLog } from "@/lib/audit-log";
+import { ACTION, NOTE_ENTITY_TYPE } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { pages } from "@/config/routing/pages.route";
 import { RemoveIcon } from "./schema";
@@ -31,6 +33,14 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     const document = await db.document.update({
       where: { id: data.id },
       data: { icon: null },
+    });
+
+    await createAuditLog({
+      entityId: document.id,
+      entityTitle: document.title,
+      entityType: NOTE_ENTITY_TYPE.DOCUMENT,
+      action: ACTION.UPDATE,
+      orgId,
     });
 
     revalidatePath(pages.DASHBOARD(document.id));

@@ -3,6 +3,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { createSafeAction } from "@/lib/create-safe-action";
+import { createAuditLog } from "@/lib/audit-log";
+import { ACTION, NOTE_ENTITY_TYPE } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { pages } from "@/config/routing/pages.route";
 import { UpdateDocument } from "./schema";
@@ -58,6 +60,22 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       values.order !== undefined ||
       values.isPublished !== undefined ||
       values.shortId !== undefined;
+
+    const isSignificantChange =
+      isStructuralChange ||
+      values.icon !== undefined ||
+      values.coverImage !== undefined ||
+      values.isPinned !== undefined;
+
+    if (isSignificantChange) {
+      await createAuditLog({
+        entityId: document.id,
+        entityTitle: document.title,
+        entityType: NOTE_ENTITY_TYPE.DOCUMENT,
+        action: ACTION.UPDATE,
+        orgId,
+      });
+    }
 
     if (isStructuralChange) {
       revalidatePath(pages.DASHBOARD(document.id));

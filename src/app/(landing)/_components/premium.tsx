@@ -79,6 +79,7 @@ export function Premium() {
             "Сокращенные ссылки для публичных заметок",
             "Уникальный значок в профиле",
             "Хранение в архиве до 30 дней",
+            "Расширенный журнал аудита",
           ]}
         />
         <PremiumCard
@@ -96,6 +97,7 @@ export function Premium() {
             "Кастомные ссылки",
             "Отключение упоминаний Notter",
             "Скачивание/Загрузка заметок в JSON",
+            "Экспорт журнала аудита в CSV",
           ]}
         />
       </div>
@@ -168,6 +170,18 @@ export function Premium() {
             </TableRow>
             <TableRow className="border-border/40">
               <TableCell className="font-medium">Скачивание/загрузка в JSON</TableCell>
+              <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
+              <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
+              <TableCell><Check className="h-4 w-4 text-cyan-500" /></TableCell>
+            </TableRow>
+            <TableRow className="border-border/40">
+              <TableCell className="font-medium">Расширенный журнал аудита</TableCell>
+              <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
+              <TableCell><Check className="h-4 w-4 text-yellow-400" /></TableCell>
+              <TableCell><Check className="h-4 w-4 text-cyan-500" /></TableCell>
+            </TableRow>
+            <TableRow className="border-border/40">
+              <TableCell className="font-medium">Экспорт журнала аудита в CSV</TableCell>
               <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
               <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
               <TableCell><Check className="h-4 w-4 text-cyan-500" /></TableCell>
