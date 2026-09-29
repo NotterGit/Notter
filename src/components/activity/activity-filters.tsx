@@ -97,7 +97,10 @@ export function ActivityFilters({
                 Расширенный поиск и фильтрация
               </p>
               <p className="text-muted-foreground">
-                Фильтрация по типам действий, датам и полная история доступны в тарифах Amber и Diamond
+                Фильтрация по типам действий, датам и полная история доступны в тарифах{" "}
+                <span className="font-semibold text-amber-500 dark:text-yellow-400">Amber</span>
+                {" "}и{" "}
+                <span className="font-semibold text-cyan-500 dark:text-cyan-400">Diamond</span>
               </p>
             </div>
           </div>

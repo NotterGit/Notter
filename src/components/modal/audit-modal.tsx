@@ -188,7 +188,10 @@ export function AuditModal() {
               {!isExtended && noteLogs && noteLogs.length >= 3 && (
                 <div className="flex items-center justify-between gap-2 p-3 rounded-xl border border-yellow-500/20 bg-yellow-500/5 text-xs text-muted-foreground">
                   <span>
-                    Показаны последние 3 действия. Полная история доступна в тарифах Amber и Diamond.
+                    Показаны последние 3 действия. Полная история доступна в тарифах{" "}
+                    <span className="font-semibold text-amber-500 dark:text-yellow-400">Amber</span>
+                    {" "}и{" "}
+                    <span className="font-semibold text-cyan-500 dark:text-cyan-400">Diamond</span>.
                   </span>
                   <Link
                     href={links.NOTTER_GEM}
