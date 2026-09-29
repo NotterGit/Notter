@@ -7,7 +7,7 @@
     "dev:webpack": "next dev -H 0.0.0.0",
     "dev:https": "next dev --turbo --experimental-https",
     "postinstall": "npm rebuild @tailwindcss/oxide || true",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint .",
     "studio": "prisma studio",
