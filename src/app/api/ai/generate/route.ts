@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { QUALAI_API_URL } from "@/config/const/api.const";
 import type { GenerateTextOptions as GeneratePayload } from "@/config/types/ai.types";
+import { generateLoremIpsum } from "@/lib/ai/lorem";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,6 +23,12 @@ export async function POST(req: NextRequest) {
 
     if (!model || !model.trim()) {
       return NextResponse.json({ error: "Не выбрана модель" }, { status: 400 });
+    }
+
+    if (provider === "mock") {
+      const words = parseInt(prompt.trim(), 10) || 100;
+      const withMarkdown = model !== "lorem-plain";
+      return NextResponse.json({ text: generateLoremIpsum(words, withMarkdown) });
     }
 
     if (provider !== "custom" && provider !== "qualai" && !apiKey.trim()) {
@@ -65,7 +72,10 @@ export async function POST(req: NextRequest) {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => null);
-        const errMsg = errorData?.error?.message || `Ошибка API ${provider} (${res.status})`;
+        const errMsg =
+          errorData?.error?.metadata?.raw ||
+          errorData?.error?.message ||
+          `Ошибка API ${provider} (${res.status})`;
         return NextResponse.json({ error: errMsg }, { status: res.status });
       }
 

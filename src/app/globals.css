@@ -127,7 +127,6 @@ body,
   }
 }
 
-/* Custom scrollbar for navigation sidebar */
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(0,0,0,0.25) transparent;
@@ -153,7 +152,6 @@ body,
   background-color: rgba(0,0,0,0.32);
 }
 
-/* Dark mode scrollbar tweaks */
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(255,255,255,0.06);
 }
@@ -161,7 +159,6 @@ body,
   background-color: rgba(255,255,255,0.12);
 }
 
-/* Ultra-thin minimal scrollbar for horizontal provider strips */
 .scrollbar-minimal {
   scrollbar-width: thin;
   scrollbar-color: rgba(0,0,0,0.15) transparent;
@@ -196,7 +193,6 @@ body,
   background-color: rgba(255,255,255,0.28);
 }
 
-/* Resize handle highlight */
 .resize-handle {
   transition: background-color 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
 }
@@ -541,7 +537,6 @@ body.editor-is-dragging .tiptap-prototype-content {
   }
 }
 
-/* AI Generation line marker and full-width shimmer animation */
 .tiptap-prototype-content .tiptap-ai-generating-line {
   position: relative !important;
   display: flex !important;
@@ -625,6 +620,31 @@ body.editor-is-dragging .tiptap-prototype-content {
   }
   100% {
     background-position: -100% 0;
+  }
+}
+
+.tiptap-prototype-content .tiptap-ai-typing-cursor {
+  display: inline-block !important;
+  width: 2.5px !important;
+  height: 1.15em !important;
+  margin-left: 2px !important;
+  margin-right: 2px !important;
+  vertical-align: text-bottom !important;
+  background: linear-gradient(180deg, #8b5cf6, #c084fc) !important;
+  border-radius: 2px !important;
+  box-shadow: 0 0 10px 1.5px rgba(168, 85, 247, 0.65) !important;
+  animation: tiptap-ai-cursor-pulse 0.75s ease-in-out infinite !important;
+  pointer-events: none !important;
+}
+
+@keyframes tiptap-ai-cursor-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 0.25;
+    transform: scaleY(0.85);
   }
 }
 
