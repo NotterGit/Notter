@@ -3,6 +3,7 @@ export const links = {
     FEEDBACK: "https://feedback.qual.su",
     TELEGRAM: "https://t.me/qualsu",
     QUAL_ID: "https://id.qual.su",
+    NOTTER_GEM: "https://gem.notter.su",
     TODO: "https://todo.notter.su",
     TODO_DASHBOARD: "https://todo.notter.su/dashboard",
     DOWNLOAD: {

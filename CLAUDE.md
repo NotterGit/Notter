@@ -28,23 +28,25 @@
   - `(main)/` — Primary application workspace (dashboard, document editor/viewer).
   - `(profile)/` — Profile, user, and organization settings.
   - `(public)/` — Publicly shared document views (accessible without auth).
-  - `api/documents/` — Route handlers for sidebar tree, trash, search, document limits, stats, archive settings, short URLs, and document by ID.
+  - `api/documents/` — Route handlers for sidebar tree, trash, search, document limits, stats, archive settings, short URLs, document by ID, and note logs (`/api/documents/[documentId]/logs`).
+  - `api/audit-logs/` — Route handlers for workspace audit logs and CSV export (`/api/audit-logs`, `/api/audit-logs/export`).
   - `api/image/route.ts` — S3 image proxy route handler (`/api/image`).
   - `api/ai/` — AI generation (`/api/ai/generate`) and weekly limit checking (`/api/ai/limits`).
   - `api/backgrounds/route.ts` — Cover collection listing route handler (`/api/backgrounds`).
-- `src/components/` — Shared React components, Modals, Providers (`query-provider.tsx`, `clerk-theme-provider.tsx`), and hooks.
+- `src/components/` — Shared React components, Activity components (`activity/`), Modals (`AuditModal`, etc.), Providers (`query-provider.tsx`, `clerk-theme-provider.tsx`), and hooks.
 - `src/config/` — Centralized configuration:
-  - `const/` — Constants (`editor.const.ts`, `limits.const.ts`, `banner-images.const.ts`, `components.const.ts`, `app.const.ts`, `api.const.ts`).
-  - `types/` — TypeScript domain types (`editor.types.ts`, `limits.types.ts`, `ai.types.ts`, `components.types.ts`, `api.types.ts`, `main.types.ts`, `profile.types.ts`, `public.types.ts`, `landing.types.ts`, `actions.types.ts`).
+  - `const/` — Constants (`editor.const.ts`, `limits.const.ts`, `banner-images.const.ts`, `components.const.ts`, `app.const.ts`, `api.const.ts`, `activity.const.ts`).
+  - `types/` — TypeScript domain types (`editor.types.ts`, `limits.types.ts`, `ai.types.ts`, `components.types.ts`, `api.types.ts`, `main.types.ts`, `profile.types.ts`, `public.types.ts`, `landing.types.ts`, `actions.types.ts`, `activity.types.ts`, `stores.types.ts`).
   - `routing/` — Navigation paths (`pages.route.ts`, `api.route.ts`, `image.route.ts`, `links.route.ts`).
-- `src/hooks/` — Application hooks (`use-action.ts`, `use-mobile.ts`, etc.).
-- `src/lib/` — Utilities (`db.ts` with MariaDB driver adapter, `create-safe-action.ts`, `audit-log.ts`, `fetcher.ts`, `gen-id.ts`, `document-tree.ts`, `document-id.ts`, `image-url.ts`, `plan-limits.ts`).
+- `src/hooks/` — Application hooks (`use-action.ts`, `use-mobile.ts`, `use-account-profile.ts`, etc.).
+- `src/lib/` — Utilities (`db.ts` with MariaDB driver adapter, `create-safe-action.ts`, `audit-log.ts`, `generate-log.ts`, `audit-log-csv.ts`, `fetcher.ts`, `gen-id.ts`, `document-tree.ts`, `document-id.ts`, `image-url.ts`, `plan-limits.ts`).
 
 ## Tech Stack & Core Features
 - **Authentication:** Clerk (`@clerk/nextjs`) with multi-session support and middleware session synchronization.
 - **Database & ORM:** Prisma ORM with MariaDB via `@prisma/adapter-mariadb` driver adapter (connection pool limit 15, protocol compression enabled). Database is shared with `notter-todo` on `casaos` (`mysql`), maintaining PascalCase tables (`Documents`, `NoteAuditLogs`, `Board`, `List`, `Card`, `AuditLog`) with composite indexes for user document filters. User archive settings are managed on the primary NotterAPI backend (`users` collection).
+- **Date Handling & Localization:** `date-fns` for Russian locale formatting and interval queries.
 - **Data Fetching & Mutations:**
-  - Client reads use TanStack Query (`@tanstack/react-query`) fetching from internal Next.js REST API routes (`/api/documents/*`).
+  - Client reads use TanStack Query (`@tanstack/react-query`) fetching from internal Next.js REST API routes (`/api/documents/*`, `/api/audit-logs/*`).
   - Client mutations use Server Actions (`src/actions/*`) wrapped with `useAction` hook (`use-action.ts`).
 - **Styling:** Tailwind CSS v4 with `@tailwindcss/postcss`.
 - **Editor:** Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, custom extensions for resizable images, video, audio, AI text generation, color/highlight pickers, S3 media uploads) for all production documents and editor sandbox.

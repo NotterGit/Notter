@@ -65,7 +65,11 @@ export async function GET(req: Request) {
         createdAt: true,
         updatedAt: true,
       },
-      orderBy: { order: "asc" },
+      orderBy: [
+        { isPinned: "desc" },
+        { order: "asc" },
+        { createdAt: "asc" },
+      ],
     });
 
     const responseData = documents.map((doc) => ({

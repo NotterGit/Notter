@@ -1,9 +1,22 @@
 import { AiProviderId, GenerateTextOptions } from "@/config/types/ai.types";
+import { generateLoremIpsum } from "./lorem";
 
 export type { GenerateTextOptions };
 
 export async function generateAiText(options: GenerateTextOptions): Promise<string> {
   const { provider, model, prompt, systemPrompt, apiKey = "", baseUrl, workspaceId, isOrg, signal } = options;
+
+  if (provider === "mock") {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    if (signal?.aborted) {
+      const err = new Error("Aborted");
+      err.name = "AbortError";
+      throw err;
+    }
+    const words = parseInt(prompt.trim(), 10) || 100;
+    const withMarkdown = model !== "lorem-plain";
+    return generateLoremIpsum(words, withMarkdown);
+  }
 
   const isLocalCustom =
     provider === "custom" &&

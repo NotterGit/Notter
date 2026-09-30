@@ -25,3 +25,11 @@ export type MoveNoteStore = {
   onOpen: (documentId: string) => void
   onClose: () => void
 }
+
+export type AuditModalStore = {
+  isOpen: boolean
+  documentId?: string
+  documentTitle?: string
+  onOpen: (documentId?: string, documentTitle?: string) => void
+  onClose: () => void
+}

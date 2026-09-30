@@ -1,7 +1,7 @@
 "use client"
 
 import Twemoji from "react-twemoji"
-import { Archive, ArrowRight, Calendar, Check, ChevronDown, ChevronRight, FolderInput, History, LucideIcon, MoreHorizontal, Pin, PinOff, Plus, Trash } from "lucide-react"
+import { Activity, Archive, ArrowRight, Calendar, Check, ChevronDown, ChevronRight, FolderInput, History, LucideIcon, MoreHorizontal, Pin, PinOff, Plus, Trash } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "react-hot-toast"
@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
 import { useMoveNote } from "@/components/hooks/use-move-note"
+import { useAuditModal } from "@/components/hooks/use-audit-modal"
 import { pages } from "@/config/routing/pages.route"
 
 import { formatLastEditTime, getCurrentEditTime } from "@/lib/last-edit-time"
@@ -59,6 +60,7 @@ export function Item({
     const { isOrg, isAdmin } = useWorkspaceAdmin()
     const orgId = isOrg ? organization?.id as string : user?.id as string
     const moveNote = useMoveNote()
+    const auditModal = useAuditModal()
 
     const { execute: executeCreate } = useAction(createDocument, {
         onSuccess: () => {
@@ -317,6 +319,17 @@ export function Item({
                             <DropdownMenuItem onClick={onMove} className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10">
                                 <FolderInput className="h-4 w-4 text-muted-foreground"/>
                                 Переместить
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="my-1"/>
+                            <DropdownMenuItem
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    auditModal.onOpen(id, label);
+                                }}
+                                className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10"
+                            >
+                                <Activity className="h-4 w-4 text-muted-foreground"/>
+                                Журнал аудита
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="my-1"/>
 

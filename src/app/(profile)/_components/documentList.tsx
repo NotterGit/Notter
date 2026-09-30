@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { API } from "@/config/routing/api.route";
 import { fetcher } from "@/lib/fetcher";
 import type { DocumentTreeItem } from "@/config/types/main.types";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Twemoji from "react-twemoji";
 import toast from "react-hot-toast";
@@ -86,6 +86,20 @@ export function DocumentList({
     }
   };
 
+  const sortedDocuments = useMemo(() => {
+    if (!documents) return [];
+    return [...documents].sort((a, b) => {
+      const aPinned = Boolean(a.isPinned);
+      const bPinned = Boolean(b.isPinned);
+      if (aPinned !== bPinned) return aPinned ? -1 : 1;
+      const orderDiff = (a.order ?? 0) - (b.order ?? 0);
+      if (orderDiff !== 0) return orderDiff;
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return aTime - bTime;
+    });
+  }, [documents]);
+
   if (documents === undefined) {
     return (
       <>
@@ -98,14 +112,14 @@ export function DocumentList({
     );
   }
 
-  if (documents.length === 0 && level === 0) {
+  if (sortedDocuments.length === 0 && level === 0) {
     return <p className="ml-2 rounded-xl border border-black/5 bg-background/60 px-3 py-2 text-sm text-muted-foreground dark:border-white/10">Пусто</p>;
   }
 
   return (
     <div className="space-y-2">
       <Twemoji>
-        {documents.map((doc) => {
+        {sortedDocuments.map((doc) => {
           const isExpanded = expanded[doc._id];
 
           if (doc.isPublished || !publicSorted) {

@@ -6,7 +6,8 @@ export type AiProviderId =
   | "qwen"
   | "openrouter"
   | "qualai"
-  | "custom";
+  | "custom"
+  | "mock";
 
 export interface StandardProviderConfig {
   apiKey: string;
@@ -30,6 +31,7 @@ export interface AiSettingsData {
     openrouter: StandardProviderConfig;
     qualai: StandardProviderConfig;
     custom: CustomProviderConfig;
+    mock: StandardProviderConfig;
   };
 }
 
@@ -49,6 +51,7 @@ export interface ProviderMeta {
   id: AiProviderId;
   name: string;
   isCustom?: boolean;
+  isDevOnly?: boolean;
   iconSrc?: string;
   placeholderKey: string;
   keyHelpUrl?: string;

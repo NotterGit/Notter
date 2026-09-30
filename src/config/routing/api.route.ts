@@ -44,6 +44,21 @@ export const API = {
       return `/api/documents/${id}${query ? `?${query}` : ""}`;
     },
     BY_SHORT_ID: (shortId: string) => `/api/documents/short/${shortId}`,
+    LOGS: (id: string, orgId?: string) => {
+      const params = new URLSearchParams();
+      if (orgId) params.set("orgId", orgId);
+      const query = params.toString();
+      return `/api/documents/${id}/logs${query ? `?${query}` : ""}`;
+    },
+  },
+  AUDIT_LOGS: {
+    GET: (options?: { orgId?: string }) => {
+      const params = new URLSearchParams();
+      if (options?.orgId) params.set("orgId", options.orgId);
+      const query = params.toString();
+      return `/api/audit-logs${query ? `?${query}` : ""}`;
+    },
+    EXPORT: (orgId: string) => `/api/audit-logs/export?orgId=${encodeURIComponent(orgId)}`,
   },
   BACKEND: {
     FILES: {

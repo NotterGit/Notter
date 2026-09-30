@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Archive, Calendar, Download, FolderInput, History, MoreHorizontal, Pin, PinOff, Undo, Upload } from "lucide-react";
+import { Activity, Archive, Calendar, Download, FolderInput, History, MoreHorizontal, Pin, PinOff, Undo, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { useMoveNote } from "@/components/hooks/use-move-note";
+import { useAuditModal } from "@/components/hooks/use-audit-modal";
 
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/ui/shadcn-io/dropzone";
 import { getOrgById as getOrg } from "@/api/org";
@@ -80,6 +81,7 @@ export function Menu({ documentId }: MenuProps) {
   const [openModal, setOpenModal] = useState(false);
   const [profile, setProfile] = useState<User | Org | null>(null)
   const moveNote = useMoveNote();
+  const auditModal = useAuditModal();
 
   const onMove = () => {
     if (!documentId) return;
@@ -272,6 +274,16 @@ export function Menu({ documentId }: MenuProps) {
           >
             <FolderInput className="h-4 w-4 text-muted-foreground" />
             Переместить
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator className="my-1" />
+
+          <DropdownMenuItem
+            onClick={() => auditModal.onOpen(documentId, doc?.title)}
+            className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            <Activity className="h-4 w-4 text-muted-foreground" />
+            Журнал аудита
           </DropdownMenuItem>
 
           <DropdownMenuSeparator className="my-1" />

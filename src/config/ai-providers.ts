@@ -66,6 +66,13 @@ export const AI_PROVIDERS: Record<AiProviderId, ProviderMeta> = {
     placeholderKey: "Опционально",
     defaultBaseUrl: "http://localhost:11434/v1",
   },
+  mock: {
+    id: "mock",
+    name: "Lorem (Dev)",
+    placeholderKey: "Не требуется",
+    requiresKey: false,
+    isDevOnly: true,
+  },
 };
 
 export const AI_SYSTEM_PROMPTS = {
@@ -117,6 +124,11 @@ export const DEFAULT_AI_SETTINGS: AiSettingsData = {
       baseUrl: "http://localhost:11434/v1",
       selectedModel: "",
       models: [],
+    },
+    mock: {
+      apiKey: "",
+      selectedModel: "lorem-markdown",
+      models: ["lorem-markdown", "lorem-plain"],
     },
   },
 };

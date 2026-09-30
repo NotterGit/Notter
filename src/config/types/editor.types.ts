@@ -79,6 +79,8 @@ export interface TextSelectionRange {
 
 export interface AiIndicatorState {
   isGenerating: boolean
+  isTyping?: boolean
+  typingPos?: number
   from: number
   to: number
 }
@@ -170,4 +172,18 @@ export interface CoverModalProps {
   onSelectCover: (url: string) => void
   onRemoveCover: () => void
   onUploadFile?: (file: File) => Promise<string>
+}
+
+export interface AiTypewriterOptions {
+  editor: Editor
+  markdown: string
+  range: { from: number; to: number }
+  onComplete?: () => void
+  onError?: (err: unknown) => void
+}
+
+export interface AiTypewriterController {
+  stop: () => void
+  finishImmediately: () => void
+  isRunning: () => boolean
 }
