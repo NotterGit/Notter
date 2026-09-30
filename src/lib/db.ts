@@ -6,10 +6,19 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-function createPrismaClient() {
+let prismaInstance: PrismaClient | undefined;
+
+function createPrismaClient(): PrismaClient {
   const urlString = process.env.DATABASE_URL;
   if (!urlString) {
-    return new PrismaClient();
+    const fallbackAdapter = new PrismaMariaDb({
+      host: "localhost",
+      port: 3306,
+      user: "notter",
+      password: "",
+      database: "notter",
+    });
+    return new PrismaClient({ adapter: fallbackAdapter });
   }
 
   try {
@@ -30,10 +39,38 @@ function createPrismaClient() {
     return new PrismaClient({ adapter });
   } catch (e) {
     console.error("Failed to initialize PrismaMariaDb adapter:", e);
-    return new PrismaClient();
+    const fallbackAdapter = new PrismaMariaDb({
+      host: "localhost",
+      port: 3306,
+      user: "notter",
+      password: "",
+      database: "notter",
+    });
+    return new PrismaClient({ adapter: fallbackAdapter });
   }
 }
 
-export const db = globalThis.prisma || createPrismaClient();
+function getPrismaClient(): PrismaClient {
+  if (globalThis.prisma) {
+    return globalThis.prisma;
+  }
+  if (!prismaInstance) {
+    prismaInstance = createPrismaClient();
+    if (process.env.NODE_ENV !== "production") {
+      globalThis.prisma = prismaInstance;
+    }
+  }
+  return prismaInstance;
+}
 
-if (process.env.NODE_ENV !== "production") globalThis.prisma = db;
+export const db = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    if (prop === "then" || prop === "$$typeof" || prop === "toJSON") {
+      return undefined;
+    }
+    const client = getPrismaClient();
+    const value = Reflect.get(client, prop, client);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});
+

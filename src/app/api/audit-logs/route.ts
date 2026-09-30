@@ -10,6 +10,8 @@ import { getPlanLimits } from "@/lib/plan-limits";
 import { getUserById } from "@/api/user";
 import { getOrgById } from "@/api/org";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   try {
     const { userId: clerkUserId, orgId: clerkOrgId } = await auth();
