@@ -5,6 +5,7 @@ import {
   FREE_AUDIT_LOG_LIMIT,
   EXTENDED_AUDIT_LOG_LIMIT,
   hasExtendedAuditLog,
+  type PremiumLevel,
 } from "@/config/const/limits.const";
 import { getPlanLimits } from "@/lib/plan-limits";
 import { getUserById } from "@/api/user";
@@ -17,6 +18,7 @@ export async function GET(req: Request) {
     const { userId: clerkUserId, orgId: clerkOrgId } = await auth();
     const { searchParams } = new URL(req.url);
     const requestedOrgId = searchParams.get("orgId");
+    const fallbackPremium = Number(searchParams.get("fallbackPremiumLevel")) || 0;
 
     const targetOrgId = requestedOrgId || clerkOrgId || clerkUserId;
     if (!clerkUserId || !targetOrgId) {
@@ -31,12 +33,19 @@ export async function GET(req: Request) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 
-    const profile = isOrg
-      ? await getOrgById(targetOrgId).catch(() => null)
-      : await getUserById(targetOrgId).catch(() => null);
+    const [orgProfile, userProfile] = await Promise.all([
+      isOrg ? getOrgById(targetOrgId).catch(() => null) : Promise.resolve(null),
+      getUserById(clerkUserId).catch(() => null),
+    ]);
 
-    const isExtended = hasExtendedAuditLog(profile?.premium);
-    const planLimits = getPlanLimits(profile?.premium, isOrg);
+    const userPremium = Math.max(
+      Number(orgProfile?.premium ?? 0),
+      Number(userProfile?.premium ?? 0)
+    );
+    const premiumLevel = Math.max(userPremium, fallbackPremium) as PremiumLevel;
+
+    const isExtended = hasExtendedAuditLog(premiumLevel);
+    const planLimits = getPlanLimits(premiumLevel, isOrg);
     const takeLimit = isExtended
       ? EXTENDED_AUDIT_LOG_LIMIT
       : FREE_AUDIT_LOG_LIMIT;

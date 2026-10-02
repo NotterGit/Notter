@@ -11,23 +11,31 @@ import { Download } from "lucide-react";
 
 interface AuditLogExportButtonProps {
   orgId: string;
+  fallbackPremiumLevel?: number;
 }
 
-export function AuditLogExportButton({ orgId }: AuditLogExportButtonProps) {
+export function AuditLogExportButton({
+  orgId,
+  fallbackPremiumLevel = 0,
+}: AuditLogExportButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const isOrg = orgId.startsWith("org_");
   const { data: profile, isLoading: isProfileLoading } = useAccountProfile(
     orgId,
     isOrg
   );
-  const hasDiamond = isDiamondPlan(profile?.premium);
+  const effectivePremium = Math.max(
+    Number(profile?.premium ?? 0),
+    Number(fallbackPremiumLevel ?? 0)
+  );
+  const hasDiamond = isDiamondPlan(effectivePremium);
 
   const handleExport = async () => {
     if (isProfileLoading || !hasDiamond) return;
 
     try {
       setIsLoading(true);
-      const res = await fetch(API.AUDIT_LOGS.EXPORT(orgId));
+      const res = await fetch(API.AUDIT_LOGS.EXPORT(orgId, effectivePremium));
 
       if (!res.ok) {
         const errorText = await res.text();

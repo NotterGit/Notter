@@ -44,21 +44,33 @@ export const API = {
       return `/api/documents/${id}${query ? `?${query}` : ""}`;
     },
     BY_SHORT_ID: (shortId: string) => `/api/documents/short/${shortId}`,
-    LOGS: (id: string, orgId?: string) => {
+    LOGS: (id: string, orgId?: string, fallbackPremiumLevel?: number) => {
       const params = new URLSearchParams();
       if (orgId) params.set("orgId", orgId);
+      if (fallbackPremiumLevel !== undefined) {
+        params.set("fallbackPremiumLevel", String(fallbackPremiumLevel));
+      }
       const query = params.toString();
       return `/api/documents/${id}/logs${query ? `?${query}` : ""}`;
     },
   },
   AUDIT_LOGS: {
-    GET: (options?: { orgId?: string }) => {
+    GET: (options?: { orgId?: string; fallbackPremiumLevel?: number }) => {
       const params = new URLSearchParams();
       if (options?.orgId) params.set("orgId", options.orgId);
+      if (options?.fallbackPremiumLevel !== undefined) {
+        params.set("fallbackPremiumLevel", String(options.fallbackPremiumLevel));
+      }
       const query = params.toString();
       return `/api/audit-logs${query ? `?${query}` : ""}`;
     },
-    EXPORT: (orgId: string) => `/api/audit-logs/export?orgId=${encodeURIComponent(orgId)}`,
+    EXPORT: (orgId: string, fallbackPremiumLevel?: number) => {
+      const params = new URLSearchParams({ orgId });
+      if (fallbackPremiumLevel !== undefined) {
+        params.set("fallbackPremiumLevel", String(fallbackPremiumLevel));
+      }
+      return `/api/audit-logs/export?${params.toString()}`;
+    },
   },
   BACKEND: {
     FILES: {
