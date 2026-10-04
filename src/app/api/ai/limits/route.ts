@@ -37,9 +37,9 @@ export async function GET(req: NextRequest) {
         account_id: accountId,
         tier: "Free",
         premium: 0,
-        limit: 10,
+        limit: 15,
         used: 0,
-        remaining: 10,
+        remaining: 15,
         period: "week",
         is_org: isOrg,
       });
@@ -55,9 +55,9 @@ export async function GET(req: NextRequest) {
       account_id: "guest",
       tier: "Free",
       premium: 0,
-      limit: 10,
+      limit: 15,
       used: 0,
-      remaining: 10,
+      remaining: 15,
       period: "week",
     });
   }

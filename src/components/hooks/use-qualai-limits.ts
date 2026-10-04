@@ -33,7 +33,7 @@ export function useQualAiLimits(customWorkspaceId?: string) {
         setLimits(data);
       }
     } catch (e) {
-      console.error("Failed to fetch QualAI limits:", e);
+      console.error("Failed to fetch Q.AI limits:", e);
     } finally {
       setIsLoading(false);
     }

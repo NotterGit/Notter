@@ -308,7 +308,7 @@ export function AiGeneratePopover({
 
         {selectedProviderId === "qualai" && (
           <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-muted/40 border border-border/60 text-xs">
-            <span className="text-muted-foreground text-[11px]">Недельный лимит QualAI:</span>
+            <span className="text-muted-foreground text-[11px]">Недельный лимит Q.AI:</span>
             <span className={cn(
               "font-mono font-medium text-[11px]",
               (qualAiLimits?.remaining ?? 1) === 0 ? "text-destructive font-semibold" : "text-primary"

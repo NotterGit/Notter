@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => null);
-        const errMsg = errorData?.detail || `Ошибка API QualAI (${res.status})`;
+        const errMsg = errorData?.detail || `Ошибка API Q.AI (${res.status})`;
         return NextResponse.json({ error: errMsg }, { status: res.status });
       }
 

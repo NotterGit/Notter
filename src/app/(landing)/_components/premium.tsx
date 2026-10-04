@@ -59,7 +59,7 @@ export function Premium() {
           features={[
             `До ${limits.free.documents} заметок`,
             `До ${limits.free.publicDocuments} публичных заметок`,
-            `До ${limits.free.aiGenerationsPerWeek} генераций QualAI в неделю`,
+            `До ${limits.free.aiGenerationsPerWeek} генераций Q.AI в неделю`,
             `Загрузка изображений до ${limits.free.uploadMb} МБ`,
             "Хранение в архиве до 7 дней",
           ]}
@@ -74,7 +74,7 @@ export function Premium() {
           features={[
             `До ${limits.amber.documents} заметок`,
             `До ${limits.amber.publicDocuments} публичных заметок`,
-            `До ${limits.amber.aiGenerationsPerWeek} генераций QualAI в неделю`,
+            `До ${limits.amber.aiGenerationsPerWeek} генераций Q.AI в неделю`,
             `Загрузка изображений до ${limits.amber.uploadMb} МБ`,
             "Сокращенные ссылки для публичных заметок",
             "Уникальный значок в профиле",
@@ -91,7 +91,7 @@ export function Premium() {
             "Все преимущества Amber",
             `До ${limits.diamond.documents} заметок`,
             `До ${limits.diamond.publicDocuments} публичных заметок`,
-            `До ${limits.diamond.aiGenerationsPerWeek} генераций QualAI в неделю`,
+            `До ${limits.diamond.aiGenerationsPerWeek} генераций Q.AI в неделю`,
             `Загрузка изображений до ${limits.diamond.uploadMb} МБ`,
             "Хранение в архиве до 90 дней",
             "Кастомные ссылки",
@@ -127,7 +127,7 @@ export function Premium() {
               <TableCell className="font-medium text-cyan-500">{limits.diamond.publicDocuments}</TableCell>
             </TableRow>
             <TableRow className="border-border/40">
-              <TableCell className="font-medium">Генерации QualAI в неделю</TableCell>
+              <TableCell className="font-medium">Генерации Q.AI в неделю</TableCell>
               <TableCell>{limits.free.aiGenerationsPerWeek}</TableCell>
               <TableCell className="font-medium text-yellow-400">{limits.amber.aiGenerationsPerWeek}</TableCell>
               <TableCell className="font-medium text-cyan-500">{limits.diamond.aiGenerationsPerWeek}</TableCell>

@@ -4,10 +4,10 @@ import { AiProviderId, AiSettingsData, ProviderMeta } from "@/config/types/ai.ty
 export type { ProviderMeta };
 
 export const QUALAI_DEFAULT_MODELS = [
-  "QualAI-2",
-  "QualAI-1.5",
-  "QualAI-1.5-mini",
+  "Q.AI 3",
+  "Q.AI 3 Mini",
 ];
+export const QAI_DEFAULT_MODELS = QUALAI_DEFAULT_MODELS;
 
 export const AI_PROVIDERS: Record<AiProviderId, ProviderMeta> = {
   openai: {
@@ -54,8 +54,8 @@ export const AI_PROVIDERS: Record<AiProviderId, ProviderMeta> = {
   },
   qualai: {
     id: "qualai",
-    name: "QualAI",
-    iconSrc: images.AI.QUALAI,
+    name: "Q.AI",
+    iconSrc: images.AI.QAI,
     placeholderKey: "Не требуется",
     requiresKey: false,
   },

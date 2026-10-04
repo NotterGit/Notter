@@ -249,7 +249,7 @@ export function AiAgentSettings() {
               <div className="rounded-lg border border-border/70 bg-muted/40 p-2.5 space-y-2 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-foreground">
-                    Недельный лимит QualAI {isOrg ? "(Организация)" : "(Личный)"}
+                    Недельный лимит Q.AI {isOrg ? "(Организация)" : "(Личный)"}
                   </span>
                   {isLimitsLoading ? (
                     <span className="h-3 w-28 bg-primary/10 rounded-md animate-pulse"/>
