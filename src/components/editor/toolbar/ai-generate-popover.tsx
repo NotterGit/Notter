@@ -112,6 +112,7 @@ export function AiGeneratePopover({
       setIsLoading(false);
       generatingTargetPosRef.current = null;
       abortControllerRef.current = null;
+      setIsOpen(false);
     } else {
       if (typewriterControllerRef.current) {
         typewriterControllerRef.current.finishImmediately();
@@ -162,8 +163,12 @@ export function AiGeneratePopover({
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
+    const savedPrompt = prompt;
     setIsLoading(true);
     setAiGenerating(editor, true, targetPos);
+    setIsOpen(false);
+    setPrompt("");
+    editor?.commands.focus();
 
     try {
       const generatedText = await generateAiText({
@@ -185,7 +190,6 @@ export function AiGeneratePopover({
       const to = typeof finalPos === "number" ? finalPos : finalPos.to;
 
       setIsOpen(false);
-      setPrompt("");
 
       typewriterControllerRef.current = typewriteAiText({
         editor,
@@ -210,6 +214,7 @@ export function AiGeneratePopover({
       } else {
         const msg = error instanceof Error ? error.message : "Не удалось сгенерировать текст";
         toast.error(msg);
+        setPrompt(savedPrompt);
       }
       setAiGenerating(editor, false);
     } finally {
@@ -232,6 +237,10 @@ export function AiGeneratePopover({
       <PopoverContent
         align="start"
         sideOffset={6}
+        onCloseAutoFocus={(e) => {
+          e.preventDefault();
+          editor?.commands.focus();
+        }}
         className="w-80 sm:w-96 p-3 shadow-xl rounded-xl border bg-popover text-popover-foreground space-y-2.5"
       >
         <div className="flex items-center justify-between pb-1 border-b border-border/50">
