@@ -542,27 +542,26 @@ body.editor-is-dragging .tiptap-prototype-content {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-height: 18px !important;
+  min-height: 20px !important;
   line-height: 1 !important;
   border-left: 3px solid #8b5cf6 !important;
   padding-left: 0.5rem !important;
   padding-right: 0.5rem !important;
-  padding-top: 2px !important;
-  padding-bottom: 2px !important;
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
   margin-top: 0.25rem !important;
   margin-bottom: 0.25rem !important;
   border-radius: 0 0.375rem 0.375rem 0 !important;
   background: linear-gradient(
     90deg,
     rgba(139, 92, 246, 0.16) 0%,
-    rgba(168, 85, 247, 0.1) 25%,
+    rgba(217, 70, 239, 0.1) 25%,
     rgba(99, 102, 241, 0.16) 50%,
-    rgba(168, 85, 247, 0.1) 75%,
+    rgba(217, 70, 239, 0.1) 75%,
     rgba(139, 92, 246, 0.16) 100%
   ) !important;
   background-size: 200% 100% !important;
-  animation: tiptap-ai-line-shimmer 2.2s linear infinite !important;
-  box-shadow: 0 0 10px -2px rgba(139, 92, 246, 0.22) !important;
+  animation: tiptap-ai-line-shimmer 2.5s linear infinite !important;
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
@@ -572,11 +571,11 @@ body.editor-is-dragging .tiptap-prototype-content {
     border-left-color: #8b5cf6;
   }
   50% {
-    background-position: 0 0;
-    border-left-color: #a855f7;
+    background-position: 50% 0;
+    border-left-color: #d946ef;
   }
   100% {
-    background-position: -100% 0;
+    background-position: 0% 0;
     border-left-color: #8b5cf6;
   }
 }
@@ -593,34 +592,165 @@ body.editor-is-dragging .tiptap-prototype-content {
 }
 
 .tiptap-ai-bar {
+  position: relative !important;
+  overflow: hidden !important;
   display: block !important;
   width: 100% !important;
+  min-width: 100% !important;
+  flex: 1 1 100% !important;
   height: 12px !important;
   margin: 0 auto !important;
-  border-radius: 4px !important;
+  border-radius: 9999px !important;
   background: linear-gradient(
     90deg,
-    #8b5cf6 0%,
-    #c084fc 25%,
-    #e879f9 50%,
-    #c084fc 75%,
-    #8b5cf6 100%
+    #7c3aed 0%,
+    #a855f7 10%,
+    #d946ef 20%,
+    #ec4899 30%,
+    #6366f1 40%,
+    #7c3aed 50%,
+    #a855f7 60%,
+    #d946ef 70%,
+    #ec4899 80%,
+    #6366f1 90%,
+    #7c3aed 100%
   ) !important;
   background-size: 200% 100% !important;
-  box-shadow: 0 0 10px 1px rgba(192, 132, 252, 0.45) !important;
-  animation: tiptap-ai-bar-wave 1.6s ease-in-out infinite !important;
+  animation: tiptap-ai-bar-flow 2.5s linear infinite !important;
 }
 
-@keyframes tiptap-ai-bar-wave {
+.tiptap-ai-bar::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: 9999px !important;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 15%,
+    rgba(255, 255, 255, 0.65) 50%,
+    rgba(255, 255, 255, 0.05) 85%,
+    transparent 100%
+  ) !important;
+  transform: translateX(-100%);
+  animation: tiptap-ai-bar-glare 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  pointer-events: none !important;
+}
+
+@keyframes tiptap-ai-bar-flow {
   0% {
     background-position: 100% 0;
   }
-  50% {
+  100% {
     background-position: 0% 0;
   }
-  100% {
-    background-position: -100% 0;
+}
+
+@keyframes tiptap-ai-bar-glare {
+  0% {
+    transform: translateX(-100%);
   }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.ai-generate-button-loading {
+  background: linear-gradient(
+    90deg,
+    #7c3aed 0%,
+    #a855f7 25%,
+    #6366f1 50%,
+    #a855f7 75%,
+    #7c3aed 100%
+  ) !important;
+  background-size: 200% 100% !important;
+  animation: tiptap-ai-bar-flow 2s linear infinite !important;
+}
+
+/* Custom code block styling & syntax highlighting */
+.custom-code-block-wrapper {
+  user-select: text;
+}
+
+.custom-code-block-pre {
+  tab-size: 2;
+}
+
+/* Syntax Highlighting for Highlight.js (qual-ai One Dark theme) */
+.hljs {
+  color: #abb2bf !important;
+  background: transparent !important;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #5c6370 !important;
+  font-style: italic !important;
+}
+
+.hljs-doctag,
+.hljs-keyword,
+.hljs-formula {
+  color: #c678dd !important;
+}
+
+.hljs-section,
+.hljs-name,
+.hljs-selector-tag,
+.hljs-deletion,
+.hljs-subst {
+  color: #e06c75 !important;
+}
+
+.hljs-literal {
+  color: #56b6c2 !important;
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta .hljs-string {
+  color: #98c379 !important;
+}
+
+.hljs-attr,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-type,
+.hljs-selector-class,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-number {
+  color: #d19a66 !important;
+}
+
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-meta,
+.hljs-selector-id,
+.hljs-title {
+  color: #61aeee !important;
+}
+
+.hljs-built_in,
+.hljs-title.class_,
+.hljs-class .hljs-title {
+  color: #e5c07b !important;
+}
+
+.hljs-emphasis {
+  font-style: italic !important;
+}
+
+.hljs-strong {
+  font-weight: bold !important;
+}
+
+.hljs-link {
+  text-decoration: underline !important;
 }
 
 .tiptap-prototype-content .tiptap-ai-typing-cursor {

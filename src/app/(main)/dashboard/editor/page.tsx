@@ -24,6 +24,7 @@ import { getPlanLimits } from "@/lib/plan-limits"
 import { CustomImage } from "@/components/editor/extensions/custom-image"
 import { CustomVideo } from "@/components/editor/extensions/custom-video"
 import { CustomAudio } from "@/components/editor/extensions/custom-audio"
+import { CustomCodeBlock } from "@/components/editor/extensions/custom-code-block"
 import { AiIndicatorExtension } from "@/components/editor/extensions/ai-indicator"
 import { EditorToolbar } from "@/components/editor/toolbar/editor-toolbar"
 
@@ -70,6 +71,7 @@ export default function EditorPrototypePage() {
     extensions: [
       StarterKit.configure({
         heading: false,
+        codeBlock: false,
         dropcursor: {
           color: "#2563eb",
           width: 2,
@@ -86,6 +88,7 @@ export default function EditorPrototypePage() {
       CustomImage,
       CustomVideo,
       CustomAudio,
+      CustomCodeBlock,
       TaskList,
       TaskItem.configure({ nested: true }),
       AiIndicatorExtension,

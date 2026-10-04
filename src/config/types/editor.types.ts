@@ -187,3 +187,8 @@ export interface AiTypewriterController {
   finishImmediately: () => void
   isRunning: () => boolean
 }
+
+export interface CodeLanguageOption {
+  value: string
+  label: string
+}

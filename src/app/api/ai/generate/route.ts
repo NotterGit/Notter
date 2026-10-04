@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { QUALAI_API_URL } from "@/config/const/api.const";
+import { getUserById } from "@/api/user";
+import { getOrgById } from "@/api/org";
 import type { GenerateTextOptions as GeneratePayload } from "@/config/types/ai.types";
 import { generateLoremIpsum } from "@/lib/ai/lorem";
 
@@ -149,6 +151,12 @@ export async function POST(req: NextRequest) {
       const forwardedFor = req.headers.get("x-forwarded-for");
       const realIp = req.headers.get("x-real-ip");
 
+      const [targetUser, targetOrg] = await Promise.all([
+        isOrg ? Promise.resolve(null) : getUserById(accountId).catch(() => null),
+        isOrg ? getOrgById(accountId).catch(() => null) : Promise.resolve(null),
+      ]);
+      const userPremium = Number(targetUser?.premium ?? targetOrg?.premium ?? 0);
+
       const res = await fetch(`${QUALAI_API_URL}/chat`, {
         method: "POST",
         headers: {
@@ -160,6 +168,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           account_id: accountId,
           is_org: isOrg,
+          premium: userPremium,
           session_id: crypto.randomUUID(),
           model_id: model,
           message: prompt,

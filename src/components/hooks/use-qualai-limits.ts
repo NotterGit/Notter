@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useOrganization, useUser } from "@clerk/nextjs";
 
 import type { QualAiLimitsData } from "@/config/types/ai.types";
+import { useAccountProfile } from "@/hooks/use-account-profile";
 
 export type { QualAiLimitsData };
 
@@ -15,6 +16,7 @@ export function useQualAiLimits(customWorkspaceId?: string) {
 
   const activeWorkspaceId = customWorkspaceId ?? (organization?.id || user?.id);
   const isOrg = Boolean(customWorkspaceId ? customWorkspaceId.startsWith("org_") : organization?.id);
+  const { data: profile } = useAccountProfile(activeWorkspaceId, isOrg);
 
   const fetchLimits = useCallback(async () => {
     try {
@@ -25,6 +27,9 @@ export function useQualAiLimits(customWorkspaceId?: string) {
       }
       if (isOrg) {
         params.set("isOrg", "true");
+      }
+      if (profile?.premium !== undefined) {
+        params.set("fallbackPremium", String(profile.premium));
       }
       const url = params.toString() ? `/api/ai/limits?${params.toString()}` : "/api/ai/limits";
       const res = await fetch(url);
@@ -37,7 +42,7 @@ export function useQualAiLimits(customWorkspaceId?: string) {
     } finally {
       setIsLoading(false);
     }
-  }, [activeWorkspaceId, isOrg]);
+  }, [activeWorkspaceId, isOrg, profile?.premium]);
 
   useEffect(() => {
     if (!isOrgLoaded || !isUserLoaded) return;

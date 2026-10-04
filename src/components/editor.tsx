@@ -32,6 +32,7 @@ import { convertBlockNoteToTiptap } from "@/lib/editor/migrate-blocknote"
 import { CustomImage } from "./editor/extensions/custom-image"
 import { CustomVideo } from "./editor/extensions/custom-video"
 import { CustomAudio } from "./editor/extensions/custom-audio"
+import { CustomCodeBlock } from "./editor/extensions/custom-code-block"
 import { AiIndicatorExtension } from "./editor/extensions/ai-indicator"
 import { EditorToolbar } from "./editor/toolbar/editor-toolbar"
 
@@ -129,6 +130,7 @@ export default function Editor({
     extensions: [
       StarterKit.configure({
         heading: false,
+        codeBlock: false,
         dropcursor: {
           color: "#2563eb",
           width: 2,
@@ -145,6 +147,7 @@ export default function Editor({
       CustomImage,
       CustomVideo,
       CustomAudio,
+      CustomCodeBlock,
       TaskList,
       TaskItem.configure({ nested: true }),
       AiIndicatorExtension,

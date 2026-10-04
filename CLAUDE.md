@@ -49,7 +49,7 @@
   - Client reads use TanStack Query (`@tanstack/react-query`) fetching from internal Next.js REST API routes (`/api/documents/*`, `/api/audit-logs/*`).
   - Client mutations use Server Actions (`src/actions/*`) wrapped with `useAction` hook (`use-action.ts`).
 - **Styling:** Tailwind CSS v4 with `@tailwindcss/postcss`.
-- **Editor:** Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, custom extensions for resizable images, video, audio, AI text generation, color/highlight pickers, S3 media uploads) for all production documents and editor sandbox.
+- **Editor:** Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-code-block-lowlight`, `lowlight`, custom extensions for code blocks with language headers and copy button, resizable images, video, audio, AI text generation, color/highlight pickers, S3 media uploads) for all production documents and editor sandbox.
 - **Desktop Packaging:** Pake-cli integration for packaging web app into lightweight desktop builds.
 
 ## Coding Guidelines

@@ -520,7 +520,10 @@ export function AiGeneratePopover({
                 (selectedProviderId !== "mock" && (!prompt.trim() || !selectedModel.trim())) ||
                 (selectedProviderId === "qualai" && qualAiLimits?.remaining === 0)
               }
-              className="h-7 px-3 text-xs gap-1.5 cursor-pointer bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 shadow-xs disabled:opacity-50"
+              className={cn(
+                "h-7 px-3 text-xs gap-1.5 cursor-pointer bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 shadow-xs disabled:opacity-50 transition-all",
+                isLoading && "ai-generate-button-loading disabled:opacity-90 cursor-wait"
+              )}
             >
               {isLoading ? (
                 <>
