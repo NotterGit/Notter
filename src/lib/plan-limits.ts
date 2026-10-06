@@ -1,4 +1,15 @@
-import { AMBER_PERSONAL_LIMITS, AMBER_TEAM_LIMITS, DIAMOND_LIMITS, FREE_LIMITS, PlanLimits, PremiumLevel } from "@/config/const/limits.const"
+import {
+  AMBER_PERSONAL_LIMITS,
+  AMBER_TEAM_LIMITS,
+  DIAMOND_LIMITS,
+  FREE_LIMITS,
+  PlanLimits,
+  PremiumLevel,
+  hasExtendedAuditLog,
+  isDiamondPlan,
+} from "@/config/const/limits.const"
+
+export { hasExtendedAuditLog, isDiamondPlan }
 
 export const getPlanLimits = (premiumLevel: PremiumLevel = 0, isOrg = false): PlanLimits => {
     if (premiumLevel === 1) {

@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useOrganization, useUser } from "@clerk/nextjs";
-
 import { createOrg, getOrgById, updateOrg } from "@/api/org";
 import { useDocumentStats } from "@/components/hooks/use-document-stats";
 import type { UseRequestOrgFunction } from "@/config/types/api.types";

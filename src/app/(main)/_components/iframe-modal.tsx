@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Check, Copy, Sparkles } from "lucide-react"
+import { Check, Code, Copy, Sparkles } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -36,12 +36,12 @@ export function IframeModal({ iframeUrl }: IframeModalProps) {
   return (
     <>
       <Button
-        className="mt-2 h-9 w-full rounded-xl text-xs w-full max-w-[1380px] "
+        className="mt-3 h-9 w-full rounded-xl text-xs"
         size="sm"
         variant="outline"
         onClick={() => setOpen(true)}
       >
-        Вставить на сайт
+        <Code /> Вставить на сайт
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>

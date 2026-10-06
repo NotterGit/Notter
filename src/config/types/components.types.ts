@@ -1,17 +1,38 @@
 import type { DropzoneOptions } from "react-dropzone"
 import type * as React from "react"
-import type { Doc } from "../../../convex/_generated/dataModel"
+import type { DocumentTreeItem } from "@/lib/document-tree"
 
 export interface CoverImageProps {
   url?: string
   preview?: boolean
 }
 
-export interface EditorProps {
-  documentId: string
-  onChange: (value: string) => void
-  initialContent?: string
-  editable?: boolean
+export interface BgCollectionConfig {
+  name: string
+  folder: string
+}
+
+export interface BgCollection {
+  name: string
+  folder: string
+  images: string[]
+}
+
+export type {
+  EditorProps,
+  EditorSaveStatus,
+  DocumentMeta,
+  CoverBannerProps,
+  CoverModalProps,
+  EditorHeaderProps,
+  EditorToolbarProps,
+} from "./editor.types"
+
+export type InstallModalProps = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onInstallPwa: () => void | Promise<void>
+  canInstallPwa: boolean
 }
 
 export type InputProps = {
@@ -31,7 +52,7 @@ export interface IconPickerPorps {
 }
 
 export interface ToolbarProps {
-  initialData: Doc<"documents">
+  initialData: DocumentTreeItem
   preview?: boolean
 }
 

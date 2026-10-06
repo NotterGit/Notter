@@ -24,6 +24,7 @@ export const images = {
     LAMP: "/landing/lamp.svg",
     OPTIONS: "/landing/options.svg",
     PEOPLE: "/landing/people.svg",
+    AI: "/landing/ai.svg",
     INAPI: "/landing/inapi.png",
     INAPI_LOGO: "/landing/inapi-logo.png",
     GOLANG: "/landing/golang.png",
@@ -46,5 +47,14 @@ export const images = {
     DIAMOND: "/badges/diamond.png",
     RUBY: "/badges/ruby.png",
     ID: "/badges/id.png",
+  },
+  AI: {
+    OPENAI: "/ai-icons/openai.svg",
+    CLAUDE: "/ai-icons/claude.svg",
+    GEMINI: "/ai-icons/gemini.webp",
+    DEEPSEEK: "/ai-icons/deepseek.webp",
+    QWEN: "/ai-icons/qwen.png",
+    OPENROUTER: "/ai-icons/openrouter.png",
+    QAI: "/ai-icons/qai.png",
   },
 } as const;

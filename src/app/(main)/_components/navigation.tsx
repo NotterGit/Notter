@@ -1,31 +1,34 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, FileText , Search, Settings2 } from "lucide-react"
+import { Activity, Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, FileText , Search, Settings2, PlusCircle } from "lucide-react"
 
 import { useParams, useRouter } from "next/navigation"
 import { ElementRef, useEffect, useRef, useState } from "react"
 import { useMediaQuery } from 'usehooks-ts'
-import { useMutation } from "convex/react"
-import { api } from "../../../../convex/_generated/api"
-import { getUserById } from "@/api/user"
-import { getOrgById } from "@/api/org"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { API } from "@/config/routing/api.route"
+import { fetcher } from "@/lib/fetcher"
+import { createDocument } from "@/actions/create-document"
+import { useAction } from "@/hooks/use-action"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "react-hot-toast"
-import { useOrganization, useUser } from "@clerk/clerk-react"
+import { useOrganization, useUser } from "@clerk/nextjs"
 import { InstallModal } from "@/components/modal/install-modal"
 import { UserItem } from "./user-item"
 import { Item } from "./item"
 import { DocumentList } from "./document-list"
-import { useSearch } from "../../../components/hooks/use-search"
-import { useSettings } from "../../../components/hooks/use-settings"
+import { useSearch } from "@/components/hooks/use-search"
+import { useSettings } from "@/components/hooks/use-settings"
+import { useAuditModal } from "@/components/hooks/use-audit-modal"
 import { Navbar } from "./navbar"
 import Link from "next/link"
 import { pages } from "@/config/routing/pages.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
-import { createDocumentWithFallback, getCreateDocumentErrorMessage } from "@/api/document-limit"
-import { getPlanLimits } from "@/lib/plan-limits"
+import { getCreateDocumentErrorMessage } from "@/api/document-limit"
+import { getUserById } from "@/api/user"
+import { getOrgById } from "@/api/org"
 import type { BeforeInstallPromptEvent } from "@/config/types/components.types"
 import {
     getIsPwaInstalled,
@@ -36,7 +39,11 @@ import {
 } from "@/lib/pwa-install"
 import { links } from "@/config/routing/links.route"
 
-export function Navigation() {
+interface NavigationProps {
+    children?: React.ReactNode
+}
+
+export function Navigation({ children }: NavigationProps) {
     const router = useRouter()
     const settings = useSettings()
 
@@ -62,13 +69,22 @@ export function Navigation() {
     }, [settings])
 
     const seacrh = useSearch()
+    const auditModal = useAuditModal()
     const params = useParams()
+    const queryClient = useQueryClient()
     const { user } = useUser()
     const { organization } = useOrganization()
     const isMobile = useMediaQuery("(max-width: 768px)")
-    const create = useMutation(api.document.create)
     const isOrg = organization?.id !== undefined
     const orgId = isOrg ? organization?.id as string : user?.id as string
+
+    const { execute: executeCreate } = useAction(createDocument, {
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+            queryClient.invalidateQueries({ queryKey: ["workspace-limits", orgId] })
+            router.push(pages.DASHBOARD(data.id))
+        },
+    })
 
     const isResizingRef = useRef(false)
     const sidebarRef = useRef<ElementRef<"aside">>(null)
@@ -76,10 +92,17 @@ export function Navigation() {
     const [isResetting, setIsResetting] = useState(false)
     const [isCollapsed, setIsCollapsed] = useState(isMobile)
 
-    const [documentCount, setDocumentCount] = useState<number>(0)
-    const [documentPublicCount, setDocumentPublicCount] = useState<number>(0)
-    const [premiumLevel, setPremiumLevel] = useState<number>(0)
-    const [isLimitsLoading, setIsLimitsLoading] = useState<boolean>(true)
+    const { data: limits } = useQuery<{
+        documentCount: number
+        publicDocumentCount: number
+        premiumLevel: number
+        documentLimit: number
+        publicDocumentLimit: number
+    }>({
+        queryKey: ["workspace-limits", orgId],
+        queryFn: () => fetcher(API.DOCUMENTS.LIMITS(orgId)),
+        enabled: Boolean(orgId),
+    })
     const [promptInstall, setPromptInstall] = useState<BeforeInstallPromptEvent | null>(null)
     const [isInstalled, setIsInstalled] = useState(false)
     const [isInstallModalOpen, setIsInstallModalOpen] = useState(false)
@@ -103,56 +126,16 @@ export function Navigation() {
     }, [])
 
     useEffect(() => {
-        let isMounted = true
-
-        const fetchData = async () => {
-            setIsLimitsLoading(true)
-
-            try {
-                if (isOrg && organization?.id) {
-                    const orgData = await getOrgById(organization.id)
-                    if (orgData && isMounted) {
-                        setDocumentCount(orgData.documents || 0)
-                        setDocumentPublicCount(orgData.publicDocuments || 0)
-                        setPremiumLevel(orgData.premium || 0)
-                    }
-                    return
-                }
-
-                if (!isOrg && user?.id) {
-                    const userData = await getUserById(user.id)
-                    if (userData && isMounted) {
-                        setDocumentCount(userData.documents || 0)
-                        setDocumentPublicCount(userData.publicDocuments || 0)
-                        setPremiumLevel(userData.premium || 0)
-                    }
-                }
-            } catch {
-
-            } finally {
-                if (isMounted) {
-                    setIsLimitsLoading((isOrg && !organization?.id) || (!isOrg && !user?.id))
-                }
-            }
-        }
-
-        fetchData()
-
-        return () => {
-            isMounted = false
-        }
-    }, [isOrg, organization?.id, user?.id])
-
-    useEffect(() => {
         if (isMobile && params.documentId) {
             collapse()
         }
     }, [isMobile, params.documentId])
 
-    const { 
-        documents: documentLimit, 
-        publicDocuments: publicDocumentLimit 
-    } = getPlanLimits(premiumLevel, isOrg)
+    const documentCount = limits?.documentCount ?? 0
+    const documentPublicCount = limits?.publicDocumentCount ?? 0
+    const documentLimit = limits?.documentLimit ?? 50
+    const publicDocumentLimit = limits?.publicDocumentLimit ?? 10
+    const isLimitsLoading = limits === undefined
 
     const documentProgress = (documentCount / documentLimit) * 100
     const publicDocumentProgress = (documentPublicCount / publicDocumentLimit) * 100
@@ -164,18 +147,17 @@ export function Navigation() {
     }
 
     const handleCreate = () => {
-        const promise = createDocumentWithFallback(create, {
+        const promise = executeCreate({
             title: "Новая заметка",
             userId: orgId,
             lastEditor: user?.username as string,
             creatorName: isOrg ? organization?.slug as string : user?.username as string,
             lastEditTime: getCurrentEditTime(),
-            premiumLevel,
+            premiumLevel: limits?.premiumLevel,
             isOrg,
         })
-            .then((documentId) => {
-                router.push(pages.DASHBOARD(documentId))
-                return documentId
+            .then((data) => {
+                return data.id
             })
 
         toast.promise(promise, {
@@ -209,10 +191,8 @@ export function Navigation() {
         if (newWidth < 240) newWidth = 240
         if (newWidth > 480) newWidth = 480
 
-        if (sidebarRef.current && navbarRef.current) {
+        if (sidebarRef.current) {
             sidebarRef.current.style.width = `${newWidth}px`
-            navbarRef.current.style.setProperty("left", `${newWidth}px`)
-            navbarRef.current.style.setProperty("width", `calc(100% - ${newWidth}px)`)
         }
     }
 
@@ -223,25 +203,21 @@ export function Navigation() {
     }
 
     const resetWidth = () => {
-        if (sidebarRef.current && navbarRef.current) {
+        if (sidebarRef.current) {
             setIsCollapsed(false)
             setIsResetting(true)
 
             sidebarRef.current.style.width = isMobile ? "100%" : "240px"
-            navbarRef.current.style.setProperty("width", isMobile ? "0" : "")
-            navbarRef.current.style.setProperty("left", isMobile ? "100%" : "240px")
             setTimeout(() => setIsResetting(false), 300)
         }
     }
 
     const collapse = () => {
-        if (sidebarRef.current && navbarRef.current) {
+        if (sidebarRef.current) {
             setIsCollapsed(true)
             setIsResetting(true)
 
             sidebarRef.current.style.width = "0"
-            navbarRef.current.style.setProperty("width", "100%")
-            navbarRef.current.style.setProperty("left", "0")
             setTimeout(() => setIsResetting(false), 300)
         }
     }
@@ -249,7 +225,7 @@ export function Navigation() {
     return (
         <>
             <aside ref={sidebarRef} className={cn(
-                "group/sidebar relative z-50 flex h-full w-60 flex-col overflow-hidden border-r border-white/50 bg-white/65 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/70",
+                "group/sidebar relative z-50 flex h-full w-60 shrink-0 flex-col overflow-hidden border-r border-white/50 bg-white/65 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/70",
                 isResetting && "transition-all ease-in-out duration-300",
                 isMobile && "w-0"
             )}>
@@ -265,6 +241,7 @@ export function Navigation() {
                         <UserItem />
                         <Item label="Поиск" icon={Search} isSearch onClick={seacrh.onOpen} />
                         <Item label="Настройки" icon={Settings2} onClick={settings.onOpen} shortcut="k" />
+                        <Item label="Журнал аудита" icon={Activity} onClick={() => auditModal.onOpen()} />
                         {!isInstalled ? (
                             <>
                                 <Item label="Перейти в ToDo" icon={Check} onClick={() => {router.push(links.TODO_DASHBOARD)}} hasArrow />
@@ -279,7 +256,7 @@ export function Navigation() {
                                 }} />
                             </>
                         ) : null}
-                        <Item onClick={handleCreate} label="Новая заметка" icon={FileText } />
+                        <Item onClick={handleCreate} label="Новая заметка" icon={PlusCircle } />
 
                     </div>
 
@@ -345,18 +322,31 @@ export function Navigation() {
                 <div onMouseDown={handleMouseDown} onClick={resetWidth} className="absolute right-0 top-0 h-full w-1 cursor-ew-resize bg-transparent opacity-0 transition group-hover/sidebar:opacity-100 resize-handle" />
             </aside>
 
-            <div ref={navbarRef} className={cn(
-                "absolute left-60 top-0 z-[99999] w-[calc(100%-240px)]",
-                isResetting && "transition-all ease-in-out duration-300",
-                isMobile && "left-0 w-full"
-            )}>
-                {!!params.documentId ? (
-                    <Navbar isCollapsed={isCollapsed} onResetWidth={resetWidth} />
-                ) : (
-                    <nav className="w-full px-4 py-3">
-                        {isCollapsed && <MenuIcon onClick={resetWidth} role="button" className="h-6 w-6 rounded-md p-1 text-muted-foreground hover:bg-background/70" />}
-                    </nav>
-                )}
+            <div className="flex flex-col flex-1 h-full min-w-0 overflow-hidden relative">
+                <div ref={navbarRef} className={cn(
+                    "w-full shrink-0 z-40",
+                    isResetting && "transition-all ease-in-out duration-300"
+                )}>
+                    {!!params.documentId ? (
+                        <Navbar isCollapsed={isCollapsed} onResetWidth={resetWidth} />
+                    ) : (
+                        isCollapsed ? (
+                            <nav className="flex h-12 w-full items-center border-b border-black/5 px-4 dark:border-white/10 bg-background/80 backdrop-blur-md">
+                                <button
+                                    aria-label="Menu"
+                                    onClick={resetWidth}
+                                    className="cursor-pointer"
+                                >
+                                    <MenuIcon className="h-6 w-6 rounded-md p-1 text-muted-foreground hover:bg-background/70" />
+                                </button>
+                            </nav>
+                        ) : null
+                    )}
+                </div>
+
+                <main className="relative z-10 flex-1 overflow-y-auto">
+                    {children}
+                </main>
             </div>
 
             <InstallModal

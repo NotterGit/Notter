@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: DocumentIdPageProps): Promise
   const resolvedParams = await params
   const metadata = await getPublicDocumentMetadata(resolvedParams.documentId)
 
-  return createPublicTitleMetadata(metadata, "Публичная заметка (iframe)", " (iframe)")
+  return createPublicTitleMetadata(metadata, "Page not found (iframe)", " (iframe)")
 }
 
 export default async function Page({ params }: DocumentIdPageProps) {

@@ -57,6 +57,10 @@ export interface S3DeleteResponse {
   deleted: boolean
 }
 
+export type ArchivedSettings = {
+  retentionDays: number;
+}
+
 export interface CreateUserPayload {
   username: string
   created?: Date | string | null
@@ -67,6 +71,7 @@ export interface CreateUserPayload {
   publicDocuments?: number | null
   verifiedDocuments?: number | null
   mail?: string | null
+  archived_settings?: ArchivedSettings | null
 }
 
 export interface UpdateUserPayload {
@@ -81,6 +86,7 @@ export interface UpdateUserPayload {
   verifiedDocuments?: number | null
   watermark?: boolean | null
   mail?: string | null
+  archived_settings?: ArchivedSettings | null
 }
 
 export interface CreateOrgPayload {
@@ -179,6 +185,7 @@ export type User = {
   owner: string;
   members: Array<string>;
   mail: string | null;
+  archived_settings?: ArchivedSettings;
 }
 
 export type CreateUserFunction = (

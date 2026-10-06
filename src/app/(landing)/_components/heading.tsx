@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useConvexAuth } from "convex/react"
+import { useAuth } from "@clerk/nextjs"
 
 import { Button } from "@/components/ui/button"
 import { images } from "@/config/routing/image.route"
@@ -12,7 +12,7 @@ import InstallPWA from "./install"
 import { ChevronRight } from "lucide-react"
 
 export function Heading() {
-  const { isAuthenticated } = useConvexAuth()
+  const { isSignedIn } = useAuth()
 
   return (
     <section className="grid items-center px-4 py-1 md:grid-cols-2">
@@ -25,7 +25,7 @@ export function Heading() {
         </p>
 
         <span className="space-x-2">
-          <Link href={isAuthenticated ? pages.DASHBOARD() : pages.AUTH}>
+          <Link href={isSignedIn ? pages.DASHBOARD() : pages.AUTH}>
             <Button className="mt-2">Перейти в Notter <ChevronRight/> </Button>
           </Link>
           <InstallPWA />

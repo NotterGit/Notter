@@ -1,12 +1,15 @@
 "use client" 
 
 import { Button } from "@/components/ui/button" 
-import { useMutation, useQuery } from "convex/react" 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation" 
 import { toast } from "react-hot-toast"
-import { api } from "../../../../convex/_generated/api" 
+import { API } from "@/config/routing/api.route"
+import { fetcher } from "@/lib/fetcher"
+import { deleteDocument } from "@/actions/delete-document"
+import { restoreDocument } from "@/actions/restore-document"
+import { useAction } from "@/hooks/use-action"
 import { ConfirmModal } from "@/components/modal/confirm-modal" 
-import { Id } from "../../../../convex/_generated/dataModel" 
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
 import { pages } from "@/config/routing/pages.route"
@@ -19,21 +22,37 @@ import {
 
 export function Banner({ documentId }: BannerProps){
   const router = useRouter() 
-  const remove = useMutation(api.document.remove) 
-  const restore = useMutation(api.document.restore) 
+  const queryClient = useQueryClient()
   const { user } = useUser()
   const { organization } = useOrganization()
   const { isOrg, isAdmin } = useWorkspaceAdmin()
   const orgId = organization?.id !== undefined ? organization?.id as string : user?.id as string
 
-  const document = useQuery(api.document.getById, {
-    documentId: documentId,
-    userId: orgId,
+  const { execute: executeRemove } = useAction(deleteDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", "trash", orgId] })
+      queryClient.invalidateQueries({ queryKey: ["workspace-limits", orgId] })
+    },
   })
-  const archiveSettings = useQuery(
-    api.document.getArchiveSettings,
-    orgId ? { userId: orgId } : "skip"
-  )
+
+  const { execute: executeRestore } = useAction(restoreDocument, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", "sidebar", orgId] })
+      queryClient.invalidateQueries({ queryKey: ["documents", "trash", orgId] })
+      queryClient.invalidateQueries({ queryKey: ["document", documentId] })
+    },
+  })
+
+  const { data: document } = useQuery<any>({
+    queryKey: ["document", documentId],
+    queryFn: () => fetcher(API.DOCUMENTS.BY_ID(documentId, { userId: orgId })),
+    enabled: Boolean(documentId && orgId),
+  })
+  const { data: archiveSettings } = useQuery<{ retentionDays: number }>({
+    queryKey: ["archive-settings", orgId],
+    queryFn: () => fetcher(API.DOCUMENTS.ARCHIVE_SETTINGS(orgId)),
+    enabled: Boolean(orgId),
+  })
 
   const retentionDays = archiveSettings?.retentionDays ?? DEFAULT_RETENTION_DAYS
   const remainingMs = document ? getRemainingArchiveTime(document, retentionDays) : 0
@@ -45,7 +64,7 @@ export function Banner({ documentId }: BannerProps){
       return
     }
 
-    const promise = remove({
+    const promise = executeRemove({
       id: documentId,
       userId: orgId
     }) 
@@ -65,7 +84,7 @@ export function Banner({ documentId }: BannerProps){
       return
     }
 
-    const promise = restore({
+    const promise = executeRestore({
       id: documentId,
       userId: orgId
     }) 
@@ -79,7 +98,7 @@ export function Banner({ documentId }: BannerProps){
 
     return (
     <div
-      className="mx-2 mt-2 flex w-[calc(100%-1rem)] items-center justify-between flex-col gap-3 rounded-2xl border border-rose-300/60 bg-rose-500/95 px-4 py-2 text-center text-sm text-white shadow-xl backdrop-blur md:flex-row md:text-left"
+      className="flex w-full items-center justify-between flex-col gap-3 border-b border-rose-400/40 bg-rose-500/95 px-4 py-2.5 text-center text-sm text-white shadow-sm backdrop-blur md:flex-row md:text-left"
       style={{ minHeight: 40 }}
     >
       <p className="md:mb-0">

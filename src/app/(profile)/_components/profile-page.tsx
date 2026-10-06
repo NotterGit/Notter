@@ -5,7 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useQuery } from "convex/react";
+import { useQuery } from "@tanstack/react-query";
 import Twemoji from "react-twemoji";
 import toast from "react-hot-toast";
 import { LockKeyhole, Pin, Share2 } from "lucide-react";
@@ -19,8 +19,8 @@ import { pages } from "@/config/routing/pages.route";
 import { images } from "@/config/routing/image.route";
 import { checkModerator, getUserByUsername } from "@/api/user";
 import { getOrgByUsername } from "@/api/org";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
+import { API } from "@/config/routing/api.route";
+import { fetcher } from "@/lib/fetcher";
 import { Badges } from "./badge";
 import { DocumentList } from "./documentList";
 import { ModeratorPanel } from "./moderatorPanel";
@@ -160,12 +160,16 @@ export default function ProfilePage({ kind, slug }: ProfilePageComponentProps) {
     fetchProfile();
   }, [kind, slug, user?.id]);
 
-  const document = useQuery(api.document.getById, {
-    userId: profile?._id,
-    documentId: profile?.pined ? (profile.pined as Id<"documents">) : null,
+  const pinnedId = profile?.pined;
+  const { data: document, isLoading: documentLoading } = useQuery<any>({
+    queryKey: ["document", pinnedId, profile?._id],
+    queryFn: () => fetcher(API.DOCUMENTS.BY_ID(pinnedId!, { userId: profile?._id })),
+    enabled: Boolean(pinnedId && profile?._id),
   });
 
-  if (!isLoaded || profileLoading || document === undefined) {
+  const isDocumentReady = !pinnedId || !documentLoading;
+
+  if (!isLoaded || profileLoading || !isDocumentReady) {
     return <ProfileSkeleton />;
   }
 

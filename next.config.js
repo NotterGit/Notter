@@ -1,5 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "@tiptap/core",
+      "@tiptap/pm",
+      "@tiptap/react",
+      "@tiptap/starter-kit",
+      "@radix-ui/react-icons",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip",
+      "emoji-picker-react",
+    ],
+  },
   images: {
     remotePatterns: [
       {
@@ -21,6 +36,17 @@ const nextConfig = {
         protocol: "https",
         hostname: "db.api.qual.su",
         port: "8000",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "api.qualsu.ru",
+        port: "8000",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "api.qualsu.ru",
         pathname: "/**",
       },
       {

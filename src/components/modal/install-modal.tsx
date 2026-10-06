@@ -19,14 +19,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { images } from "@/config/routing/image.route";
 import { links } from "@/config/routing/links.route";
+import type { InstallModalProps } from "@/config/types/components.types";
 import Link from "next/link";
-
-type InstallModalProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onInstallPwa: () => void | Promise<void>;
-  canInstallPwa: boolean;
-};
 
 export const InstallModal = ({
   open,

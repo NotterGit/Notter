@@ -1,0 +1,556 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import { type Editor } from "@tiptap/react";
+import { Sparkles, Loader2, Cpu, Settings2, FlaskConical } from "lucide-react";
+import toast from "react-hot-toast";
+
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { useAiSettings } from "@/components/hooks/use-ai-settings";
+import { useQualAiLimits } from "@/components/hooks/use-qualai-limits";
+import { useSettings } from "@/components/hooks/use-settings";
+import { AI_PROVIDERS } from "@/config/ai-providers";
+import { AiProviderId } from "@/config/types/ai.types";
+import { isDevEnvironment } from "@/config/const/app.const";
+import type { AiGeneratePopoverProps, AiTypewriterController } from "@/config/types/editor.types";
+import { generateAiText } from "@/lib/ai/generate";
+import { cn } from "@/lib/utils";
+import { typewriteAiText } from "@/lib/editor/ai-typewriter";
+import { getAiGeneratingPos, setAiGenerating } from "../extensions/ai-indicator";
+
+export function AiGeneratePopover({
+  editor,
+  isOpen,
+  setIsOpen,
+  selectionBackupRef,
+  children,
+}: AiGeneratePopoverProps) {
+  const { activeProviderId, providers, systemPrompt } = useAiSettings();
+  const settingsModal = useSettings();
+  const { limits: qualAiLimits, refresh: refreshQualAiLimits, workspaceId, isOrg } = useQualAiLimits();
+
+  const [selectedProviderId, setSelectedProviderId] = useState<AiProviderId>(activeProviderId);
+  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [customModelMode, setCustomModelMode] = useState<boolean>(false);
+  const [prompt, setPrompt] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const [mockWordCount, setMockWordCount] = useState<number>(100);
+  const [mockWithMarkdown, setMockWithMarkdown] = useState<boolean>(true);
+
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const generatingTargetPosRef = useRef<{ from: number; to: number } | null>(null);
+  const typewriterControllerRef = useRef<AiTypewriterController | null>(null);
+  const initializedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      initializedRef.current = false;
+      return;
+    }
+    void refreshQualAiLimits();
+    if (isLoading) return;
+    if (initializedRef.current) return;
+
+    initializedRef.current = true;
+
+    setSelectedProviderId(activeProviderId);
+    const prov = providers[activeProviderId];
+    const model =
+      prov?.selectedModel ||
+      (Array.isArray(prov?.models) && prov.models[0]) ||
+      "";
+    setSelectedModel(model);
+    setCustomModelMode(!prov?.models?.length);
+  }, [isOpen, isLoading, activeProviderId, providers, refreshQualAiLimits]);
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (typewriterControllerRef.current) {
+        typewriterControllerRef.current.finishImmediately();
+      }
+      if (editor && !editor.isDestroyed) {
+        setAiGenerating(editor, false);
+      }
+    };
+  }, [editor]);
+
+  const handleProviderSelect = (id: AiProviderId) => {
+    if (isLoading) return;
+    setSelectedProviderId(id);
+    const prov = providers[id];
+    const model =
+      prov?.selectedModel ||
+      (Array.isArray(prov?.models) && prov.models[0]) ||
+      "";
+    setSelectedModel(model);
+    setCustomModelMode(!prov?.models?.length);
+  };
+
+  const currentProviderConfig = providers[selectedProviderId];
+  const currentMeta = AI_PROVIDERS[selectedProviderId];
+  const availableModels = Array.isArray(currentProviderConfig?.models)
+    ? currentProviderConfig.models.filter(Boolean)
+    : [];
+
+  const isCloudWithoutKey =
+    selectedProviderId !== "custom" &&
+    currentMeta.requiresKey !== false &&
+    !currentProviderConfig?.apiKey?.trim();
+
+  const handleCancel = () => {
+    if (isLoading) {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      setAiGenerating(editor, false);
+      setIsLoading(false);
+      generatingTargetPosRef.current = null;
+      abortControllerRef.current = null;
+      setIsOpen(false);
+    } else {
+      if (typewriterControllerRef.current) {
+        typewriterControllerRef.current.finishImmediately();
+      }
+      setIsOpen(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    const isMock = selectedProviderId === "mock";
+    const trimmedPrompt = isMock ? String(mockWordCount) : prompt.trim();
+
+    if (!isMock && !trimmedPrompt) {
+      toast.error("Введите промпт");
+      return;
+    }
+
+    const effectiveModel = isMock
+      ? (mockWithMarkdown ? "lorem-markdown" : "lorem-plain")
+      : selectedModel.trim();
+
+    if (!isMock && !effectiveModel) {
+      toast.error("Выберите модель");
+      return;
+    }
+
+    if (!isMock && isCloudWithoutKey) {
+      toast.error(`Укажите API ключ для ${currentMeta.name} в настройках`);
+      return;
+    }
+
+    if (selectedProviderId === "qualai" && qualAiLimits && qualAiLimits.remaining <= 0) {
+      toast.error(`Вы исчерпали недельный лимит генераций для тарифа ${qualAiLimits.tier} (${qualAiLimits.limit} в неделю)`);
+      return;
+    }
+
+    if (!editor) return;
+
+    if (typewriterControllerRef.current) {
+      typewriterControllerRef.current.finishImmediately();
+    }
+
+    const targetPos = selectionBackupRef.current
+      ? { ...selectionBackupRef.current }
+      : { from: editor.state.selection.from, to: editor.state.selection.to };
+
+    generatingTargetPosRef.current = targetPos;
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    const savedPrompt = prompt;
+    setIsLoading(true);
+    setAiGenerating(editor, true, targetPos);
+    setIsOpen(false);
+    setPrompt("");
+    editor?.commands.focus();
+
+    try {
+      const generatedText = await generateAiText({
+        provider: selectedProviderId,
+        model: effectiveModel,
+        prompt: trimmedPrompt,
+        systemPrompt,
+        apiKey: currentProviderConfig?.apiKey,
+        baseUrl: selectedProviderId === "custom" ? providers.custom.baseUrl : undefined,
+        workspaceId,
+        isOrg,
+        signal: abortController.signal,
+      });
+
+      const finalPos = getAiGeneratingPos(editor) ?? generatingTargetPosRef.current ?? targetPos;
+      setAiGenerating(editor, false);
+
+      const from = typeof finalPos === "number" ? finalPos : finalPos.from;
+      const to = typeof finalPos === "number" ? finalPos : finalPos.to;
+
+      setIsOpen(false);
+
+      typewriterControllerRef.current = typewriteAiText({
+        editor,
+        markdown: generatedText,
+        range: { from, to },
+        onComplete: () => {
+          toast.success("Текст добавлен");
+          void refreshQualAiLimits();
+          typewriterControllerRef.current = null;
+        },
+        onError: (err) => {
+          console.error("AI typing error:", err);
+          toast.error("Не удалось напечатать текст");
+          void refreshQualAiLimits();
+          typewriterControllerRef.current = null;
+        },
+      });
+    } catch (error: any) {
+      void refreshQualAiLimits();
+      if (error?.name === "AbortError" || abortController.signal.aborted) {
+        toast("Генерация отменена");
+      } else {
+        const msg = error instanceof Error ? error.message : "Не удалось сгенерировать текст";
+        toast.error(msg);
+        setPrompt(savedPrompt);
+      }
+      setAiGenerating(editor, false);
+    } finally {
+      setIsLoading(false);
+      generatingTargetPosRef.current = null;
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      handleGenerate();
+    }
+  };
+
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>{children}</PopoverTrigger>
+      <PopoverContent
+        align="start"
+        sideOffset={6}
+        onCloseAutoFocus={(e) => {
+          e.preventDefault();
+          editor?.commands.focus();
+        }}
+        className="w-80 sm:w-96 p-3 shadow-xl rounded-xl border bg-popover text-popover-foreground space-y-2.5"
+      >
+        <div className="flex items-center justify-between pb-1 border-b border-border/50">
+          <div className="flex items-center gap-1.5 text-xs font-semibold">
+            <Sparkles className="h-3.5 w-3.5 text-violet-500" />
+            <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent font-bold">
+              ИИ Генерация
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen(false);
+              settingsModal.onOpen();
+            }}
+            title="Настройки ИИ"
+            className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Settings2 className="h-3 w-3" />
+            <span>Настройки</span>
+          </button>
+        </div>
+
+        <div className="flex flex-nowrap gap-1 overflow-x-auto pb-1.5 scrollbar-minimal">
+          {(Object.keys(AI_PROVIDERS) as AiProviderId[])
+            .filter((id) => !AI_PROVIDERS[id].isDevOnly || isDevEnvironment())
+            .map((id) => {
+              const meta = AI_PROVIDERS[id];
+              const isSelected = selectedProviderId === id;
+
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => handleProviderSelect(id)}
+                  className={cn(
+                    "flex shrink-0 basis-16 grow flex-col items-center justify-center p-1.5 rounded-lg border text-center transition-all gap-1 cursor-pointer",
+                    isSelected
+                      ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30"
+                      : "border-border/60 hover:bg-muted/40 text-muted-foreground hover:text-foreground",
+                    isLoading && "opacity-60 cursor-not-allowed"
+                  )}
+                >
+                  {id === "mock" ? (
+                    <FlaskConical className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                  ) : meta.iconSrc ? (
+                    <Image
+                      src={meta.iconSrc}
+                      alt={meta.name}
+                      width={15}
+                      height={15}
+                      className={cn(
+                        "shrink-0 object-contain rounded-xs",
+                        id === "openai" && "dark:invert"
+                      )}
+                    />
+                  ) : (
+                    <Cpu className="h-3.5 w-3.5 shrink-0" />
+                  )}
+                  <span className="text-[10px] font-medium leading-none truncate max-w-full">
+                    {meta.name}
+                  </span>
+                  {id === "qualai" && qualAiLimits && (
+                    <span className="text-[9px] font-mono text-muted-foreground leading-none">
+                      {qualAiLimits.remaining}/{qualAiLimits.limit}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+        </div>
+
+        {selectedProviderId === "qualai" && (
+          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-muted/40 border border-border/60 text-xs">
+            <span className="text-muted-foreground text-[11px]">Недельный лимит Q.AI:</span>
+            <span className={cn(
+              "font-mono font-medium text-[11px]",
+              (qualAiLimits?.remaining ?? 1) === 0 ? "text-destructive font-semibold" : "text-primary"
+            )}>
+              {qualAiLimits ? `${qualAiLimits.remaining} из ${qualAiLimits.limit} осталось` : "Загрузка..."}
+            </span>
+          </div>
+        )}
+
+        {selectedProviderId === "mock" ? (
+          <div className="space-y-2 py-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-muted-foreground flex items-center gap-1 font-medium">
+                <FlaskConical className="h-3.5 w-3.5 text-amber-500" />
+                <span>Генерация Lorem Ipsum</span>
+              </span>
+              <span className="font-mono font-bold text-foreground text-xs">{mockWordCount} слов</span>
+            </div>
+
+            {/* Quick chips */}
+            <div className="grid grid-cols-3 gap-1">
+              {[25, 50, 100, 250, 500, 1000].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => setMockWordCount(num)}
+                  className={cn(
+                    "py-1 px-1.5 text-xs rounded-md border font-mono transition-all cursor-pointer text-center",
+                    mockWordCount === num
+                      ? "border-primary bg-primary/10 text-primary font-semibold shadow-xs"
+                      : "border-border/60 hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {num} слов
+                </button>
+              ))}
+            </div>
+
+            {/* Slider and number input */}
+            <div className="flex items-center gap-2 pt-0.5">
+              <input
+                type="range"
+                min={10}
+                max={1500}
+                step={10}
+                disabled={isLoading}
+                value={mockWordCount}
+                onChange={(e) => setMockWordCount(Number(e.target.value))}
+                className="w-full accent-primary h-1.5 bg-muted rounded-lg cursor-pointer"
+              />
+              <input
+                type="number"
+                min={5}
+                max={5000}
+                disabled={isLoading}
+                value={mockWordCount}
+                onChange={(e) => setMockWordCount(Math.max(5, Math.min(5000, Number(e.target.value) || 0)))}
+                className="w-16 h-7 text-xs font-mono text-center rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+
+            {/* Format toggle */}
+            <div className="flex items-center justify-between pt-0.5 text-[11px]">
+              <span className="text-muted-foreground">Формат:</span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => setMockWithMarkdown(true)}
+                  className={cn(
+                    "px-2 py-1 rounded-md text-[11px] border transition-colors cursor-pointer",
+                    mockWithMarkdown
+                      ? "border-primary bg-primary/10 text-primary font-medium"
+                      : "border-border/60 text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Markdown (H2, списки)
+                </button>
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => setMockWithMarkdown(false)}
+                  className={cn(
+                    "px-2 py-1 rounded-md text-[11px] border transition-colors cursor-pointer",
+                    !mockWithMarkdown
+                      ? "border-primary bg-primary/10 text-primary font-medium"
+                      : "border-border/60 text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Текст
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>Модель</span>
+                {availableModels.length > 0 && !isLoading && selectedProviderId !== "qualai" && (
+                  <button
+                    type="button"
+                    onClick={() => setCustomModelMode(!customModelMode)}
+                    className="text-primary hover:underline cursor-pointer"
+                  >
+                    {customModelMode ? "Список моделей" : "Ввести вручную"}
+                  </button>
+                )}
+              </div>
+
+              {customModelMode || availableModels.length === 0 ? (
+                <input
+                  type="text"
+                  disabled={isLoading}
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  placeholder="Название модели..."
+                  className={cn(
+                    "w-full h-7 px-2 text-xs font-mono rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-primary",
+                    isLoading && "opacity-60 cursor-not-allowed"
+                  )}
+                />
+              ) : (
+                <select
+                  disabled={isLoading}
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className={cn(
+                    "w-full h-7 px-2 text-xs font-mono rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer",
+                    isLoading && "opacity-60 cursor-not-allowed"
+                  )}
+                >
+                  {availableModels.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                  {!availableModels.includes(selectedModel) && selectedModel && (
+                    <option value={selectedModel}>{selectedModel}</option>
+                  )}
+                </select>
+              )}
+            </div>
+
+            {isCloudWithoutKey && (
+              <div className="flex items-center justify-between px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px]">
+                <span>Ключ не указан</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    settingsModal.onOpen();
+                  }}
+                  className="underline font-medium hover:opacity-80"
+                >
+                  Настроить
+                </button>
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <textarea
+                disabled={isLoading}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Что нужно написать или сгенерировать?..."
+                rows={3}
+                autoFocus
+                className={cn(
+                  "w-full p-2 text-xs rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-1 focus:ring-primary",
+                  isLoading && "opacity-60 cursor-not-allowed"
+                )}
+              />
+            </div>
+          </>
+        )}
+
+        <div className="flex items-center justify-between gap-1.5 pt-0.5">
+          {isLoading ? (
+            <span className="flex items-center gap-1.5 text-[11px] text-primary animate-pulse select-none">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              <span>Генерация текста...</span>
+            </span>
+          ) : (
+            <span className="text-[10px] text-muted-foreground/60 select-none">
+              Ctrl + Enter
+            </span>
+          )}
+
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              Отмена
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleGenerate}
+              disabled={
+                isLoading ||
+                (selectedProviderId !== "mock" && (!prompt.trim() || !selectedModel.trim())) ||
+                (selectedProviderId === "qualai" && qualAiLimits?.remaining === 0)
+              }
+              className={cn(
+                "h-7 px-3 text-xs gap-1.5 cursor-pointer bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 shadow-xs disabled:opacity-50 transition-all",
+                isLoading && "ai-generate-button-loading disabled:opacity-90 cursor-wait"
+              )}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span>Генерация...</span>
+                </>
+              ) : selectedProviderId === "qualai" && qualAiLimits?.remaining === 0 ? (
+                <span>Лимит исчерпан</span>
+              ) : (
+                <>
+                  <Sparkles className="h-3 w-3" />
+                  <span>Сгенерировать</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}

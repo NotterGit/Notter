@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: DocumentIdPageProps): Promise
   const resolvedParams = await params
   const metadata = await getPublicDocumentMetadata(resolvedParams.documentId)
 
-  return createPublicTitleMetadata(metadata, "Публичная заметка")
+  return createPublicTitleMetadata(metadata, "Page not found")
 }
 
 export default async function Page({ params }: DocumentIdPageProps) {

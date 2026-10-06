@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
-
-const S3_SERVICE = process.env.NEXT_PUBLIC_S3_SERVICE
+import { S3_BASE_URL as S3_SERVICE } from "@/config/const/api.const"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0

@@ -1,145 +1,187 @@
-import type { Doc, Id } from "../../convex/_generated/dataModel"
+export interface DocumentTreeItem {
+  id: string;
+  _id: string;
+  title: string;
+  userId: string;
+  icon?: string | null;
+  coverImage?: string | null;
+  isArchived?: boolean;
+  isAcrhived?: boolean;
+  isPublished?: boolean;
+  isPinned?: boolean;
+  order?: number;
+  parentDocument?: string | null;
+  parentDocumentId?: string | null;
+  shortId?: string | null;
+  isShort?: boolean;
+  content?: string | null;
+  creatorName?: string | null;
+  userName?: string | null;
+  lastEditor?: string | null;
+  lastEditTime?: string | null;
+  verifed?: boolean;
+  verified?: boolean;
+  views?: number;
+  createdAt?: Date | string;
+  _creationTime?: number;
+}
 
 export interface FlatTreeItem {
-  doc: Doc<"documents">
-  level: number
-  hasChildren: boolean
-  isExpanded: boolean
-  parentId?: Id<"documents">
+  doc: DocumentTreeItem;
+  level: number;
+  hasChildren: boolean;
+  isExpanded: boolean;
+  parentId?: string;
 }
 
 export function buildChildrenMap(
-  documents?: Doc<"documents">[]
-): Map<string, Doc<"documents">[]> {
-  const map = new Map<string, Doc<"documents">[]>()
-  if (!documents) return map
+  documents?: DocumentTreeItem[]
+): Map<string, DocumentTreeItem[]> {
+  const map = new Map<string, DocumentTreeItem[]>();
+  if (!documents) return map;
 
   for (const doc of documents) {
-    const parentKey = doc.parentDocument ? (doc.parentDocument as string) : "root"
-    const list = map.get(parentKey) || []
-    list.push(doc)
-    map.set(parentKey, list)
+    const parentKey = (doc.parentDocument || doc.parentDocumentId) ? String(doc.parentDocument || doc.parentDocumentId) : "root";
+    const list = map.get(parentKey) || [];
+    list.push(doc);
+    map.set(parentKey, list);
   }
 
-  return map
+  for (const list of map.values()) {
+    list.sort((a, b) => {
+      const aPinned = Boolean(a.isPinned);
+      const bPinned = Boolean(b.isPinned);
+      if (aPinned !== bPinned) {
+        return aPinned ? -1 : 1;
+      }
+      const orderDiff = (a.order ?? 0) - (b.order ?? 0);
+      if (orderDiff !== 0) return orderDiff;
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return aTime - bTime;
+    });
+  }
+
+  return map;
 }
 
 export function isDescendant(
   ancestorId: string,
   targetId?: string,
-  allDocs?: Doc<"documents">[]
+  allDocs?: DocumentTreeItem[]
 ): boolean {
-  if (!targetId || targetId === "root") return false
-  if (targetId === ancestorId) return true
-  if (!allDocs) return false
+  if (!targetId || targetId === "root") return false;
+  if (targetId === ancestorId) return true;
+  if (!allDocs) return false;
 
-  let current: string | undefined = targetId
-  const visited = new Set<string>()
+  let current: string | undefined = targetId;
+  const visited = new Set<string>();
 
   while (current && current !== "root") {
-    if (current === ancestorId) return true
-    if (visited.has(current)) break
-    visited.add(current)
+    if (current === ancestorId) return true;
+    if (visited.has(current)) break;
+    visited.add(current);
 
-    const doc = allDocs.find((d) => d._id === current)
-    current = doc?.parentDocument ? (doc.parentDocument as string) : undefined
+    const doc = allDocs.find((d) => d.id === current || d._id === current);
+    current = doc?.parentDocument || doc?.parentDocumentId ? String(doc.parentDocument || doc.parentDocumentId) : undefined;
   }
 
-  return false
+  return false;
 }
 
 export function flattenTree(
   parentId: string,
   level: number,
-  childrenMap: Map<string, Doc<"documents">[]>,
+  childrenMap: Map<string, DocumentTreeItem[]>,
   expanded: Record<string, boolean>,
   draggingDocId: string | null | Set<string>
 ): FlatTreeItem[] {
-  const children = childrenMap.get(parentId) || []
-  const result: FlatTreeItem[] = []
+  const children = childrenMap.get(parentId) || [];
+  const result: FlatTreeItem[] = [];
 
   for (const doc of children) {
-    const docChildren = childrenMap.get(doc._id) || []
-    const hasChildren = docChildren.length > 0
-    const isDocExpanded = Boolean(expanded[doc._id])
+    const docId = doc.id || doc._id;
+    const docChildren = childrenMap.get(docId) || [];
+    const hasChildren = docChildren.length > 0;
+    const isDocExpanded = Boolean(expanded[docId]);
     const isBeingDragged =
       draggingDocId instanceof Set
-        ? draggingDocId.has(doc._id)
-        : draggingDocId === doc._id
+        ? draggingDocId.has(docId)
+        : draggingDocId === docId;
 
     result.push({
       doc,
       level,
       hasChildren,
       isExpanded: isDocExpanded,
-      parentId: doc.parentDocument ? (doc.parentDocument as Id<"documents">) : undefined,
-    })
+      parentId: doc.parentDocument || doc.parentDocumentId ? String(doc.parentDocument || doc.parentDocumentId) : undefined,
+    });
 
     if (isDocExpanded && !isBeingDragged) {
       result.push(
-        ...flattenTree(doc._id, level + 1, childrenMap, expanded, draggingDocId)
-      )
+        ...flattenTree(docId, level + 1, childrenMap, expanded, draggingDocId)
+      );
     }
   }
 
-  return result
+  return result;
 }
 
 export function getTargetPlacement(
   draggedDocId: string | Set<string>,
   destIndex: number,
   visibleItems: FlatTreeItem[],
-  childrenMap: Map<string, Doc<"documents">[]>
-): { targetParentId?: Id<"documents">; targetOrder: number } {
+  childrenMap: Map<string, DocumentTreeItem[]>
+): { targetParentId?: string; targetOrder: number } {
   const isExcluded = (id: string) =>
-    draggedDocId instanceof Set ? draggedDocId.has(id) : id === draggedDocId
+    draggedDocId instanceof Set ? draggedDocId.has(id) : id === draggedDocId;
 
-  const remaining = visibleItems.filter((item) => !isExcluded(item.doc._id))
+  const remaining = visibleItems.filter((item) => !isExcluded(item.doc.id || item.doc._id));
 
   if (destIndex === 0) {
-    const first = remaining[0]
+    const first = remaining[0];
     return {
       targetParentId: first ? first.parentId : undefined,
       targetOrder: 0,
-    }
+    };
   }
 
   if (destIndex >= remaining.length) {
-    const last = remaining[remaining.length - 1]
-    const parentIdKey = last?.parentId ?? "root"
-    const siblings = (childrenMap.get(parentIdKey) || []).filter((d) => !isExcluded(d._id))
+    const last = remaining[remaining.length - 1];
+    const parentIdKey = last?.parentId ?? "root";
+    const siblings = (childrenMap.get(parentIdKey) || []).filter((d) => !isExcluded(d.id || d._id));
     return {
       targetParentId: last?.parentId,
       targetOrder: siblings.length,
-    }
+    };
   }
 
-  const prev = remaining[destIndex - 1]
-  const next = remaining[destIndex]
+  const prev = remaining[destIndex - 1];
+  const next = remaining[destIndex];
 
-  if (prev && prev.isExpanded && next && next.parentId === prev.doc._id) {
+  if (prev && prev.isExpanded && next && next.parentId === (prev.doc.id || prev.doc._id)) {
     return {
-      targetParentId: prev.doc._id as Id<"documents">,
+      targetParentId: prev.doc.id || prev.doc._id,
       targetOrder: 0,
-    }
+    };
   }
 
   if (next) {
-    const parentIdKey = next.parentId ?? "root"
-    const siblings = (childrenMap.get(parentIdKey) || []).filter((d) => !isExcluded(d._id))
-    const nextSiblingIndex = siblings.findIndex((d) => d._id === next.doc._id)
-    const targetOrder = nextSiblingIndex !== -1 ? nextSiblingIndex : siblings.length
+    const parentIdKey = next.parentId ?? "root";
+    const siblings = (childrenMap.get(parentIdKey) || []).filter((d) => !isExcluded(d.id || d._id));
+    const nextSiblingIndex = siblings.findIndex((d) => (d.id || d._id) === (next.doc.id || next.doc._id));
+    const targetOrder = nextSiblingIndex !== -1 ? nextSiblingIndex : siblings.length;
     return {
       targetParentId: next.parentId,
       targetOrder,
-    }
+    };
   }
 
-  const parentIdKey = prev?.parentId ?? "root"
-  const siblings = (childrenMap.get(parentIdKey) || []).filter((d) => !isExcluded(d._id))
-  const prevSiblingIndex = siblings.findIndex((d) => d._id === prev.doc._id)
+  const parentIdKey = prev?.parentId ?? "root";
+  const siblings = (childrenMap.get(parentIdKey) || []).filter((d) => !isExcluded(d.id || d._id));
+  const prevSiblingIndex = siblings.findIndex((d) => (d.id || d._id) === (prev.doc.id || prev.doc._id));
   return {
     targetParentId: prev?.parentId,
     targetOrder: prevSiblingIndex !== -1 ? prevSiblingIndex + 1 : siblings.length,
-  }
+  };
 }

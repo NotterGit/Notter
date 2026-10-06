@@ -59,8 +59,9 @@ export function Premium() {
           features={[
             `До ${limits.free.documents} заметок`,
             `До ${limits.free.publicDocuments} публичных заметок`,
+            `До ${limits.free.aiGenerationsPerWeek} генераций Q.AI в неделю`,
             `Загрузка изображений до ${limits.free.uploadMb} МБ`,
-            "Хранение в архиве до 7 дней"
+            "Хранение в архиве до 7 дней",
           ]}
           btn={false}
         />
@@ -71,12 +72,14 @@ export function Premium() {
           className="border-yellow-300 dark:border-yellow-300/40"
           icon={images.BADGES.AMBER}
           features={[
+            `До ${limits.amber.documents} заметок`,
+            `До ${limits.amber.publicDocuments} публичных заметок`,
+            `До ${limits.amber.aiGenerationsPerWeek} генераций Q.AI в неделю`,
+            `Загрузка изображений до ${limits.amber.uploadMb} МБ`,
             "Сокращенные ссылки для публичных заметок",
             "Уникальный значок в профиле",
             "Хранение в архиве до 30 дней",
-            `До ${limits.amber.documents} заметок`,
-            `До ${limits.amber.publicDocuments} публичных заметок`,
-            `Загрузка изображений до ${limits.amber.uploadMb} МБ`
+            "Расширенный журнал аудита",
           ]}
         />
         <PremiumCard
@@ -86,13 +89,15 @@ export function Premium() {
           icon={images.BADGES.DIAMOND}
           features={[
             "Все преимущества Amber",
+            `До ${limits.diamond.documents} заметок`,
+            `До ${limits.diamond.publicDocuments} публичных заметок`,
+            `До ${limits.diamond.aiGenerationsPerWeek} генераций Q.AI в неделю`,
+            `Загрузка изображений до ${limits.diamond.uploadMb} МБ`,
             "Хранение в архиве до 90 дней",
             "Кастомные ссылки",
             "Отключение упоминаний Notter",
             "Скачивание/Загрузка заметок в JSON",
-            `До ${limits.diamond.documents} заметок`,
-            `До ${limits.diamond.publicDocuments} публичных заметок`,
-            `Загрузка изображений до ${limits.diamond.uploadMb} МБ`
+            "Экспорт журнала аудита в CSV",
           ]}
         />
       </div>
@@ -120,6 +125,12 @@ export function Premium() {
               <TableCell>{limits.free.publicDocuments}</TableCell>
               <TableCell className="font-medium text-yellow-400">{limits.amber.publicDocuments}</TableCell>
               <TableCell className="font-medium text-cyan-500">{limits.diamond.publicDocuments}</TableCell>
+            </TableRow>
+            <TableRow className="border-border/40">
+              <TableCell className="font-medium">Генерации Q.AI в неделю</TableCell>
+              <TableCell>{limits.free.aiGenerationsPerWeek}</TableCell>
+              <TableCell className="font-medium text-yellow-400">{limits.amber.aiGenerationsPerWeek}</TableCell>
+              <TableCell className="font-medium text-cyan-500">{limits.diamond.aiGenerationsPerWeek}</TableCell>
             </TableRow>
             <TableRow className="border-border/40">
               <TableCell className="font-medium">Максимальный размер загружаемых изображений</TableCell>
@@ -159,6 +170,18 @@ export function Premium() {
             </TableRow>
             <TableRow className="border-border/40">
               <TableCell className="font-medium">Скачивание/загрузка в JSON</TableCell>
+              <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
+              <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
+              <TableCell><Check className="h-4 w-4 text-cyan-500" /></TableCell>
+            </TableRow>
+            <TableRow className="border-border/40">
+              <TableCell className="font-medium">Расширенный журнал аудита</TableCell>
+              <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
+              <TableCell><Check className="h-4 w-4 text-yellow-400" /></TableCell>
+              <TableCell><Check className="h-4 w-4 text-cyan-500" /></TableCell>
+            </TableRow>
+            <TableRow className="border-border/40">
+              <TableCell className="font-medium">Экспорт журнала аудита в CSV</TableCell>
               <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
               <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
               <TableCell><Check className="h-4 w-4 text-cyan-500" /></TableCell>
