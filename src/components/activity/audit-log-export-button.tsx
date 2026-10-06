@@ -24,10 +24,9 @@ export function AuditLogExportButton({
     orgId,
     isOrg
   );
-  const effectivePremium = Math.max(
-    Number(profile?.premium ?? 0),
-    Number(fallbackPremiumLevel ?? 0)
-  );
+  const effectivePremium = profile
+    ? Number(profile.premium ?? 0)
+    : Number(fallbackPremiumLevel ?? 0);
   const hasDiamond = isDiamondPlan(effectivePremium);
 
   const handleExport = async () => {

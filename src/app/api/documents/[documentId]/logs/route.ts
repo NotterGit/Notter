@@ -48,13 +48,12 @@ export async function GET(
       orgId.startsWith("org_") || Boolean(clerkOrgId && clerkOrgId === orgId);
     const [orgProfile, userProfile] = await Promise.all([
       isOrg ? getOrgById(orgId).catch(() => null) : Promise.resolve(null),
-      clerkUserId ? getUserById(clerkUserId).catch(() => null) : Promise.resolve(null),
+      isOrg ? Promise.resolve(null) : getUserById(orgId).catch(() => null),
     ]);
-    const userPremium = Math.max(
-      Number(orgProfile?.premium ?? 0),
-      Number(userProfile?.premium ?? 0)
-    );
-    const premiumLevel = Math.max(userPremium, fallbackPremium) as PremiumLevel;
+    const rawPremium = isOrg
+      ? (orgProfile ? orgProfile.premium : fallbackPremium)
+      : (userProfile ? userProfile.premium : fallbackPremium);
+    const premiumLevel = Math.max(0, Number(rawPremium ?? 0)) as PremiumLevel;
     const isExtended = hasExtendedAuditLog(premiumLevel);
     const takeLimit = isExtended
       ? EXTENDED_NOTE_AUDIT_LOG_LIMIT

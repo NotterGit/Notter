@@ -39,7 +39,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       const children = await db.document.findMany({
         where: {
           parentDocumentId: { in: parentIds },
-          userId: orgId,
+          userId: existing.userId,
           isArchived: false,
         },
         select: { id: true },
@@ -63,13 +63,13 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       });
     }
 
-    const user = await getUserById(orgId).catch(() => null);
+    const user = await getUserById(existing.userId).catch(() => null);
     const retentionDays = user?.archived_settings?.retentionDays ?? 7;
     const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
 
     await db.document.deleteMany({
       where: {
-        userId: orgId,
+        userId: existing.userId,
         isArchived: true,
         archivedTime: { lte: cutoff },
         id: { not: data.id },
@@ -81,7 +81,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       entityTitle: document.title,
       entityType: NOTE_ENTITY_TYPE.DOCUMENT,
       action: ACTION.UPDATE,
-      orgId,
+      orgId: existing.userId,
     });
 
     revalidatePath(pages.DASHBOARD());

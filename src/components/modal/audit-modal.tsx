@@ -52,36 +52,33 @@ export function AuditModal() {
 
   const { data: profile } = useAccountProfile(orgId, isOrg);
 
+  const workspacePremium = Math.max(
+    Number(profile?.premium ?? 0),
+    Number(limits?.premiumLevel ?? 0)
+  );
+
   const { data: wsData, isLoading: isWsLoading } = useQuery<{
     logs: NoteAuditLog[];
     isExtended: boolean;
     tariffName: string;
     totalCount: number;
   }>({
-    queryKey: ["workspace-audit-logs", orgId, limits?.premiumLevel, profile?.premium],
+    queryKey: ["workspace-audit-logs", orgId, workspacePremium],
     queryFn: () =>
       fetcher(
         API.AUDIT_LOGS.GET({
           orgId,
-          fallbackPremiumLevel: Math.max(
-            Number(profile?.premium ?? 0),
-            Number(limits?.premiumLevel ?? 0)
-          ),
+          fallbackPremiumLevel: workspacePremium,
         })
       ),
     enabled: Boolean(isOpen && orgId && (activeTab === "workspace" || !documentId)),
   });
 
-  const effectivePremium = Math.max(
-    Number(profile?.premium ?? 0),
-    Number(limits?.premiumLevel ?? 0),
-    wsData?.isExtended ? 1 : 0
-  );
-  const isExtended = hasExtendedAuditLog(effectivePremium);
+  const isExtended = wsData?.isExtended ?? hasExtendedAuditLog(workspacePremium);
 
   const { data: noteLogs, isLoading: isNoteLoading } = useQuery<NoteAuditLog[]>({
-    queryKey: ["document-logs", documentId, orgId, effectivePremium],
-    queryFn: () => fetcher(API.DOCUMENTS.LOGS(documentId!, orgId, effectivePremium)),
+    queryKey: ["document-logs", documentId, orgId, workspacePremium],
+    queryFn: () => fetcher(API.DOCUMENTS.LOGS(documentId!, orgId, workspacePremium)),
     enabled: Boolean(isOpen && documentId && orgId && activeTab === "note"),
   });
 
@@ -118,7 +115,7 @@ export function AuditModal() {
               {activeTab === "workspace" && orgId && (
                 <AuditLogExportButton
                   orgId={orgId}
-                  fallbackPremiumLevel={effectivePremium}
+                  fallbackPremiumLevel={workspacePremium}
                 />
               )}
             </div>
