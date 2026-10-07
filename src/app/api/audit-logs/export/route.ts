@@ -30,13 +30,12 @@ export async function GET(request: Request) {
 
     const [orgProfile, userProfile] = await Promise.all([
       isOrg ? getOrgById(orgId).catch(() => null) : Promise.resolve(null),
-      getUserById(clerkUserId).catch(() => null),
+      isOrg ? Promise.resolve(null) : getUserById(orgId).catch(() => null),
     ]);
-    const userPremium = Math.max(
-      Number(orgProfile?.premium ?? 0),
-      Number(userProfile?.premium ?? 0)
-    );
-    const premiumLevel = Math.max(userPremium, fallbackPremium);
+    const rawPremium = isOrg
+      ? (orgProfile ? orgProfile.premium : fallbackPremium)
+      : (userProfile ? userProfile.premium : fallbackPremium);
+    const premiumLevel = Math.max(0, Number(rawPremium ?? 0));
 
     if (!isDiamondPlan(premiumLevel)) {
       return new NextResponse(

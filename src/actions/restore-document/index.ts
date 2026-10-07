@@ -55,7 +55,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       const children = await db.document.findMany({
         where: {
           parentDocumentId: { in: parentIds },
-          userId: orgId,
+          userId: existing.userId,
         },
         select: { id: true },
       });
@@ -83,7 +83,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       entityTitle: document.title,
       entityType: NOTE_ENTITY_TYPE.DOCUMENT,
       action: ACTION.UPDATE,
-      orgId,
+      orgId: existing.userId,
     });
 
     revalidatePath(pages.DASHBOARD());
