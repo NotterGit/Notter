@@ -51,6 +51,20 @@ export const AI_PROVIDERS: Record<AiProviderId, ProviderMeta> = {
     placeholderKey: "sk-or-v1-...",
     keyHelpUrl: "https://openrouter.ai/keys",
   },
+  opencode: {
+    id: "opencode",
+    name: "OpenCode",
+    iconSrc: images.AI.OPENCODE,
+    placeholderKey: "sk-...",
+    keyHelpUrl: "https://opencode.ai/zen",
+  },
+  yandex: {
+    id: "yandex",
+    name: "Yandex AI",
+    iconSrc: images.AI.YANDEX,
+    placeholderKey: "AQVN...",
+    keyHelpUrl: "https://aistudio.yandex.ru",
+  },
   qualai: {
     id: "qualai",
     name: "Q.AI",
@@ -109,6 +123,16 @@ export const DEFAULT_AI_SETTINGS: AiSettingsData = {
       models: [],
     },
     openrouter: {
+      apiKey: "",
+      selectedModel: "",
+      models: [],
+    },
+    opencode: {
+      apiKey: "",
+      selectedModel: "",
+      models: [],
+    },
+    yandex: {
       apiKey: "",
       selectedModel: "",
       models: [],

@@ -245,7 +245,7 @@ export function Navigation({ children }: NavigationProps) {
                         {!isInstalled ? (
                             <>
                                 <Item label="Перейти в ToDo" icon={Check} onClick={() => {router.push(links.TODO_DASHBOARD)}} hasArrow />
-                                <Item label="Перейти в Media" icon={Rss} onClick={() => {router.push(links.MEDIA)}} hasArrow />
+                                {/* <Item label="Перейти в Media" icon={Rss} onClick={() => {router.push(links.MEDIA)}} hasArrow /> */}
 
                                 <Item label="Скачать приложение" icon={Download} onClick={() => {
                                     if (isMobile) {

@@ -41,19 +41,28 @@ export async function POST(req: NextRequest) {
       provider === "openai" ||
       provider === "deepseek" ||
       provider === "qwen" ||
-      provider === "openrouter"
+      provider === "openrouter" ||
+      provider === "opencode" ||
+      provider === "yandex"
     ) {
       const endpoints: Record<string, string> = {
         openai: "https://api.openai.com/v1/chat/completions",
         deepseek: "https://api.deepseek.com/chat/completions",
         qwen: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
         openrouter: "https://openrouter.ai/api/v1/chat/completions",
+        opencode: "https://opencode.ai/zen/v1/chat/completions",
+        yandex: "https://ai.api.cloud.yandex.net/v1/chat/completions",
       };
       const endpoint = endpoints[provider];
 
+      const authHeader =
+        apiKey.startsWith("Bearer ") || apiKey.startsWith("Api-Key ")
+          ? apiKey
+          : `Bearer ${apiKey}`;
+
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: authHeader,
       };
       if (provider === "openrouter") {
         headers["HTTP-Referer"] = "https://notter.app";

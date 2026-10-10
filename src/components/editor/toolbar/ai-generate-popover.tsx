@@ -296,7 +296,7 @@ export function AiGeneratePopover({
                       height={15}
                       className={cn(
                         "shrink-0 object-contain rounded-xs",
-                        id === "openai" && "dark:invert"
+                        (id === "openai" || id === "opencode") && "dark:invert"
                       )}
                     />
                   ) : (

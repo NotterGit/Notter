@@ -115,7 +115,7 @@ export function AiAgentSettings() {
 
         const hasProviders = data.providers && typeof data.providers === "object";
         const hasDirectProviders = Boolean(
-          data.openai || data.claude || data.gemini || data.deepseek || data.qwen || data.openrouter || data.qualai || data.custom
+          data.openai || data.claude || data.gemini || data.deepseek || data.qwen || data.openrouter || data.opencode || data.yandex || data.qualai || data.custom
         );
         const hasValidData = hasProviders || hasDirectProviders || data.activeProviderId;
 
@@ -179,7 +179,7 @@ export function AiAgentSettings() {
                 height={14}
                 className={cn(
                   "shrink-0 object-contain rounded-sm",
-                  activeProviderId === "openai" && "dark:invert"
+                  (activeProviderId === "openai" || activeProviderId === "opencode") && "dark:invert"
                 )}
               />
             ) : (
@@ -224,7 +224,7 @@ export function AiAgentSettings() {
                       height={22}
                       className={cn(
                         "object-contain rounded-sm",
-                        id === "openai" && "dark:invert"
+                        (id === "openai" || id === "opencode") && "dark:invert"
                       )}
                     />
                   ) : (

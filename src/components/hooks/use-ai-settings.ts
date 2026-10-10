@@ -130,6 +130,8 @@ const useAiStore = create<AiSettingsStore>()(
             "deepseek",
             "qwen",
             "openrouter",
+            "opencode",
+            "yandex",
             "qualai",
             "custom",
             "mock",

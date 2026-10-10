@@ -5,6 +5,8 @@ export type AiProviderId =
   | "deepseek"
   | "qwen"
   | "openrouter"
+  | "opencode"
+  | "yandex"
   | "qualai"
   | "custom"
   | "mock";
@@ -29,6 +31,8 @@ export interface AiSettingsData {
     deepseek: StandardProviderConfig;
     qwen: StandardProviderConfig;
     openrouter: StandardProviderConfig;
+    opencode: StandardProviderConfig;
+    yandex: StandardProviderConfig;
     qualai: StandardProviderConfig;
     custom: CustomProviderConfig;
     mock: StandardProviderConfig;
