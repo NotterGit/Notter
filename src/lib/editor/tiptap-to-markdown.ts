@@ -193,7 +193,7 @@ function serializeNode(
 /**
  * Converts a Tiptap JSON document structure to clean Markdown text.
  */
-function tiptapJsonToMarkdown(json: JSONContent): string {
+export function tiptapJsonToMarkdown(json: JSONContent): string {
   if (!json || typeof json !== "object") return "";
   return serializeNode(json, 0).trim();
 }

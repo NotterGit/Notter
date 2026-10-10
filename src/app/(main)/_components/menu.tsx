@@ -38,6 +38,9 @@ import { getOrgById as getOrg } from "@/api/org";
 import { getUserById as getUser } from "@/api/user";
 import { pages } from "@/config/routing/pages.route";
 import { formatLastEditTime, getCurrentEditTime } from "@/lib/last-edit-time";
+import { tiptapJsonToMarkdown } from "@/lib/editor/tiptap-to-markdown";
+import { convertBlockNoteToTiptap } from "@/lib/editor/migrate-blocknote";
+import { markdownToTiptapDoc } from "@/lib/editor/markdown-to-tiptap";
 import type { MenuProps } from "@/config/types/main.types";
 import type { Org, User } from "@/config/types/api.types";
 
@@ -78,7 +81,7 @@ export function Menu({ documentId }: MenuProps) {
     enabled: Boolean(documentId && orgId),
   });
 
-  const [openModal, setOpenModal] = useState(false);
+  const [uploadModalType, setUploadModalType] = useState<"json" | "md" | null>(null);
   const [profile, setProfile] = useState<User | Org | null>(null)
   const moveNote = useMoveNote();
   const auditModal = useAuditModal();
@@ -184,9 +187,28 @@ export function Menu({ documentId }: MenuProps) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${doc?.title}.json`;
+      link.download = `${doc?.title || "note"}.json`;
       link.click();
       URL.revokeObjectURL(url);
+    }
+  };
+
+  const downloadMd = () => {
+    if (doc?.content && typeof window !== "undefined") {
+      try {
+        const tiptapDoc = convertBlockNoteToTiptap(doc.content);
+        const mdContent = tiptapJsonToMarkdown(tiptapDoc);
+        const blob = new Blob([mdContent], { type: "text/markdown;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${doc?.title || "note"}.md`;
+        link.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error(err);
+        toast.error("Ошибка при создании Markdown файла");
+      }
     }
   };
 
@@ -234,6 +256,51 @@ export function Menu({ documentId }: MenuProps) {
       reader.readAsText(file);
     }
   };
+
+  const uploadMd = (files: File[]) => {
+    if (files.length > 0) {
+      const file = files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          const rawContent = reader.result as string;
+          try {
+            const tiptapDoc = markdownToTiptapDoc(rawContent);
+            const contentToSave = JSON.stringify(tiptapDoc);
+
+            const promise = executeUpdate({
+              id: documentId,
+              userId: orgId,
+              content: contentToSave,
+              lastEditor: user?.username as string,
+              lastEditTime: getCurrentEditTime(),
+            });
+
+            toast.promise(promise, {
+              success: "Заметка обновлена из Markdown!",
+              error: "Не удалось обновить заметку",
+              loading: "Обновляем заметку...",
+            });
+
+            promise.then(() => {
+              window.location.reload();
+            });
+          } catch (err) {
+            console.error(err);
+            toast.error("Ошибка при обработке Markdown файла");
+          }
+        } else {
+          toast.error("Ошибка чтения файла");
+        }
+      };
+      reader.onerror = () => {
+        toast.error("Ошибка при чтении файла");
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const isPremiumUser = profile?.premium === 1 || profile?.premium === 2;
 
   return (
     <>
@@ -313,7 +380,7 @@ export function Menu({ documentId }: MenuProps) {
             </>
           )}
           
-          {profile?.premium == 2 && (
+          {isPremiumUser && (
             <>
               <DropdownMenuItem
                 onClick={downloadJson}
@@ -323,10 +390,26 @@ export function Menu({ documentId }: MenuProps) {
               </DropdownMenuItem>
 
               <DropdownMenuItem
-                onSelect={() => setOpenModal(true)}
+                onSelect={() => setUploadModalType("json")}
                 className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10"
               >
                 <Upload className="h-4 w-4 text-muted-foreground" /> Загрузить JSON
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator className="my-1" />
+
+              <DropdownMenuItem
+                onClick={downloadMd}
+                className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10"
+              >
+                <Download className="h-4 w-4 text-muted-foreground" /> Скачать Markdown
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onSelect={() => setUploadModalType("md")}
+                className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10"
+              >
+                <Upload className="h-4 w-4 text-muted-foreground" /> Загрузить Markdown
               </DropdownMenuItem>
 
               <DropdownMenuSeparator className="my-1" />
@@ -373,22 +456,39 @@ export function Menu({ documentId }: MenuProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={openModal && profile?.premium == 2} onOpenChange={setOpenModal}>
+      <Dialog
+        open={Boolean(uploadModalType && isPremiumUser)}
+        onOpenChange={(open) => {
+          if (!open) setUploadModalType(null);
+        }}
+      >
         <DialogContent className="sm:max-w-md rounded-2xl border border-black/10 bg-background/95 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/95">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">Загрузить JSON файл</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">
+              {uploadModalType === "md" ? "Загрузить Markdown файл" : "Загрузить JSON файл"}
+            </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              Выберите или перетащите .json файл для обновления содержимого заметки
+              {uploadModalType === "md"
+                ? "Выберите или перетащите .md файл для обновления содержимого заметки"
+                : "Выберите или перетащите .json файл для обновления содержимого заметки"}
             </DialogDescription>
           </DialogHeader>
 
           <div className="mt-2">
             <Dropzone
-              accept={{ "application/json": [".json"] }}
+              accept={
+                uploadModalType === "md"
+                  ? { "text/markdown": [".md", ".markdown"], "text/plain": [".md", ".markdown"] }
+                  : { "application/json": [".json"] }
+              }
               maxFiles={1}
               onDrop={(acceptedFiles: File[]) => {
-                uploadJson(acceptedFiles);
-                setOpenModal(false);
+                if (uploadModalType === "md") {
+                  uploadMd(acceptedFiles);
+                } else {
+                  uploadJson(acceptedFiles);
+                }
+                setUploadModalType(null);
               }}
               onError={(err) => {
                 console.error(err);
@@ -402,7 +502,7 @@ export function Menu({ documentId }: MenuProps) {
 
           <DialogFooter className="mt-4 sm:justify-end">
             <Button
-              onClick={() => setOpenModal(false)}
+              onClick={() => setUploadModalType(null)}
               className="w-full sm:w-auto rounded-xl"
               variant="outline"
             >

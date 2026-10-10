@@ -96,7 +96,7 @@ export function Premium() {
             "Хранение в архиве до 90 дней",
             "Кастомные ссылки",
             "Отключение упоминаний Notter",
-            "Скачивание/Загрузка заметок в JSON",
+            "Скачивание/Загрузка заметок в JSON/Markdown",
             "Экспорт журнала аудита в CSV",
           ]}
         />
@@ -175,7 +175,7 @@ export function Premium() {
               <TableCell><Check className="h-4 w-4 text-cyan-500" /></TableCell>
             </TableRow>
             <TableRow className="border-border/40">
-              <TableCell className="font-medium">Скачивание/загрузка в JSON</TableCell>
+              <TableCell className="font-medium">Скачивание/загрузка в JSON/Markdown</TableCell>
               <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
               <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
               <TableCell><Check className="h-4 w-4 text-cyan-500" /></TableCell>
