@@ -157,6 +157,12 @@ export function Premium() {
               <TableCell><Check className="h-4 w-4 text-cyan-500" /></TableCell>
             </TableRow>
             <TableRow className="border-border/40">
+              <TableCell className="font-medium">Расширенный журнал аудита</TableCell>
+              <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
+              <TableCell><Check className="h-4 w-4 text-yellow-400" /></TableCell>
+              <TableCell><Check className="h-4 w-4 text-cyan-500" /></TableCell>
+            </TableRow>
+            <TableRow className="border-border/40">
               <TableCell className="font-medium">Кастомные ссылки</TableCell>
               <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
               <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
@@ -172,12 +178,6 @@ export function Premium() {
               <TableCell className="font-medium">Скачивание/загрузка в JSON</TableCell>
               <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
               <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
-              <TableCell><Check className="h-4 w-4 text-cyan-500" /></TableCell>
-            </TableRow>
-            <TableRow className="border-border/40">
-              <TableCell className="font-medium">Расширенный журнал аудита</TableCell>
-              <TableCell><X className="h-4 w-4 text-muted-foreground" /></TableCell>
-              <TableCell><Check className="h-4 w-4 text-yellow-400" /></TableCell>
               <TableCell><Check className="h-4 w-4 text-cyan-500" /></TableCell>
             </TableRow>
             <TableRow className="border-border/40">

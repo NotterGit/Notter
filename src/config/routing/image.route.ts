@@ -33,7 +33,7 @@ export const images = {
   ILLUSTRATIONS: {
     EMPTY: "/images/empty.png",
     ERROR: "/images/error.svg",
-    INSTALL_PWA: "/images/install-pwa.png",
+    INSTALL_PWA: "/images/install-pwa.svg",
     TODO: "/images/todo.png",
   },
   BADGES: {
