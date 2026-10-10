@@ -331,6 +331,7 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
             onChange={onChange}
             editable={!isArchived}
             documentId={document.id || document._id}
+            documentTitle={localTitle || document.title || ""}
             saveStatus={saveStatus}
             onEditorReady={(editor) => {
               editorRef.current = editor

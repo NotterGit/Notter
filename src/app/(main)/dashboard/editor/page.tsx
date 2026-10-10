@@ -282,6 +282,7 @@ export default function EditorPrototypePage() {
         {showToolbar && (
           <EditorToolbar
             editor={editor}
+            documentTitle={meta.title}
             uploadLimitMb={uploadLimitMb}
             className={cn("top-0 z-30", previewMode && "pointer-events-none opacity-60")}
           />

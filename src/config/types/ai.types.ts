@@ -100,11 +100,14 @@ export interface GenerateTextOptions {
   model: string;
   prompt: string;
   systemPrompt?: string;
+  noteContext?: string;
+  documentTitle?: string;
   apiKey?: string;
   baseUrl?: string;
   workspaceId?: string;
   isOrg?: boolean;
   signal?: AbortSignal;
 }
+
 
 

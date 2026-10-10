@@ -44,6 +44,7 @@ export default function Editor({
   className,
   showFooter,
   saveStatus = "idle",
+  documentTitle,
   onEditorReady,
 }: EditorProps) {
   const { user } = useUser()
@@ -294,6 +295,7 @@ export default function Editor({
           editor={editor}
           uploadLimitMb={uploadLimitMb}
           onUploadFile={handleUpload}
+          documentTitle={documentTitle}
           className="sticky top-0 z-30 border-y bg-card/95 backdrop-blur-md px-4 sm:px-6 md:px-10"
         />
       )}

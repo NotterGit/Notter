@@ -4,11 +4,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { type Editor } from "@tiptap/react";
-import { Sparkles, Loader2, Cpu, Settings2, FlaskConical, Plus } from "lucide-react";
+import { Sparkles, Loader2, Cpu, Settings2, FlaskConical, Plus, FileText } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAiSettings } from "@/components/hooks/use-ai-settings";
 import { useQualAiLimits } from "@/components/hooks/use-qualai-limits";
 import { useSettings } from "@/components/hooks/use-settings";
@@ -17,12 +18,14 @@ import { AiProviderId } from "@/config/types/ai.types";
 import { isDevEnvironment } from "@/config/const/app.const";
 import type { AiGeneratePopoverProps, AiTypewriterController } from "@/config/types/editor.types";
 import { generateAiText } from "@/lib/ai/generate";
+import { editorToMarkdown } from "@/lib/editor/tiptap-to-markdown";
 import { cn } from "@/lib/utils";
 import { typewriteAiText } from "@/lib/editor/ai-typewriter";
 import { getAiGeneratingPos, setAiGenerating } from "../extensions/ai-indicator";
 
 export function AiGeneratePopover({
   editor,
+  documentTitle,
   isOpen,
   setIsOpen,
   selectionBackupRef,
@@ -44,6 +47,7 @@ export function AiGeneratePopover({
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [customModelMode, setCustomModelMode] = useState<boolean>(false);
   const [prompt, setPrompt] = useState<string>("");
+  const [includeNoteContext, setIncludeNoteContext] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [mockWordCount, setMockWordCount] = useState<number>(100);
@@ -181,12 +185,21 @@ export function AiGeneratePopover({
     setPrompt("");
     editor?.commands.focus();
 
+    const noteText = editor ? editor.getText().trim() : "";
+    const isNoteEmpty = !noteText;
+    const noteContext =
+      includeNoteContext && !isNoteEmpty && editor
+        ? editorToMarkdown(editor)
+        : undefined;
+
     try {
       const generatedText = await generateAiText({
         provider: selectedProviderId,
         model: effectiveModel,
         prompt: trimmedPrompt,
         systemPrompt,
+        noteContext,
+        documentTitle,
         apiKey: currentProviderConfig?.apiKey,
         baseUrl: currentProviderConfig?.baseUrl,
         workspaceId,
@@ -241,6 +254,10 @@ export function AiGeneratePopover({
       handleGenerate();
     }
   };
+
+  const noteText = editor ? editor.getText().trim() : "";
+  const isNoteEmpty = !noteText;
+  const noteWordsCount = isNoteEmpty ? 0 : noteText.split(/\s+/).length;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -632,6 +649,35 @@ export function AiGeneratePopover({
                   isLoading && "opacity-60 cursor-not-allowed"
                 )}
               />
+            </div>
+
+            <div className="flex items-center justify-between px-0.5 pt-0.5">
+              <label
+                htmlFor="ai-include-context"
+                className={cn(
+                  "flex items-center gap-2 text-[11px] select-none cursor-pointer transition-colors",
+                  isNoteEmpty
+                    ? "text-muted-foreground/50 cursor-not-allowed"
+                    : "text-muted-foreground hover:text-foreground",
+                  isLoading && "opacity-60 cursor-not-allowed"
+                )}
+              >
+                <Checkbox
+                  id="ai-include-context"
+                  disabled={isLoading || isNoteEmpty}
+                  checked={includeNoteContext && !isNoteEmpty}
+                  onCheckedChange={(checked) => setIncludeNoteContext(Boolean(checked))}
+                  className="h-3.5 w-3.5 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground border-border/80 cursor-pointer"
+                />
+                <span className="flex items-center gap-1.5 font-medium">
+                  <FileText className="h-3 w-3 text-violet-500" />
+                  <span>Добавить заметку в контекст</span>
+                </span>
+              </label>
+
+              <span className="text-[10px] text-muted-foreground/60 font-mono">
+                {isNoteEmpty ? "(пусто)" : `~${noteWordsCount} ${noteWordsCount === 1 ? "слово" : "слов"}`}
+              </span>
             </div>
           </>
         )}

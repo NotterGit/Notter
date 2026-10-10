@@ -11,6 +11,7 @@ export interface EditorProps {
   className?: string
   showFooter?: boolean
   saveStatus?: EditorSaveStatus
+  documentTitle?: string
   onEditorReady?: (editor: Editor) => void
 }
 
@@ -106,6 +107,7 @@ export interface EditorToolbarProps {
   editor: Editor | null
   uploadLimitMb?: number
   onUploadFile?: (file: File) => Promise<string>
+  documentTitle?: string
   className?: string
 }
 
@@ -141,6 +143,7 @@ export interface AiGeneratePopoverProps {
   isOpen: boolean
   setIsOpen: (open: boolean) => void
   selectionBackupRef: React.MutableRefObject<TextSelectionRange | null>
+  documentTitle?: string
   children: React.ReactNode
 }
 

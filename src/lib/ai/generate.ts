@@ -1,10 +1,23 @@
 import { AiProviderId, GenerateTextOptions } from "@/config/types/ai.types";
 import { generateLoremIpsum } from "./lorem";
+import { buildPromptWithContext } from "./context";
 
 export type { GenerateTextOptions };
 
 export async function generateAiText(options: GenerateTextOptions): Promise<string> {
-  const { provider, model, prompt, systemPrompt, apiKey = "", baseUrl, workspaceId, isOrg, signal } = options;
+  const {
+    provider,
+    model,
+    prompt,
+    systemPrompt,
+    noteContext,
+    documentTitle,
+    apiKey = "",
+    baseUrl,
+    workspaceId,
+    isOrg,
+    signal,
+  } = options;
 
   if (provider === "mock") {
     await new Promise((resolve) => setTimeout(resolve, 150));
@@ -17,6 +30,10 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
     const withMarkdown = model !== "lorem-plain";
     return generateLoremIpsum(words, withMarkdown);
   }
+
+  const effectivePrompt = noteContext
+    ? buildPromptWithContext({ prompt, noteContext, documentTitle })
+    : prompt;
 
   const isLocalCustom =
     (provider === "custom" || provider.startsWith("custom") || Boolean(baseUrl)) &&
@@ -42,7 +59,7 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
         model,
         messages: [
           ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
-          { role: "user", content: prompt },
+          { role: "user", content: effectivePrompt },
         ],
       }),
     });
@@ -65,7 +82,7 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
     body: JSON.stringify({
       provider,
       model,
-      prompt,
+      prompt: effectivePrompt,
       systemPrompt,
       apiKey,
       baseUrl,
