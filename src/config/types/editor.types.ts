@@ -82,6 +82,7 @@ export interface AiIndicatorState {
   isGenerating: boolean
   isTyping?: boolean
   typingPos?: number
+  isReviewing?: boolean
   from: number
   to: number
 }
@@ -181,8 +182,26 @@ export interface AiTypewriterOptions {
   editor: Editor
   markdown: string
   range: { from: number; to: number }
-  onComplete?: () => void
+  onComplete?: (finalRange?: { from: number; to: number }) => void
   onError?: (err: unknown) => void
+}
+
+export interface AiReviewSession {
+  from: number
+  to: number
+  generatedMarkdown: string
+  originalPrompt: string
+  originalSnapshot: Record<string, unknown> | null
+}
+
+export interface AiReviewBarProps {
+  isOpen: boolean
+  isLoading: boolean
+  onAccept: () => void
+  onDiscard: () => void
+  onRefine: (instruction: string) => Promise<void>
+  modelName?: string
+  providerName?: string
 }
 
 export interface AiTypewriterController {

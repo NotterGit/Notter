@@ -51,6 +51,14 @@ export const AI_TYPEWRITER_MIN_DURATION_MS = 500
 export const AI_TYPEWRITER_MAX_DURATION_MS = 6000
 export const AI_TYPEWRITER_MS_PER_CHAR = 2.8
 
+export const AI_QUICK_REFINEMENTS = [
+  "Сделай короче",
+  "Сделай подробнее",
+  "Исправь ошибки",
+  "Перефразируй",
+  "Оформи списком",
+] as const
+
 export const EMPTY_EDITOR_DOCUMENT = {
   type: "doc",
   content: [{ type: "paragraph" }],

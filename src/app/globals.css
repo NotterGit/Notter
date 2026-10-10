@@ -580,6 +580,15 @@ body.editor-is-dragging .tiptap-prototype-content {
   }
 }
 
+.tiptap-prototype-content .tiptap-ai-reviewing-node {
+  position: relative !important;
+  border-left: 3px solid #8b5cf6 !important;
+  background: rgba(139, 92, 246, 0.07) !important;
+  border-radius: 0 0.375rem 0.375rem 0 !important;
+  padding-left: 0.5rem !important;
+  transition: border-color 0.2s ease, background 0.2s ease !important;
+}
+
 .tiptap-ai-line-indicator {
   display: flex !important;
   align-items: center !important;

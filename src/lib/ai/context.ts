@@ -40,3 +40,35 @@ ${trimmedPrompt}
 
 Инструкция: сформируй ответ строго по запросу пользователя с учётом контекста заметки выше. Выведи только готовый текст без вводных фраз, мета-комментариев и заключений.`;
 }
+
+export interface BuildRefinementPromptOptions {
+  originalPrompt?: string;
+  currentText: string;
+  refinementInstruction: string;
+}
+
+/**
+ * Builds a prompt for refining previously generated AI text based on user corrections.
+ */
+export function buildRefinementPrompt(options: BuildRefinementPromptOptions): string {
+  const { originalPrompt, currentText, refinementInstruction } = options;
+  const parts: string[] = [];
+
+  if (originalPrompt?.trim()) {
+    parts.push(`Исходный запрос пользователя:\n"${originalPrompt.trim()}"`);
+  }
+
+  parts.push(
+    `Текущий вариант сгенерированного текста:\n"""\n${currentText.trim()}\n"""`
+  );
+
+  parts.push(
+    `Инструкция по доработке/исправлению от пользователя:\n"${refinementInstruction.trim()}"`
+  );
+
+  parts.push(
+    `Инструкция для модели: исправь или перепиши текущий текст строго в соответствии с инструкцией по доработке. Сохрани основной смысл и форматирование, если не запрошено иное. Выведи ТОЛЬКО готовый итоговый текст без вводных фраз, пояснений, кавычек оформления и мета-комментариев.`
+  );
+
+  return parts.join("\n\n");
+}

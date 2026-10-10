@@ -7,6 +7,8 @@ import { type Editor } from "@tiptap/react";
 import { Sparkles, Loader2, Cpu, Settings2, FlaskConical, Plus, FileText } from "lucide-react";
 import toast from "react-hot-toast";
 
+import { Slice } from "@tiptap/pm/model";
+import { Selection } from "@tiptap/pm/state";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,12 +18,23 @@ import { useSettings } from "@/components/hooks/use-settings";
 import { AI_PROVIDERS } from "@/config/ai-providers";
 import { AiProviderId } from "@/config/types/ai.types";
 import { isDevEnvironment } from "@/config/const/app.const";
-import type { AiGeneratePopoverProps, AiTypewriterController } from "@/config/types/editor.types";
+import type {
+  AiGeneratePopoverProps,
+  AiTypewriterController,
+  AiReviewSession,
+} from "@/config/types/editor.types";
 import { generateAiText } from "@/lib/ai/generate";
+import { buildRefinementPrompt } from "@/lib/ai/context";
 import { editorToMarkdown } from "@/lib/editor/tiptap-to-markdown";
 import { cn } from "@/lib/utils";
 import { typewriteAiText } from "@/lib/editor/ai-typewriter";
-import { getAiGeneratingPos, setAiGenerating } from "../extensions/ai-indicator";
+import {
+  getAiGeneratingPos,
+  setAiGenerating,
+  setAiReviewing,
+  getAiReviewingRange,
+} from "../extensions/ai-indicator";
+import { AiReviewBar } from "./ai-review-bar";
 
 export function AiGeneratePopover({
   editor,
@@ -52,6 +65,9 @@ export function AiGeneratePopover({
 
   const [mockWordCount, setMockWordCount] = useState<number>(100);
   const [mockWithMarkdown, setMockWithMarkdown] = useState<boolean>(true);
+
+  const [reviewSession, setReviewSession] = useState<AiReviewSession | null>(null);
+  const [isRefining, setIsRefining] = useState<boolean>(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const generatingTargetPosRef = useRef<{ from: number; to: number } | null>(null);
@@ -91,6 +107,7 @@ export function AiGeneratePopover({
       }
       if (editor && !editor.isDestroyed) {
         setAiGenerating(editor, false);
+        setAiReviewing(editor, false);
       }
     };
   }, [editor]);
@@ -166,6 +183,11 @@ export function AiGeneratePopover({
 
     if (!editor) return;
 
+    if (reviewSession && editor) {
+      setAiReviewing(editor, false);
+      setReviewSession(null);
+    }
+
     if (typewriterControllerRef.current) {
       typewriterControllerRef.current.finishImmediately();
     }
@@ -173,6 +195,16 @@ export function AiGeneratePopover({
     const targetPos = selectionBackupRef.current
       ? { ...selectionBackupRef.current }
       : { from: editor.state.selection.from, to: editor.state.selection.to };
+
+    const isRangeSelection = targetPos.from !== targetPos.to;
+    let originalSnapshot: Record<string, unknown> | null = null;
+    if (isRangeSelection && editor) {
+      try {
+        originalSnapshot = editor.state.doc.slice(targetPos.from, targetPos.to).toJSON() as Record<string, unknown>;
+      } catch {
+        originalSnapshot = null;
+      }
+    }
 
     generatingTargetPosRef.current = targetPos;
     const abortController = new AbortController();
@@ -219,16 +251,27 @@ export function AiGeneratePopover({
         editor,
         markdown: generatedText,
         range: { from, to },
-        onComplete: () => {
-          toast.success("Текст добавлен");
+        onComplete: (finalRange) => {
           void refreshQualAiLimits();
           typewriterControllerRef.current = null;
+          const resFrom = finalRange ? finalRange.from : from;
+          const resTo = finalRange ? finalRange.to : to;
+          setAiReviewing(editor, true, { from: resFrom, to: resTo });
+          setReviewSession({
+            from: resFrom,
+            to: resTo,
+            generatedMarkdown: generatedText,
+            originalPrompt: trimmedPrompt,
+            originalSnapshot,
+          });
         },
         onError: (err) => {
           console.error("AI typing error:", err);
           toast.error("Не удалось напечатать текст");
           void refreshQualAiLimits();
           typewriterControllerRef.current = null;
+          setAiReviewing(editor, false);
+          setReviewSession(null);
         },
       });
     } catch (error: any) {
@@ -248,6 +291,168 @@ export function AiGeneratePopover({
     }
   };
 
+  const handleAccept = () => {
+    if (!editor) return;
+    setAiReviewing(editor, false);
+    setReviewSession(null);
+    editor.commands.focus();
+    toast.success("Текст добавлен");
+  };
+
+  const handleDiscard = () => {
+    if (!editor || !reviewSession) return;
+
+    if (typewriterControllerRef.current) {
+      typewriterControllerRef.current.stop();
+      typewriterControllerRef.current = null;
+    }
+
+    const currentRange = getAiReviewingRange(editor) ?? {
+      from: reviewSession.from,
+      to: reviewSession.to,
+    };
+
+    const tr = editor.state.tr;
+    tr.setMeta("addToHistory", true);
+    const safeFrom = Math.min(Math.max(0, currentRange.from), tr.doc.content.size);
+    const safeTo = Math.min(Math.max(0, currentRange.to), tr.doc.content.size);
+
+    if (reviewSession.originalSnapshot) {
+      try {
+        const slice = Slice.fromJSON(editor.schema, reviewSession.originalSnapshot);
+        tr.replace(safeFrom, safeTo, slice);
+      } catch {
+        tr.delete(safeFrom, safeTo);
+      }
+    } else {
+      tr.delete(safeFrom, safeTo);
+    }
+
+    if (tr.doc.content.size === 0) {
+      tr.insert(0, editor.schema.nodes.paragraph.create());
+    }
+
+    const safePos = Math.min(safeFrom, tr.doc.content.size);
+    tr.setSelection(Selection.near(tr.doc.resolve(safePos)));
+    editor.view.dispatch(tr);
+
+    setAiReviewing(editor, false);
+    setReviewSession(null);
+    editor.commands.focus();
+    toast("Сгенерированный текст удален");
+  };
+
+  const handleRefine = async (instruction: string) => {
+    if (!editor || !reviewSession || isRefining) return;
+
+    if (selectedProviderId === "qualai" && qualAiLimits && qualAiLimits.remaining <= 0) {
+      toast.error(
+        `Вы исчерпали недельный лимит генераций для тарифа ${qualAiLimits.tier} (${qualAiLimits.limit} в неделю)`
+      );
+      return;
+    }
+
+    if (typewriterControllerRef.current) {
+      typewriterControllerRef.current.finishImmediately();
+    }
+
+    const currentRange = getAiReviewingRange(editor) ?? {
+      from: reviewSession.from,
+      to: reviewSession.to,
+    };
+
+    const refinementPrompt = buildRefinementPrompt({
+      originalPrompt: reviewSession.originalPrompt,
+      currentText: reviewSession.generatedMarkdown,
+      refinementInstruction: instruction,
+    });
+
+    const isMock = selectedProviderId === "mock";
+    const effectiveModel = isMock
+      ? (mockWithMarkdown ? "lorem-markdown" : "lorem-plain")
+      : selectedModel.trim();
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    setIsRefining(true);
+    setAiGenerating(editor, true, currentRange);
+
+    const noteText = editor ? editor.getText().trim() : "";
+    const isNoteEmpty = !noteText;
+    const noteContext =
+      includeNoteContext && !isNoteEmpty && editor
+        ? editorToMarkdown(editor)
+        : undefined;
+
+    try {
+      const generatedText = await generateAiText({
+        provider: selectedProviderId,
+        model: effectiveModel,
+        prompt: refinementPrompt,
+        systemPrompt,
+        noteContext,
+        documentTitle,
+        apiKey: currentProviderConfig?.apiKey,
+        baseUrl: currentProviderConfig?.baseUrl,
+        workspaceId,
+        isOrg,
+        signal: abortController.signal,
+      });
+
+      const finalPos = getAiGeneratingPos(editor) ?? currentRange;
+      setAiGenerating(editor, false);
+
+      const from = typeof finalPos === "number" ? finalPos : finalPos.from;
+      const to = typeof finalPos === "number" ? finalPos : finalPos.to;
+
+      typewriterControllerRef.current = typewriteAiText({
+        editor,
+        markdown: generatedText,
+        range: { from, to },
+        onComplete: (newFinalRange) => {
+          void refreshQualAiLimits();
+          typewriterControllerRef.current = null;
+          const resFrom = newFinalRange ? newFinalRange.from : from;
+          const resTo = newFinalRange ? newFinalRange.to : to;
+          setAiReviewing(editor, true, { from: resFrom, to: resTo });
+          setReviewSession((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  from: resFrom,
+                  to: resTo,
+                  generatedMarkdown: generatedText,
+                }
+              : null
+          );
+          setIsRefining(false);
+          toast.success("Текст обновлен");
+        },
+        onError: (err) => {
+          console.error("AI typing error during refinement:", err);
+          toast.error("Не удалось напечатать текст");
+          void refreshQualAiLimits();
+          typewriterControllerRef.current = null;
+          setIsRefining(false);
+        },
+      });
+    } catch (error: any) {
+      void refreshQualAiLimits();
+      if (error?.name === "AbortError" || abortController.signal.aborted) {
+        toast("Исправление отменено");
+      } else {
+        const msg = error instanceof Error ? error.message : "Не удалось исправить текст";
+        toast.error(msg);
+      }
+      setAiGenerating(editor, false);
+      setAiReviewing(editor, true, currentRange);
+      setIsRefining(false);
+    } finally {
+      abortControllerRef.current = null;
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
@@ -260,8 +465,9 @@ export function AiGeneratePopover({
   const noteWordsCount = isNoteEmpty ? 0 : noteText.split(/\s+/).length;
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>{children}</PopoverTrigger>
+    <>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent
         align="start"
         sideOffset={6}
@@ -737,5 +943,16 @@ export function AiGeneratePopover({
         </div>
       </PopoverContent>
     </Popover>
+
+    <AiReviewBar
+      isOpen={Boolean(reviewSession)}
+      isLoading={isRefining}
+      onAccept={handleAccept}
+      onDiscard={handleDiscard}
+      onRefine={handleRefine}
+      modelName={selectedModel}
+      providerName={currentMeta.name}
+    />
+  </>
   );
 }

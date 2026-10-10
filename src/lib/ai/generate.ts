@@ -26,7 +26,17 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
       err.name = "AbortError";
       throw err;
     }
-    const words = parseInt(prompt.trim(), 10) || 100;
+    let words = parseInt(prompt.trim(), 10);
+    if (!words || isNaN(words)) {
+      const lower = prompt.toLowerCase();
+      if (lower.includes("короче") || lower.includes("кратк")) {
+        words = 40;
+      } else if (lower.includes("подробн") || lower.includes("длинн") || lower.includes("больше")) {
+        words = 200;
+      } else {
+        words = 85;
+      }
+    }
     const withMarkdown = model !== "lorem-plain";
     return generateLoremIpsum(words, withMarkdown);
   }
