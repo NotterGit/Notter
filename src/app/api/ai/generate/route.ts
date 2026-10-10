@@ -33,7 +33,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ text: generateLoremIpsum(words, withMarkdown) });
     }
 
-    if (provider !== "custom" && provider !== "qualai" && !apiKey.trim()) {
+    const isCustomProvider =
+      provider === "custom" ||
+      provider.startsWith("custom") ||
+      Boolean(baseUrl);
+
+    if (!isCustomProvider && provider !== "qualai" && !apiKey.trim()) {
       return NextResponse.json({ error: `Отсутствует API ключ для ${provider}` }, { status: 400 });
     }
 
@@ -194,7 +199,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ text: data.response ?? "" });
     }
 
-    if (provider === "custom") {
+    if (isCustomProvider) {
       const targetBase = baseUrl?.trim() || "http://localhost:11434/v1";
       const endpoint = `${targetBase.replace(/\/+$/, "")}/chat/completions`;
 

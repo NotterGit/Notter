@@ -72,13 +72,6 @@ export const AI_PROVIDERS: Record<AiProviderId, ProviderMeta> = {
     placeholderKey: "Не требуется",
     requiresKey: false,
   },
-  custom: {
-    id: "custom",
-    name: "Custom",
-    isCustom: true,
-    placeholderKey: "Опционально",
-    defaultBaseUrl: "http://localhost:11434/v1",
-  },
   mock: {
     id: "mock",
     name: "Lorem (Dev)",
@@ -142,16 +135,11 @@ export const DEFAULT_AI_SETTINGS: AiSettingsData = {
       selectedModel: QUALAI_DEFAULT_MODELS[0],
       models: [...QUALAI_DEFAULT_MODELS],
     },
-    custom: {
-      apiKey: "",
-      baseUrl: "http://localhost:11434/v1",
-      selectedModel: "",
-      models: [],
-    },
     mock: {
       apiKey: "",
       selectedModel: "lorem-markdown",
       models: ["lorem-markdown", "lorem-plain"],
     },
   },
+  customProviders: [],
 };

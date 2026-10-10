@@ -1,9 +1,10 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { type Editor } from "@tiptap/react";
-import { Sparkles, Loader2, Cpu, Settings2, FlaskConical } from "lucide-react";
+import { Sparkles, Loader2, Cpu, Settings2, FlaskConical, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -27,10 +28,18 @@ export function AiGeneratePopover({
   selectionBackupRef,
   children,
 }: AiGeneratePopoverProps) {
-  const { activeProviderId, providers, systemPrompt } = useAiSettings();
+  const {
+    activeProviderId,
+    systemPrompt,
+    builtinProviders,
+    customProviders,
+    getProviderConfig,
+    getProviderMeta,
+  } = useAiSettings();
   const settingsModal = useSettings();
   const { limits: qualAiLimits, refresh: refreshQualAiLimits, workspaceId, isOrg } = useQualAiLimits();
 
+  const [providerTab, setProviderTab] = useState<"builtin" | "custom">("builtin");
   const [selectedProviderId, setSelectedProviderId] = useState<AiProviderId>(activeProviderId);
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [customModelMode, setCustomModelMode] = useState<boolean>(false);
@@ -50,21 +59,23 @@ export function AiGeneratePopover({
       initializedRef.current = false;
       return;
     }
-    void refreshQualAiLimits();
     if (isLoading) return;
     if (initializedRef.current) return;
 
     initializedRef.current = true;
 
     setSelectedProviderId(activeProviderId);
-    const prov = providers[activeProviderId];
+    const isCustomActive = Boolean(getProviderMeta(activeProviderId).isCustom);
+    setProviderTab(isCustomActive ? "custom" : "builtin");
+
+    const prov = getProviderConfig(activeProviderId);
     const model =
       prov?.selectedModel ||
       (Array.isArray(prov?.models) && prov.models[0]) ||
       "";
     setSelectedModel(model);
     setCustomModelMode(!prov?.models?.length);
-  }, [isOpen, isLoading, activeProviderId, providers, refreshQualAiLimits]);
+  }, [isOpen, isLoading, activeProviderId, getProviderConfig, getProviderMeta]);
 
   useEffect(() => {
     return () => {
@@ -83,7 +94,7 @@ export function AiGeneratePopover({
   const handleProviderSelect = (id: AiProviderId) => {
     if (isLoading) return;
     setSelectedProviderId(id);
-    const prov = providers[id];
+    const prov = getProviderConfig(id);
     const model =
       prov?.selectedModel ||
       (Array.isArray(prov?.models) && prov.models[0]) ||
@@ -92,14 +103,14 @@ export function AiGeneratePopover({
     setCustomModelMode(!prov?.models?.length);
   };
 
-  const currentProviderConfig = providers[selectedProviderId];
-  const currentMeta = AI_PROVIDERS[selectedProviderId];
+  const currentProviderConfig = getProviderConfig(selectedProviderId);
+  const currentMeta = getProviderMeta(selectedProviderId);
   const availableModels = Array.isArray(currentProviderConfig?.models)
     ? currentProviderConfig.models.filter(Boolean)
     : [];
 
   const isCloudWithoutKey =
-    selectedProviderId !== "custom" &&
+    !currentMeta.isCustom &&
     currentMeta.requiresKey !== false &&
     !currentProviderConfig?.apiKey?.trim();
 
@@ -177,7 +188,7 @@ export function AiGeneratePopover({
         prompt: trimmedPrompt,
         systemPrompt,
         apiKey: currentProviderConfig?.apiKey,
-        baseUrl: selectedProviderId === "custom" ? providers.custom.baseUrl : undefined,
+        baseUrl: currentProviderConfig?.baseUrl,
         workspaceId,
         isOrg,
         signal: abortController.signal,
@@ -265,55 +276,183 @@ export function AiGeneratePopover({
           </button>
         </div>
 
-        <div className="flex flex-nowrap gap-1 overflow-x-auto pb-1.5 scrollbar-minimal">
-          {(Object.keys(AI_PROVIDERS) as AiProviderId[])
-            .filter((id) => !AI_PROVIDERS[id].isDevOnly || isDevEnvironment())
-            .map((id) => {
-              const meta = AI_PROVIDERS[id];
-              const isSelected = selectedProviderId === id;
+        {/* Provider Tabs */}
+        <div className="flex items-center gap-1 p-0.5 bg-muted/60 rounded-lg border border-border/50 text-[11px]">
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={() => {
+              setProviderTab("builtin");
+              if (getProviderMeta(selectedProviderId).isCustom) {
+                handleProviderSelect("openai");
+              }
+            }}
+            className={cn(
+              "flex-1 py-1 px-2.5 rounded-md font-medium transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer",
+              providerTab === "builtin"
+                ? "bg-background text-foreground shadow-xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Sparkles className="h-3 w-3 text-primary" />
+            <span>Встроенные</span>
+          </button>
 
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => handleProviderSelect(id)}
-                  className={cn(
-                    "flex shrink-0 basis-16 grow flex-col items-center justify-center p-1.5 rounded-lg border text-center transition-all gap-1 cursor-pointer",
-                    isSelected
-                      ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30"
-                      : "border-border/60 hover:bg-muted/40 text-muted-foreground hover:text-foreground",
-                    isLoading && "opacity-60 cursor-not-allowed"
-                  )}
-                >
-                  {id === "mock" ? (
-                    <FlaskConical className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                  ) : meta.iconSrc ? (
-                    <Image
-                      src={meta.iconSrc}
-                      alt={meta.name}
-                      width={15}
-                      height={15}
-                      className={cn(
-                        "shrink-0 object-contain rounded-xs",
-                        (id === "openai" || id === "opencode") && "dark:invert"
-                      )}
-                    />
-                  ) : (
-                    <Cpu className="h-3.5 w-3.5 shrink-0" />
-                  )}
-                  <span className="text-[10px] font-medium leading-none truncate max-w-full">
-                    {meta.name}
-                  </span>
-                  {id === "qualai" && qualAiLimits && (
-                    <span className="text-[9px] font-mono text-muted-foreground leading-none">
-                      {qualAiLimits.remaining}/{qualAiLimits.limit}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={() => {
+              setProviderTab("custom");
+              if (!getProviderMeta(selectedProviderId).isCustom && customProviders.length > 0) {
+                handleProviderSelect(customProviders[0].id);
+              }
+            }}
+            className={cn(
+              "flex-1 py-1 px-2.5 rounded-md font-medium transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer",
+              providerTab === "custom"
+                ? "bg-background text-foreground shadow-xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Cpu className="h-3 w-3 text-primary" />
+            <span>Мои провайдеры</span>
+            {customProviders.length > 0 && (
+              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-primary/10 text-primary font-mono font-bold">
+                {customProviders.length}
+              </span>
+            )}
+          </button>
         </div>
+
+        {/* Builtin Providers Carousel */}
+        {providerTab === "builtin" && (
+          <div className="flex flex-nowrap gap-1 overflow-x-auto pb-1.5 scrollbar-minimal">
+            {builtinProviders
+              .filter((p) => !p.isDevOnly || isDevEnvironment())
+              .map((meta) => {
+                const id = meta.id;
+                const isSelected = selectedProviderId === id;
+
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => handleProviderSelect(id)}
+                    className={cn(
+                      "flex shrink-0 basis-16 grow flex-col items-center justify-center p-1.5 rounded-lg border text-center transition-all gap-1 cursor-pointer",
+                      isSelected
+                        ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30"
+                        : "border-border/60 hover:bg-muted/40 text-muted-foreground hover:text-foreground",
+                      isLoading && "opacity-60 cursor-not-allowed"
+                    )}
+                  >
+                    {id === "mock" ? (
+                      <FlaskConical className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                    ) : meta.iconSrc ? (
+                      <img
+                        src={meta.iconSrc}
+                        alt={meta.name}
+                        width={15}
+                        height={15}
+                        className={cn(
+                          "shrink-0 object-contain rounded-xs",
+                          (id === "openai" || id === "opencode") && "dark:invert"
+                        )}
+                      />
+                    ) : (
+                      <Cpu className="h-3.5 w-3.5 shrink-0" />
+                    )}
+                    <span className="text-[10px] font-medium leading-none truncate max-w-full">
+                      {meta.name}
+                    </span>
+                    {id === "qualai" && qualAiLimits && (
+                      <span className="text-[9px] font-mono text-muted-foreground leading-none">
+                        {qualAiLimits.remaining}/{qualAiLimits.limit}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+          </div>
+        )}
+
+        {/* Custom Providers Carousel */}
+        {providerTab === "custom" && (
+          <>
+            {customProviders.length === 0 ? (
+              <div className="p-3 rounded-lg border border-dashed border-border/70 text-center flex flex-col items-center justify-center gap-1.5 bg-muted/20">
+                <span className="text-xs text-muted-foreground">
+                  У вас пока нет своих провайдеров
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setIsOpen(false);
+                    settingsModal.onOpen();
+                  }}
+                  className="h-6 text-[11px] gap-1 px-2.5 border-border/80 hover:bg-muted cursor-pointer"
+                >
+                  <Settings2 className="h-3 w-3" />
+                  <span>Добавить в настройках</span>
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-nowrap gap-1 overflow-x-auto pb-1.5 scrollbar-minimal">
+                {customProviders.map((cp) => {
+                  const id = cp.id;
+                  const isSelected = selectedProviderId === id;
+
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      disabled={isLoading}
+                      onClick={() => handleProviderSelect(id)}
+                      className={cn(
+                        "flex shrink-0 basis-16 grow flex-col items-center justify-center p-1.5 rounded-lg border text-center transition-all gap-1 cursor-pointer",
+                        isSelected
+                          ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30"
+                          : "border-border/60 hover:bg-muted/40 text-muted-foreground hover:text-foreground",
+                        isLoading && "opacity-60 cursor-not-allowed"
+                      )}
+                    >
+                      {cp.iconSrc ? (
+                        <img
+                          src={cp.iconSrc}
+                          alt={cp.name}
+                          width={15}
+                          height={15}
+                          className="shrink-0 object-contain rounded-xs h-3.5 w-3.5"
+                        />
+                      ) : (
+                        <Cpu className="h-3.5 w-3.5 shrink-0 text-primary" />
+                      )}
+                      <span className="text-[10px] font-medium leading-none truncate max-w-full">
+                        {cp.name}
+                      </span>
+                    </button>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    settingsModal.onOpen();
+                  }}
+                  className="flex shrink-0 basis-16 grow flex-col items-center justify-center p-1.5 rounded-lg border border-dashed border-border/80 hover:border-primary/80 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all gap-1 cursor-pointer"
+                  title="Управление провайдерами"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span className="text-[10px] font-medium leading-none">Еще</span>
+                </button>
+              </div>
+            )}
+          </>
+        )}
 
         {selectedProviderId === "qualai" && (
           <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-muted/40 border border-border/60 text-xs">

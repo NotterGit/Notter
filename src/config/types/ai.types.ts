@@ -1,4 +1,4 @@
-export type AiProviderId =
+export type BuiltinAiProviderId =
   | "openai"
   | "claude"
   | "gemini"
@@ -8,13 +8,26 @@ export type AiProviderId =
   | "opencode"
   | "yandex"
   | "qualai"
-  | "custom"
   | "mock";
+
+export type AiProviderId = BuiltinAiProviderId | "custom" | string;
+
+export interface CustomAiProvider {
+  id: string;
+  name: string;
+  iconSrc?: string;
+  baseUrl: string;
+  apiKey: string;
+  models: string[];
+  selectedModel: string;
+  createdAt?: number;
+}
 
 export interface StandardProviderConfig {
   apiKey: string;
   selectedModel: string;
   models: string[];
+  baseUrl?: string;
 }
 
 export interface CustomProviderConfig extends StandardProviderConfig {
@@ -34,9 +47,11 @@ export interface AiSettingsData {
     opencode: StandardProviderConfig;
     yandex: StandardProviderConfig;
     qualai: StandardProviderConfig;
-    custom: CustomProviderConfig;
+    custom?: CustomProviderConfig;
     mock: StandardProviderConfig;
+    [key: string]: (StandardProviderConfig & { baseUrl?: string }) | undefined;
   };
+  customProviders: CustomAiProvider[];
 }
 
 export interface AiSettingsStore extends AiSettingsData {
@@ -46,6 +61,9 @@ export interface AiSettingsStore extends AiSettingsData {
   addProviderModel: (id: AiProviderId, model: string) => void;
   removeProviderModel: (id: AiProviderId, model: string) => void;
   setCustomProviderConfig: (config: Partial<CustomProviderConfig>) => void;
+  addCustomProvider: (provider: Omit<CustomAiProvider, "id"> & { id?: string }) => string;
+  updateCustomProvider: (id: string, updates: Partial<CustomAiProvider>) => void;
+  deleteCustomProvider: (id: string) => void;
   setSystemPrompt: (prompt: string) => void;
   resetToDefaults: () => void;
   importSettings: (data: any) => void;

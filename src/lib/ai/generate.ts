@@ -19,7 +19,7 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
   }
 
   const isLocalCustom =
-    provider === "custom" &&
+    (provider === "custom" || provider.startsWith("custom") || Boolean(baseUrl)) &&
     baseUrl &&
     (baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1"));
 
