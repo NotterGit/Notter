@@ -105,5 +105,3 @@ export const API = {
     },
   },
 } as const;
-
-export const apiRoutes = API.BACKEND;

@@ -35,12 +35,7 @@ export const DEFAULT_UPLOAD_LIMIT_MB = 10
 export const INLINE_MEDIA_MAX_BYTES = 2 * 1024 * 1024
 
 export const DEFAULT_MEDIA_ALIGNMENT: MediaAlignment = "center"
-export const MEDIA_ALIGNMENTS: readonly MediaAlignment[] = ["left", "center", "right"] as const
 export const DEFAULT_MEDIA_WIDTH = "100%"
-
-export const MEDIA_ACCEPTED_IMAGE_TYPES = "image/*"
-export const MEDIA_ACCEPTED_VIDEO_TYPES = "video/*"
-export const MEDIA_ACCEPTED_AUDIO_TYPES = "audio/*"
 
 export const MAX_COVER_WIDTH = 1400
 export const MAX_COVER_HEIGHT = 600

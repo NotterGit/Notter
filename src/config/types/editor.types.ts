@@ -22,9 +22,9 @@ export interface DocumentMeta {
 
 export type MediaAlignment = "left" | "center" | "right"
 
-export type MediaWidth = string
+type MediaWidth = string
 
-export interface CustomImageAttributes {
+interface CustomImageAttributes {
   src?: string
   alt?: string
   width?: MediaWidth
@@ -32,7 +32,7 @@ export interface CustomImageAttributes {
   caption?: string
 }
 
-export interface CustomVideoAttributes {
+interface CustomVideoAttributes {
   src?: string
   title?: string
   width?: MediaWidth
@@ -40,7 +40,7 @@ export interface CustomVideoAttributes {
   caption?: string
 }
 
-export interface CustomAudioAttributes {
+interface CustomAudioAttributes {
   src?: string
   title?: string
   alignment?: MediaAlignment
@@ -55,7 +55,7 @@ export interface ImageDragPreviewProps {
   initialCoords: { x: number; y: number }
 }
 
-export interface EditorMediaNodeViewProps<T = Record<string, any>> {
+interface EditorMediaNodeViewProps<T = Record<string, any>> {
   node: {
     attrs: Record<string, any> & T
     [key: string]: any
@@ -72,7 +72,7 @@ export type ImageComponentProps = EditorMediaNodeViewProps<CustomImageAttributes
 export type VideoComponentProps = EditorMediaNodeViewProps<CustomVideoAttributes>
 export type AudioComponentProps = EditorMediaNodeViewProps<CustomAudioAttributes>
 
-export interface TextSelectionRange {
+interface TextSelectionRange {
   from: number
   to: number
 }
@@ -116,7 +116,7 @@ export interface LinkPopoverProps {
   children: React.ReactNode
 }
 
-export interface MediaPopoverBaseProps {
+interface MediaPopoverBaseProps {
   isOpen: boolean
   setIsOpen: (open: boolean) => void
   onUploadFile?: (file: File) => Promise<string>

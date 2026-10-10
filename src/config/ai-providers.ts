@@ -7,7 +7,6 @@ export const QUALAI_DEFAULT_MODELS = [
   "Q.AI 3",
   "Q.AI 3 Mini",
 ];
-export const QAI_DEFAULT_MODELS = QUALAI_DEFAULT_MODELS;
 
 export const AI_PROVIDERS: Record<AiProviderId, ProviderMeta> = {
   openai: {

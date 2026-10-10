@@ -149,34 +149,6 @@ export function setAiGenerating(
   editor.view.dispatch(tr);
 }
 
-export function setAiTyping(
-  editor: Editor | null,
-  isTyping: boolean,
-  typingPos?: number,
-  range?: { from: number; to: number }
-) {
-  if (!editor || editor.isDestroyed) return;
-  const currentPos = range || {
-    from: editor.state.selection.from,
-    to: editor.state.selection.to,
-  };
-  const tr = editor.state.tr.setMeta(aiIndicatorPluginKey, {
-    isGenerating: false,
-    isTyping,
-    typingPos: typingPos ?? currentPos.to,
-    from: currentPos.from,
-    to: currentPos.to,
-  });
-  tr.setMeta("addToHistory", false);
-  editor.view.dispatch(tr);
-}
-
-export function isAiTyping(editor: Editor | null): boolean {
-  if (!editor || editor.isDestroyed) return false;
-  const pluginState = aiIndicatorPluginKey.getState(editor.state);
-  return Boolean(pluginState?.isTyping);
-}
-
 export function getAiGeneratingPos(
   editor: Editor | null
 ): { from: number; to: number } | null {

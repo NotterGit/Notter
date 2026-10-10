@@ -4,7 +4,7 @@ import { AiProviderId, AiSettingsData, AiSettingsStore, CustomProviderConfig, St
 import { AI_PROVIDERS, AI_SYSTEM_PROMPTS, DEFAULT_AI_SETTINGS, QUALAI_DEFAULT_MODELS } from "@/config/ai-providers";
 import { useEffect, useState } from "react";
 
-export const useAiStore = create<AiSettingsStore>()(
+const useAiStore = create<AiSettingsStore>()(
   persist(
     (set) => ({
       ...DEFAULT_AI_SETTINGS,

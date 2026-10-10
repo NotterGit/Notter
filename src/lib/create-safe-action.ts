@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { ActionState, FieldsErrors } from "@/config/types/actions.types";
 
-export type { ActionState, FieldsErrors };
+export type { ActionState };
 
 export function createSafeAction<TInput, TOutput>(
   schema: z.Schema<TInput>,

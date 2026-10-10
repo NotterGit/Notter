@@ -21,7 +21,7 @@ import {
 import type { VideoComponentProps } from "@/config/types/editor.types"
 import { createDragGhost, ensureMediaUrl } from "./media-utils"
 
-export function VideoComponent({
+function VideoComponent({
   node,
   updateAttributes,
   deleteNode,

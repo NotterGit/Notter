@@ -22,7 +22,7 @@
 - `prisma/` — Database schema (`schema.prisma`) defining `Document` (`Documents`), `NoteAuditLog` (`NoteAuditLogs`), and preserved `notter-todo` models (`Board`, `List`, `Card`, `AuditLog`) for shared MariaDB database.
 - `src/actions/` — Server Actions following the `notter-todo` safe-action pattern (`index.ts`, `schema.ts`, `types.ts` via `createSafeAction`):
   - `create-document/`, `update-document/`, `archive-document/`, `restore-document/`, `delete-document/`, `reorder-documents/`, `move-document/`, `remove-icon/`, `remove-cover/`, `increment-views/`, `set-archive-retention/`, `clean-expired-trash/`.
-- `src/api/` — Backend REST API clients (`client.ts`, `user.ts`, `org.ts`, `s3.ts`, `admin.ts`, `files.ts`, `document-limit.ts`, `image.ts`). User `archived_settings` are stored directly on the NotterAPI backend.
+- `src/api/` — Backend REST API clients (`client.ts`, `user.ts`, `org.ts`, `s3.ts`, `admin.ts`, `files.ts`, `document-limit.ts`). User `archived_settings` are stored directly on the NotterAPI backend.
 - `src/app/` — Next.js 15 App Router:
   - `(landing)/` — Welcome and landing page.
   - `(main)/` — Primary application workspace (dashboard, document editor/viewer).

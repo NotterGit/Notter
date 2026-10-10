@@ -1,5 +1,5 @@
-import type { DocumentTreeItem, FlatTreeItem } from "@/lib/document-tree"
-export type { DocumentTreeItem, FlatTreeItem }
+import type { DocumentTreeItem } from "@/lib/document-tree"
+export type { DocumentTreeItem }
 import type { LucideIcon } from "lucide-react"
 import type {
   DraggableProvidedDraggableProps,

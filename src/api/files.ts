@@ -1,13 +1,11 @@
 import { Delete, Post } from "@/api/client";
-import { deleteFileFromS3, extractS3Key, uploadFileToS3 } from "@/api/s3";
+import { deleteFileFromS3, uploadFileToS3 } from "@/api/s3";
 import { API } from "@/config/routing/api.route";
 import type {
   ApiEntityResponse,
   DeleteFileFunction,
   UploadFileFunction,
 } from "@/config/types/api.types";
-
-export { extractS3Key, uploadFileToS3, deleteFileFromS3 };
 
 export const uploadFile: UploadFileFunction = async (
   userid,

@@ -25,7 +25,7 @@ import type {
   ImageComponentProps,
 } from "@/config/types/editor.types"
 
-export function ImageDragPreview({
+function ImageDragPreview({
   src,
   alt,
   width,
@@ -65,7 +65,7 @@ export function ImageDragPreview({
   )
 }
 
-export function ImageComponent({
+function ImageComponent({
   node,
   updateAttributes,
   deleteNode,

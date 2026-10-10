@@ -14,9 +14,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils"
 import { CODE_LANGUAGES, LANGUAGE_LABELS } from "@/config/const/editor.const"
 
-export const lowlight = createLowlight(common)
+const lowlight = createLowlight(common)
 
-export function CodeBlockComponent({ node, updateAttributes, editor }: NodeViewProps) {
+function CodeBlockComponent({ node, updateAttributes, editor }: NodeViewProps) {
   const isEditable = editor?.isEditable ?? true
   const [copied, setCopied] = useState(false)
   const [open, setOpen] = useState(false)

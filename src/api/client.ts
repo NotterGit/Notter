@@ -14,20 +14,11 @@ export const setClerkTokenGetter = (
   clerkTokenGetter = getter;
 };
 
-export const getClerkToken = async (): Promise<string | null> => {
-  if (!clerkTokenGetter) return null;
-  try {
-    return await clerkTokenGetter();
-  } catch {
-    return null;
-  }
-};
-
-export const normalizePath = (path: string): string => {
+const normalizePath = (path: string): string => {
   return path.replace(/^\/+/, "");
 };
 
-export const Client = axios.create({
+const Client = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
 });
@@ -64,7 +55,7 @@ const attachClerkToken = (instance: typeof Client) => {
 attachClerkToken(Client);
 attachClerkToken(S3Client);
 
-export const removeNullish = <T extends Record<string, unknown>>(
+const removeNullish = <T extends Record<string, unknown>>(
   payload: T
 ): Partial<T> => {
   return Object.fromEntries(
@@ -138,10 +129,3 @@ export const Delete = async <T>(
     return null;
   }
 };
-
-export const apiGet = Get;
-export const apiPost = Post;
-export const apiPut = Put;
-export const apiDelete = Delete;
-export const API = Client;
-export const S3 = S3Client;
