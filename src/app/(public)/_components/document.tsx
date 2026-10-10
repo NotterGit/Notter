@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
@@ -10,11 +10,9 @@ import { EditorHeader } from "@/components/editor/editor-header"
 import Error404 from "@/app/not-found"
 import { Separator } from "@/components/ui/separator"
 import { API } from "@/config/routing/api.route"
-import { fetcher } from "@/lib/fetcher"
 import { incrementViews as incrementViewsAction } from "@/actions/increment-views"
-import { useAction } from "@/hooks/use-action"
-import { getOrgByUsername } from "@/api/org"
-import { checkModerator, getUserByUsername } from "@/api/user"
+import { getOrgById, getOrgByUsername } from "@/api/org"
+import { checkModerator, getUserById, getUserByUsername } from "@/api/user"
 import { ModeratorPanel } from "./moderatorPanel"
 import { pages } from "@/config/routing/pages.route"
 import type { PublicDocumentComponentProps, UserInterface } from "@/config/types/public.types"
@@ -28,15 +26,35 @@ import { usePublicNavbar } from "./public-layout"
 
 const Editor = dynamic(() => import("@/components/editor"), { ssr: false })
 
-function Footer({ name, team, logo }: UserInterface) {
+function Footer({ name, team, logo, isPrivate = false }: UserInterface & { isPrivate?: boolean }) {
+  if (isPrivate) {
+    return (
+      <footer className="mt-4 w-full">
+        <Separator className="bg-border" />
+        <p className="my-4 px-4 text-center text-sm text-muted-foreground">
+          <span>Заметка создана в</span>
+          <Link className="group ml-1 font-bold opacity-60 transition-opacity duration-200 hover:opacity-100" href={pages.ROOT}>
+            <span className="bg-gradient-to-r from-logo-yellow to-logo-light-yellow bg-clip-text text-transparent">Notter</span>
+          </Link>
+        </p>
+      </footer>
+    )
+  }
+
+  const hasName = Boolean(name)
+
   return (
     <footer className="mt-4 w-full">
       <Separator className="bg-border" />
       <p className="my-4 px-4 text-center text-sm text-muted-foreground">
         <span>Заметка создана {team ? "командой" : ""}{" "}</span>
-        <Link href={pages.PROFILE(team, name)} className="font-semibold transition-colors duration-200 hover:text-foreground">
-          {name}
-        </Link>
+        {hasName ? (
+          <Link href={pages.PROFILE(team, name)} className="font-semibold transition-colors duration-200 hover:text-foreground">
+            {name}
+          </Link>
+        ) : (
+          <span className="font-semibold">автором</span>
+        )}
         {logo && (
           <>
             <span> в</span>
@@ -55,54 +73,101 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
   const isShort = params.documentId.length >= 4 && params.documentId.length <= 30
   const documentId = isValidDocumentId(params.documentId) ? params.documentId : null
   const [profile, setProfile] = useState<User | Org | null>(null)
-  const [isModerator, setIsModerator] = useState<boolean | undefined>(undefined)
+  const [isModerator, setIsModerator] = useState<boolean>(false)
   const { user: clerkUser } = useUser()
   const { organization } = useOrganization()
-  const { execute: executeIncrementViews } = useAction(incrementViewsAction)
+  const viewedDocIdRef = useRef<string | null>(null)
   const setNavbarLogo = usePublicNavbar()
   const currentUserId = organization?.id ?? clerkUser?.id
 
-  const { data: document, isLoading: documentLoading } = useQuery<any>({
+  useEffect(() => {
+    if (!clerkUser?.id) {
+      setIsModerator(false)
+      return
+    }
+
+    let isMounted = true
+    checkModerator(clerkUser.id)
+      .then((status) => {
+        if (isMounted) setIsModerator(status)
+      })
+      .catch(() => {
+        if (isMounted) setIsModerator(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [clerkUser?.id])
+
+  const {
+    data: document,
+    isLoading: documentLoading,
+    isError: documentError,
+  } = useQuery<any>({
     queryKey: ["document", params.documentId, isShort, isModerator, currentUserId],
-    queryFn: () => {
+    queryFn: async () => {
       if (isShort) {
-        return fetcher(API.DOCUMENTS.BY_SHORT_ID(params.documentId))
+        try {
+          const res = await fetch(API.DOCUMENTS.BY_SHORT_ID(params.documentId))
+          if (res.ok) {
+            const doc = await res.json()
+            if (doc && (doc._id || doc.id)) return doc
+          }
+        } catch {
+          // If not found by short ID, fall back to by_id if documentId is valid
+        }
       }
-      return fetcher(
-        API.DOCUMENTS.BY_ID(documentId!, {
-          alwaysView: isModerator,
-          userId: currentUserId,
-        })
-      )
+      if (documentId) {
+        const res = await fetch(
+          API.DOCUMENTS.BY_ID(documentId, {
+            alwaysView: isModerator,
+            userId: currentUserId,
+          })
+        )
+        if (!res.ok) {
+          throw new Error(`Document fetch failed with status ${res.status}`)
+        }
+        return res.json()
+      }
+      return null
     },
-    enabled: Boolean(isShort || (documentId && isModerator !== undefined)),
+    enabled: Boolean(isShort || documentId),
+    retry: false,
   })
 
   useEffect(() => {
     if (document?._id && document.isPublished && !document.isAcrhived) {
-      executeIncrementViews({ id: document._id }).catch(() => {})
+      if (viewedDocIdRef.current === document._id) return
+      viewedDocIdRef.current = document._id
+      incrementViewsAction({ id: document._id }).catch(() => {})
     }
-  }, [document?._id, document?.isPublished, document?.isAcrhived, executeIncrementViews])
+  }, [document?._id, document?.isPublished, document?.isAcrhived])
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!document?.creatorName) return
+      if (!document?.userId || document.isPrivate) return
 
       const isOrg = document.userId.startsWith("org_")
-      const profileData = isOrg
-        ? await getOrgByUsername(document.creatorName as string)
-        : await getUserByUsername(document.creatorName as string)
+      let profileData: User | Org | null = null
+
+      if (document.creatorName) {
+        profileData = isOrg
+          ? await getOrgByUsername(document.creatorName as string)
+          : await getUserByUsername(document.creatorName as string)
+      }
+
+      if (!profileData && document.userId) {
+        profileData = isOrg
+          ? await getOrgById(document.userId)
+          : await getUserById(document.userId)
+      }
 
       setProfile(profileData)
-
-      if (clerkUser?.id) {
-        const modStatus = await checkModerator(clerkUser.id)
-        setIsModerator(modStatus)
-      }
     }
 
     fetchProfile()
-  }, [document, clerkUser])
+  }, [document?.userId, document?.creatorName, document?.isPrivate])
 
   useEffect(() => {
     setNavbarLogo(profile?.watermark !== false)
@@ -122,7 +187,7 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
     return <Error404 />
   }
 
-  if (document === undefined) {
+  if (documentLoading || (document === undefined && !documentError)) {
     if (iframe) {
       return (
         <div className="min-h-screen bg-background p-3 sm:p-6">
@@ -168,12 +233,19 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
     )
   }
 
-  if ((!document?.isPublished && !isModerator) || document === null || (isShort && !document.isShort && !isModerator)) {
+  if (
+    documentError ||
+    !document ||
+    (!document.isPublished && !isModerator) ||
+    (isShort && !document.isShort && !isModerator && params.documentId === document.shortId)
+  ) {
     return <Error404 />
   }
 
   const iframeUrl = pages.DOCUMENT_IFRAME_URL(origin, document._id, document.isShort, document.shortId)
   const showWatermark = profile?.watermark !== false
+  const creatorDisplayName = (document.creatorName || (profile && "username" in profile ? profile.username : null) || "") as string
+  const isOrg = Boolean(document.userId && document.userId.startsWith("org_"))
 
   if (iframe) {
     return (
@@ -208,9 +280,10 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
 
             {showWatermark && (
               <Footer
-                name={document.creatorName as string}
-                team={document.userId.startsWith("org_")}
-                logo={profile?.watermark as boolean}
+                name={creatorDisplayName}
+                team={isOrg}
+                logo={showWatermark}
+                isPrivate={document.isPrivate}
               />
             )}
           </section>
@@ -295,9 +368,10 @@ export default function DocumentIdPage({ params, iframe = false }: PublicDocumen
 
             {showWatermark && (
               <Footer
-                name={document.creatorName as string}
-                team={document.userId.startsWith("org_")}
-                logo={profile?.watermark as boolean}
+                name={creatorDisplayName}
+                team={isOrg}
+                logo={showWatermark}
+                isPrivate={document.isPrivate}
               />
             )}
           </section>

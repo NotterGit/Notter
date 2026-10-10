@@ -26,6 +26,7 @@ model Document {
   coverImage       String?    @db.Text
   icon             String?
   isPublished      Boolean    @default(false)
+  isPrivate        Boolean    @default(false)
   lastEditor       String?
   lastEditTime     String?
   verified         Boolean    @default(false)

@@ -44,6 +44,7 @@ export function Publish({ initialData }: PublishProps) {
   const [userData, setUserData] = useState<User | Org | null>(null)
 
   const [isShortUrl, setIsShortUrl] = useState<boolean>(Boolean(initialData.isShort))
+  const [isPrivate, setIsPrivate] = useState<boolean>(Boolean(initialData.isPrivate))
   const [customShortId, setCustomShortId] = useState<string>(initialData.shortId || "")
   const [previousShortId, setPreviousShortId] = useState<string>(initialData.shortId || "")
   const [editingShortId, setEditingShortId] = useState<boolean>(false)
@@ -51,6 +52,33 @@ export function Publish({ initialData }: PublishProps) {
   useEffect(() => {
     setIsShortUrl(Boolean(initialData.isShort))
   }, [initialData.isShort])
+
+  useEffect(() => {
+    setIsPrivate(Boolean(initialData.isPrivate))
+  }, [initialData.isPrivate])
+
+  const handlePrivateChange = async (checked: boolean | "indeterminate") => {
+    if (isOrg && !isAdmin) {
+      toast.error("Изменять настройки публикации могут только администраторы организации")
+      return
+    }
+
+    const next = checked === true
+    setIsPrivate(next)
+    try {
+      await executeUpdate({
+        id: initialData._id,
+        userId: orgId,
+        isPrivate: next,
+        lastEditor: user?.username as string,
+        lastEditTime: getCurrentEditTime(),
+      })
+      toast.success(next ? "Включена приватная публикация" : "Заметка отображается в профиле")
+    } catch {
+      setIsPrivate(!next)
+      toast.error("Не удалось обновить настройку приватности")
+    }
+  }
 
   const { data: workspaceLimits } = useQuery<{
     publicDocumentCount: number
@@ -280,6 +308,18 @@ export function Publish({ initialData }: PublishProps) {
             <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2 py-1 text-xs text-sky-700 dark:text-sky-200">
               <Eye className="w-4 h-4" /> Просмотров: {initialData.views ?? 0}
             </span>
+
+            <label className="flex items-center rounded-lg border border-border/60 bg-background/60 px-2.5 py-2">
+              <Checkbox
+                checked={isPrivate}
+                onCheckedChange={handlePrivateChange}
+                disabled={!isAdmin || isSubmitting}
+              />
+              <span className="ml-1 text-xs select-none">Приватная публикация</span>
+            </label>
+            <p className="-mt-3 text-xs text-muted-foreground">
+              Заметка доступна по ссылке, но не отображается в профиле и публикуется без указания автора.
+            </p>
 
             {!canUseShort ? (
               <Hint

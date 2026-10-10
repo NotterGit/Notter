@@ -1,7 +1,7 @@
 "use client";
 
 import type { Action, FieldsErrors, UseActionOptions } from "@/config/types/actions.types";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 export const useAction = <TInput, TOutput>(
   action: Action<TInput, TOutput>,
@@ -11,6 +11,8 @@ export const useAction = <TInput, TOutput>(
   const [error, setError] = useState<string | undefined>(undefined);
   const [data, setData] = useState<TOutput | undefined>(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   const execute = useCallback(
     async (input: TInput): Promise<TOutput> => {
@@ -27,7 +29,7 @@ export const useAction = <TInput, TOutput>(
 
         if (result.error) {
           setError(result.error);
-          options.onError?.(result.error);
+          optionsRef.current.onError?.(result.error);
           return Promise.reject(result.error);
         }
 
@@ -38,17 +40,17 @@ export const useAction = <TInput, TOutput>(
 
         if (result.data) {
           setData(result.data);
-          options.onSuccess?.(result.data);
+          optionsRef.current.onSuccess?.(result.data);
           return result.data;
         }
 
         return Promise.reject("Something went wrong");
       } finally {
         setIsLoading(false);
-        options.onComplete?.();
+        optionsRef.current.onComplete?.();
       }
     },
-    [action, options]
+    [action]
   );
 
   return {
