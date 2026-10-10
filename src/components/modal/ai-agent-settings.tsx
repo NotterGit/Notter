@@ -6,6 +6,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Copy,
   Cpu,
   Download,
   ExternalLink,
@@ -15,7 +16,9 @@ import {
   Pencil,
   Plus,
   PlusCircle,
+  RotateCcw,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   Trash2,
   Upload,
@@ -29,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { useAiSettings } from "@/components/hooks/use-ai-settings";
 import { useQualAiLimits } from "@/components/hooks/use-qualai-limits";
 import { CustomAiProvider } from "@/config/types/ai.types";
+import { AI_SYSTEM_PROMPT_PRESETS } from "@/config/ai-providers";
 
 async function processImageFile(file: File): Promise<string> {
   if (file.type === "image/svg+xml" && file.size < 150 * 1024) {
@@ -100,6 +104,8 @@ export function AiAgentSettings() {
     addCustomProvider,
     updateCustomProvider,
     deleteCustomProvider,
+    setSystemPrompt,
+    resetSystemPrompt,
     importSettings,
   } = useAiSettings();
 
@@ -108,6 +114,7 @@ export function AiAgentSettings() {
 
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"standard" | "custom">("standard");
+  const [isPromptOpen, setIsPromptOpen] = useState(true);
   const [showApiKey, setShowApiKey] = useState(false);
   const [modelInput, setModelInput] = useState("");
 
@@ -1070,12 +1077,135 @@ export function AiAgentSettings() {
             </div>
           )}
 
+          {/* Universal System Prompt Section */}
+          <div className="rounded-lg border border-border/70 bg-card/60 overflow-hidden transition-all">
+            {/* Header */}
+            <button
+              type="button"
+              onClick={() => setIsPromptOpen(!isPromptOpen)}
+              className="w-full flex items-center justify-between p-2.5 text-left hover:bg-muted/40 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-foreground">
+                      Системный промпт
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground truncate">
+                    {isPromptOpen
+                      ? "Инструкция для всех провайдеров и моделей"
+                      : systemPrompt}
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-muted-foreground/80 shrink-0 ml-2">
+                {isPromptOpen ? (
+                  <ChevronUp className="h-3.5 w-3.5" />
+                ) : (
+                  <ChevronDown className="h-3.5 w-3.5" />
+                )}
+              </div>
+            </button>
+
+            {isPromptOpen && (
+              <div className="p-3 pt-1 border-t border-border/50 space-y-2.5 bg-background/40">
+                {/* Description */}
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Единая системная инструкция задает роль, стиль и правила форматирования для всех провайдеров (ChatGPT, Claude, Gemini, DeepSeek, Qwen, Ollama и др.). Сохраняется локально в вашем браузере.
+                </p>
+
+                {/* Preset pills */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] text-muted-foreground font-medium shrink-0">
+                    Шаблоны:
+                  </span>
+                  {AI_SYSTEM_PROMPT_PRESETS.map((preset) => {
+                    const isSelected = systemPrompt.trim() === preset.prompt.trim();
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          setSystemPrompt(preset.prompt);
+                          toast.success(`Применен шаблон: ${preset.name}`);
+                        }}
+                        className={cn(
+                          "px-2 py-0.5 rounded-md text-[10px] font-medium border transition-colors cursor-pointer",
+                          isSelected
+                            ? "bg-violet-500/15 text-violet-600 dark:text-violet-400 border-violet-500/30 font-semibold"
+                            : "bg-background border-border/70 hover:bg-muted text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        {preset.name}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Textarea */}
+                <div className="space-y-1">
+                  <textarea
+                    value={systemPrompt}
+                    onChange={(e) => setSystemPrompt(e.target.value)}
+                    rows={4}
+                    placeholder="Введите системный промпт..."
+                    className="w-full p-2.5 text-xs leading-relaxed rounded-md border border-input bg-background resize-y min-h-[90px] max-h-[260px] focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                  />
+                </div>
+
+                {/* Action / Stats bar */}
+                <div className="flex items-center justify-between pt-0.5 text-[11px]">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        resetSystemPrompt();
+                        toast.success("Системный промпт сброшен до стандартного");
+                      }}
+                      className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground gap-1 cursor-pointer"
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      <span>Сбросить</span>
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (navigator?.clipboard) {
+                          navigator.clipboard.writeText(systemPrompt);
+                          toast.success("Промпт скопирован");
+                        }
+                      }}
+                      className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground gap-1 cursor-pointer"
+                    >
+                      <Copy className="h-3 w-3" />
+                      <span>Копировать</span>
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-muted-foreground font-mono text-[10px]">
+                    <span>{systemPrompt.length} симв.</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Footer: Export / Import & Privacy */}
           <div className="pt-2 border-t border-border/60 space-y-2.5">
             <div className="flex items-start gap-2 p-2.5 rounded-lg bg-muted/40 border border-border/50 text-[11px] text-muted-foreground leading-relaxed">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
               <span>
-                Все данные о провайдерах, включая логотипы и API-ключи, хранятся локально в вашем браузере
+                Все данные о провайдерах, системный промпт и API-ключи хранятся локально в вашем браузере
               </span>
             </div>
 

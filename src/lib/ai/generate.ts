@@ -45,6 +45,8 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
     ? buildPromptWithContext({ prompt, noteContext, documentTitle })
     : prompt;
 
+  const effectiveSystemPrompt = systemPrompt?.trim() || undefined;
+
   const isLocalCustom =
     (provider === "custom" || provider.startsWith("custom") || Boolean(baseUrl)) &&
     baseUrl &&
@@ -68,7 +70,7 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
       body: JSON.stringify({
         model,
         messages: [
-          ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
+          ...(effectiveSystemPrompt ? [{ role: "system", content: effectiveSystemPrompt }] : []),
           { role: "user", content: effectivePrompt },
         ],
       }),
@@ -93,7 +95,7 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
       provider,
       model,
       prompt: effectivePrompt,
-      systemPrompt,
+      systemPrompt: effectiveSystemPrompt,
       apiKey,
       baseUrl,
       workspaceId,

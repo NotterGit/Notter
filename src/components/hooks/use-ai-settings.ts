@@ -371,6 +371,10 @@ const useAiStore = create<AiSettingsStore>()(
         set({ systemPrompt });
       },
 
+      resetSystemPrompt: () => {
+        set({ systemPrompt: AI_SYSTEM_PROMPTS.DEFAULT });
+      },
+
       resetToDefaults: () => {
         set(DEFAULT_AI_SETTINGS);
       },
@@ -629,10 +633,11 @@ export function useAiSettings() {
 
   useEffect(() => {
     setMounted(true);
-    if (!store.systemPrompt || store.systemPrompt.includes("Notter. Пиши грамотно")) {
-      store.setSystemPrompt(AI_SYSTEM_PROMPTS.DEFAULT);
+    const current = useAiStore.getState().systemPrompt;
+    if (!current || current.includes("Notter. Пиши грамотно")) {
+      useAiStore.getState().setSystemPrompt(AI_SYSTEM_PROMPTS.DEFAULT);
     }
-  }, [store]);
+  }, []);
 
   const customProviders = useMemo(
     () => store.customProviders || [],

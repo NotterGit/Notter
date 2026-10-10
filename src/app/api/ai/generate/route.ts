@@ -28,6 +28,8 @@ export async function POST(req: NextRequest) {
       ? buildPromptWithContext({ prompt, noteContext, documentTitle })
       : prompt;
 
+    const effectiveSystemPrompt = systemPrompt?.trim() || undefined;
+
     const accountId = workspaceId || orgId || userId || "guest";
     const isOrg = Boolean(
       (workspaceId && workspaceId.startsWith("org_")) ||
@@ -96,7 +98,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model,
           messages: [
-            ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
+            ...(effectiveSystemPrompt ? [{ role: "system", content: effectiveSystemPrompt }] : []),
             { role: "user", content: effectivePrompt },
           ],
         }),
@@ -127,7 +129,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model,
           max_tokens: 4096,
-          ...(systemPrompt ? { system: systemPrompt } : {}),
+          ...(effectiveSystemPrompt ? { system: effectiveSystemPrompt } : {}),
           messages: [{ role: "user", content: effectivePrompt }],
         }),
       });
@@ -151,10 +153,10 @@ export async function POST(req: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...(systemPrompt
+          ...(effectiveSystemPrompt
             ? {
                 systemInstruction: {
-                  parts: [{ text: systemPrompt }],
+                  parts: [{ text: effectiveSystemPrompt }],
                 },
               }
             : {}),
@@ -232,7 +234,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model,
           messages: [
-            ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
+            ...(effectiveSystemPrompt ? [{ role: "system", content: effectiveSystemPrompt }] : []),
             { role: "user", content: effectivePrompt },
           ],
         }),

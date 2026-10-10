@@ -65,8 +65,15 @@ export interface AiSettingsStore extends AiSettingsData {
   updateCustomProvider: (id: string, updates: Partial<CustomAiProvider>) => void;
   deleteCustomProvider: (id: string) => void;
   setSystemPrompt: (prompt: string) => void;
+  resetSystemPrompt: () => void;
   resetToDefaults: () => void;
   importSettings: (data: any) => void;
+}
+
+export interface SystemPromptPreset {
+  id: string;
+  name: string;
+  prompt: string;
 }
 
 export interface ProviderMeta {

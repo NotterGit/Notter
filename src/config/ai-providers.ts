@@ -1,7 +1,7 @@
 import { images } from "@/config/routing/image.route";
-import { AiProviderId, AiSettingsData, ProviderMeta } from "@/config/types/ai.types";
+import { AiProviderId, AiSettingsData, ProviderMeta, SystemPromptPreset } from "@/config/types/ai.types";
 
-export type { ProviderMeta };
+export type { ProviderMeta, SystemPromptPreset };
 
 export const QUALAI_DEFAULT_MODELS = [
   "Q.AI 3",
@@ -84,7 +84,36 @@ export const AI_PROVIDERS: Record<AiProviderId, ProviderMeta> = {
 export const AI_SYSTEM_PROMPTS = {
   DEFAULT:
     "Ты — умный редактор и ассистент внутри приложения заметок Notter. Помогай писать, дополнять и форматировать текст. Форматируй свой ответ с помощью чистого Markdown (заголовки #, ##, ###, списки -, нумерованные списки 1., чекбоксы - [ ] и - [x], жирный текст **, курсив *, зачеркивание ~~, цитаты >, блоки кода с указанием языка). Твой ответ вставляется прямо в тело документа, поэтому выводи исключительно готовое содержимое без вводных слов (например, 'Вот ваш текст:') и без заключительных реплик. Если тебя спрашивают о твоей модели или создателе, отвечай честно своей настоящей идентичностью.",
+  CONCISE:
+    "Ты — лаконичный редактор в Notter. Отвечай максимально кратко, структурированно и по делу. Используй чистый Markdown. Выводи только готовый текст без вводных фраз и заключений.",
+  CREATIVE:
+    "Ты — креативный копирайтер и ассистент в Notter. Пиши выразительно, живо и увлекательно. Форматируй ответ с помощью чистого Markdown. Выводи готовый текст без лишних пояснений.",
+  TECHNICAL:
+    "Ты — технический писатель и эксперт в Notter. Пиши строго, структурированно, с точными формулировками и примерами кода. Используй чистый Markdown. Выводи только готовый текст без предисловий.",
 };
+
+export const AI_SYSTEM_PROMPT_PRESETS: SystemPromptPreset[] = [
+  {
+    id: "default",
+    name: "По умолчанию",
+    prompt: AI_SYSTEM_PROMPTS.DEFAULT,
+  },
+  {
+    id: "concise",
+    name: "Краткий",
+    prompt: AI_SYSTEM_PROMPTS.CONCISE,
+  },
+  {
+    id: "creative",
+    name: "Креативный",
+    prompt: AI_SYSTEM_PROMPTS.CREATIVE,
+  },
+  {
+    id: "technical",
+    name: "Технический",
+    prompt: AI_SYSTEM_PROMPTS.TECHNICAL,
+  },
+];
 
 export const DEFAULT_AI_SETTINGS: AiSettingsData = {
   activeProviderId: "openai",
