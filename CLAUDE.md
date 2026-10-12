@@ -22,7 +22,7 @@
 - `prisma/` — Database schema (`schema.prisma`) defining `Document` (`Documents`), `NoteAuditLog` (`NoteAuditLogs`), and preserved `notter-todo` models (`Board`, `List`, `Card`, `AuditLog`) for shared MariaDB database.
 - `src/actions/` — Server Actions following the `notter-todo` safe-action pattern (`index.ts`, `schema.ts`, `types.ts` via `createSafeAction`):
   - `create-document/`, `update-document/`, `archive-document/`, `restore-document/`, `delete-document/`, `reorder-documents/`, `move-document/`, `remove-icon/`, `remove-cover/`, `increment-views/`, `set-archive-retention/`, `clean-expired-trash/`.
-- `src/api/` — Backend REST API clients (`client.ts`, `user.ts`, `org.ts`, `s3.ts`, `admin.ts`, `files.ts`, `document-limit.ts`, `image.ts`). User `archived_settings` are stored directly on the NotterAPI backend.
+- `src/api/` — Backend REST API clients (`client.ts`, `user.ts`, `org.ts`, `s3.ts`, `admin.ts`, `files.ts`, `document-limit.ts`). User `archived_settings` are stored directly on the NotterAPI backend.
 - `src/app/` — Next.js 15 App Router:
   - `(landing)/` — Welcome and landing page.
   - `(main)/` — Primary application workspace (dashboard, document editor/viewer).
@@ -49,7 +49,7 @@
   - Client reads use TanStack Query (`@tanstack/react-query`) fetching from internal Next.js REST API routes (`/api/documents/*`, `/api/audit-logs/*`).
   - Client mutations use Server Actions (`src/actions/*`) wrapped with `useAction` hook (`use-action.ts`).
 - **Styling:** Tailwind CSS v4 with `@tailwindcss/postcss`.
-- **Editor:** Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, custom extensions for resizable images, video, audio, AI text generation, color/highlight pickers, S3 media uploads) for all production documents and editor sandbox.
+- **Editor:** Tiptap (`@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-code-block-lowlight`, `lowlight`, custom extensions for code blocks with language headers and copy button, resizable images, video, audio, AI text generation, color/highlight pickers, S3 media uploads) for all production documents and editor sandbox.
 - **Desktop Packaging:** Pake-cli integration for packaging web app into lightweight desktop builds.
 
 ## Coding Guidelines

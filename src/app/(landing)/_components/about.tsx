@@ -26,7 +26,7 @@ export function About(){
             />
             <Card
                 name="Генерируй"
-                description="Подключайте своего AI-провайдера или используйте QualAI"
+                description="Подключайте своего AI-провайдера или используйте Q.AI"
                 img={images.LANDING.AI}
             />
         </div>

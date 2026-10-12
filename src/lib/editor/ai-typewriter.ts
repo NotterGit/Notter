@@ -76,11 +76,30 @@ export function typewriteAiText(options: AiTypewriterOptions): AiTypewriterContr
     }
   };
 
+  const { doc } = editor.state;
+  let currentFrom = Math.min(Math.max(0, range.from), doc.content.size);
+  let currentTo = Math.min(Math.max(0, range.to), doc.content.size);
+
+  if (currentFrom > currentTo) {
+    const tmp = currentFrom;
+    currentFrom = currentTo;
+    currentTo = tmp;
+  }
+
+  if (currentFrom === currentTo && currentFrom >= 0 && currentFrom <= doc.content.size) {
+    const $pos = doc.resolve(currentFrom);
+    const parent = $pos.parent;
+    if (parent.isTextblock && parent.textContent === "") {
+      currentFrom = $pos.before();
+      currentTo = $pos.after();
+    }
+  }
+
   const fullText = cleanAiMarkdown(markdown);
 
   if (!fullText.trim() || !editor || editor.isDestroyed) {
     stop();
-    onComplete?.();
+    onComplete?.({ from: currentFrom, to: currentTo });
     const noopController: AiTypewriterController = {
       stop,
       finishImmediately: stop,
@@ -101,32 +120,13 @@ export function typewriteAiText(options: AiTypewriterOptions): AiTypewriterContr
   const fullFragment = parseHtml(fullHtml);
   if (fullFragment.size === 0) {
     stop();
-    onComplete?.();
+    onComplete?.({ from: currentFrom, to: currentTo });
     const noopController: AiTypewriterController = {
       stop,
       finishImmediately: stop,
       isRunning: () => false,
     };
     return noopController;
-  }
-
-  const { doc } = editor.state;
-  let currentFrom = Math.min(Math.max(0, range.from), doc.content.size);
-  let currentTo = Math.min(Math.max(0, range.to), doc.content.size);
-
-  if (currentFrom > currentTo) {
-    const tmp = currentFrom;
-    currentFrom = currentTo;
-    currentTo = tmp;
-  }
-
-  if (currentFrom === currentTo && currentFrom >= 0 && currentFrom <= doc.content.size) {
-    const $pos = doc.resolve(currentFrom);
-    const parent = $pos.parent;
-    if (parent.isTextblock && parent.textContent === "") {
-      currentFrom = $pos.before();
-      currentTo = $pos.after();
-    }
   }
 
   const scrollContainer = getScrollParent(editor.view.dom);
@@ -218,7 +218,7 @@ export function typewriteAiText(options: AiTypewriterOptions): AiTypewriterContr
     cleanup();
     try {
       applyFinalContent();
-      onComplete?.();
+      onComplete?.({ from: currentFrom, to: currentTo });
     } catch (err) {
       onError?.(err);
     }

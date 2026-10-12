@@ -6,6 +6,7 @@ import {
   FREE_NOTE_AUDIT_LOG_LIMIT,
   EXTENDED_NOTE_AUDIT_LOG_LIMIT,
   hasExtendedAuditLog,
+  type PremiumLevel,
 } from "@/config/const/limits.const";
 import { getUserById } from "@/api/user";
 import { getOrgById } from "@/api/org";
@@ -19,6 +20,7 @@ export async function GET(
     const { userId: clerkUserId, orgId: clerkOrgId } = await auth();
     const { searchParams } = new URL(req.url);
     const requestedUserId = searchParams.get("userId");
+    const fallbackPremium = Number(searchParams.get("fallbackPremiumLevel")) || 0;
 
     const document = await db.document.findUnique({
       where: { id: documentId },
@@ -44,10 +46,15 @@ export async function GET(
     const orgId = document.userId;
     const isOrg =
       orgId.startsWith("org_") || Boolean(clerkOrgId && clerkOrgId === orgId);
-    const profile = isOrg
-      ? await getOrgById(orgId).catch(() => null)
-      : await getUserById(orgId).catch(() => null);
-    const isExtended = hasExtendedAuditLog(profile?.premium);
+    const [orgProfile, userProfile] = await Promise.all([
+      isOrg ? getOrgById(orgId).catch(() => null) : Promise.resolve(null),
+      isOrg ? Promise.resolve(null) : getUserById(orgId).catch(() => null),
+    ]);
+    const rawPremium = isOrg
+      ? (orgProfile ? orgProfile.premium : fallbackPremium)
+      : (userProfile ? userProfile.premium : fallbackPremium);
+    const premiumLevel = Math.max(0, Number(rawPremium ?? 0)) as PremiumLevel;
+    const isExtended = hasExtendedAuditLog(premiumLevel);
     const takeLimit = isExtended
       ? EXTENDED_NOTE_AUDIT_LOG_LIMIT
       : FREE_NOTE_AUDIT_LOG_LIMIT;

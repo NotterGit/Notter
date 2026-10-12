@@ -11,6 +11,7 @@ export interface EditorProps {
   className?: string
   showFooter?: boolean
   saveStatus?: EditorSaveStatus
+  documentTitle?: string
   onEditorReady?: (editor: Editor) => void
 }
 
@@ -22,9 +23,9 @@ export interface DocumentMeta {
 
 export type MediaAlignment = "left" | "center" | "right"
 
-export type MediaWidth = string
+type MediaWidth = string
 
-export interface CustomImageAttributes {
+interface CustomImageAttributes {
   src?: string
   alt?: string
   width?: MediaWidth
@@ -32,7 +33,7 @@ export interface CustomImageAttributes {
   caption?: string
 }
 
-export interface CustomVideoAttributes {
+interface CustomVideoAttributes {
   src?: string
   title?: string
   width?: MediaWidth
@@ -40,7 +41,7 @@ export interface CustomVideoAttributes {
   caption?: string
 }
 
-export interface CustomAudioAttributes {
+interface CustomAudioAttributes {
   src?: string
   title?: string
   alignment?: MediaAlignment
@@ -55,7 +56,7 @@ export interface ImageDragPreviewProps {
   initialCoords: { x: number; y: number }
 }
 
-export interface EditorMediaNodeViewProps<T = Record<string, any>> {
+interface EditorMediaNodeViewProps<T = Record<string, any>> {
   node: {
     attrs: Record<string, any> & T
     [key: string]: any
@@ -72,7 +73,7 @@ export type ImageComponentProps = EditorMediaNodeViewProps<CustomImageAttributes
 export type VideoComponentProps = EditorMediaNodeViewProps<CustomVideoAttributes>
 export type AudioComponentProps = EditorMediaNodeViewProps<CustomAudioAttributes>
 
-export interface TextSelectionRange {
+interface TextSelectionRange {
   from: number
   to: number
 }
@@ -81,6 +82,7 @@ export interface AiIndicatorState {
   isGenerating: boolean
   isTyping?: boolean
   typingPos?: number
+  isReviewing?: boolean
   from: number
   to: number
 }
@@ -106,6 +108,7 @@ export interface EditorToolbarProps {
   editor: Editor | null
   uploadLimitMb?: number
   onUploadFile?: (file: File) => Promise<string>
+  documentTitle?: string
   className?: string
 }
 
@@ -116,7 +119,7 @@ export interface LinkPopoverProps {
   children: React.ReactNode
 }
 
-export interface MediaPopoverBaseProps {
+interface MediaPopoverBaseProps {
   isOpen: boolean
   setIsOpen: (open: boolean) => void
   onUploadFile?: (file: File) => Promise<string>
@@ -141,6 +144,7 @@ export interface AiGeneratePopoverProps {
   isOpen: boolean
   setIsOpen: (open: boolean) => void
   selectionBackupRef: React.MutableRefObject<TextSelectionRange | null>
+  documentTitle?: string
   children: React.ReactNode
 }
 
@@ -178,12 +182,35 @@ export interface AiTypewriterOptions {
   editor: Editor
   markdown: string
   range: { from: number; to: number }
-  onComplete?: () => void
+  onComplete?: (finalRange?: { from: number; to: number }) => void
   onError?: (err: unknown) => void
+}
+
+export interface AiReviewSession {
+  from: number
+  to: number
+  generatedMarkdown: string
+  originalPrompt: string
+  originalSnapshot: Record<string, unknown> | null
+}
+
+export interface AiReviewBarProps {
+  isOpen: boolean
+  isLoading: boolean
+  onAccept: () => void
+  onDiscard: () => void
+  onRefine: (instruction: string) => Promise<void>
+  modelName?: string
+  providerName?: string
 }
 
 export interface AiTypewriterController {
   stop: () => void
   finishImmediately: () => void
   isRunning: () => boolean
+}
+
+export interface CodeLanguageOption {
+  value: string
+  label: string
 }

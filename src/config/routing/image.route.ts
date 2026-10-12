@@ -33,7 +33,7 @@ export const images = {
   ILLUSTRATIONS: {
     EMPTY: "/images/empty.png",
     ERROR: "/images/error.svg",
-    INSTALL_PWA: "/images/install-pwa.png",
+    INSTALL_PWA: "/images/install-pwa.svg",
     TODO: "/images/todo.png",
   },
   BADGES: {
@@ -55,6 +55,8 @@ export const images = {
     DEEPSEEK: "/ai-icons/deepseek.webp",
     QWEN: "/ai-icons/qwen.png",
     OPENROUTER: "/ai-icons/openrouter.png",
-    QUALAI: "/ai-icons/qualai.svg",
+    OPENCODE: "/ai-icons/opencode.png",
+    YANDEX: "/ai-icons/yandex.png",
+    QAI: "/ai-icons/qai.png",
   },
 } as const;

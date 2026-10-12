@@ -1,9 +1,9 @@
-export interface TiptapMark {
+interface TiptapMark {
   type: string;
   attrs?: Record<string, any>;
 }
 
-export interface TiptapNode {
+interface TiptapNode {
   type: string;
   attrs?: Record<string, any>;
   content?: TiptapNode[];
@@ -16,7 +16,7 @@ export interface TiptapDoc {
   content: TiptapNode[];
 }
 
-export function convertInlineContent(content: any): TiptapNode[] {
+function convertInlineContent(content: any): TiptapNode[] {
   if (!content) return [];
   if (typeof content === "string") {
     return [{ type: "text", text: content }];
@@ -192,7 +192,7 @@ function convertSingleBlock(block: any): TiptapNode | TiptapNode[] {
   }
 }
 
-export function convertBlockNoteBlocksToTiptap(blocks: any[]): TiptapNode[] {
+function convertBlockNoteBlocksToTiptap(blocks: any[]): TiptapNode[] {
   const result: TiptapNode[] = [];
   let i = 0;
 

@@ -43,26 +43,43 @@ export function AuditModal() {
     }
   }, [documentId, isOpen]);
 
-  const { data: profile } = useAccountProfile(orgId, isOrg);
-  const isExtended = hasExtendedAuditLog(profile?.premium);
-
-  // Fetch single note logs if documentId is present
-  const { data: noteLogs, isLoading: isNoteLoading } = useQuery<NoteAuditLog[]>({
-    queryKey: ["document-logs", documentId, orgId],
-    queryFn: () => fetcher(API.DOCUMENTS.LOGS(documentId!, orgId)),
-    enabled: Boolean(isOpen && documentId && orgId && activeTab === "note"),
+  const { data: limits } = useQuery<{
+    premiumLevel?: number;
+  }>({
+    queryKey: ["workspace-limits", orgId],
+    enabled: Boolean(isOpen && orgId),
   });
 
-  // Fetch workspace logs
+  const { data: profile } = useAccountProfile(orgId, isOrg);
+
+  const workspacePremium = Math.max(
+    Number(profile?.premium ?? 0),
+    Number(limits?.premiumLevel ?? 0)
+  );
+
   const { data: wsData, isLoading: isWsLoading } = useQuery<{
     logs: NoteAuditLog[];
     isExtended: boolean;
     tariffName: string;
     totalCount: number;
   }>({
-    queryKey: ["workspace-audit-logs", orgId],
-    queryFn: () => fetcher(API.AUDIT_LOGS.GET({ orgId })),
+    queryKey: ["workspace-audit-logs", orgId, workspacePremium],
+    queryFn: () =>
+      fetcher(
+        API.AUDIT_LOGS.GET({
+          orgId,
+          fallbackPremiumLevel: workspacePremium,
+        })
+      ),
     enabled: Boolean(isOpen && orgId && (activeTab === "workspace" || !documentId)),
+  });
+
+  const isExtended = wsData?.isExtended ?? hasExtendedAuditLog(workspacePremium);
+
+  const { data: noteLogs, isLoading: isNoteLoading } = useQuery<NoteAuditLog[]>({
+    queryKey: ["document-logs", documentId, orgId, workspacePremium],
+    queryFn: () => fetcher(API.DOCUMENTS.LOGS(documentId!, orgId, workspacePremium)),
+    enabled: Boolean(isOpen && documentId && orgId && activeTab === "note"),
   });
 
   return (
@@ -96,7 +113,10 @@ export function AuditModal() {
 
             <div className="flex items-center gap-2">
               {activeTab === "workspace" && orgId && (
-                <AuditLogExportButton orgId={orgId} />
+                <AuditLogExportButton
+                  orgId={orgId}
+                  fallbackPremiumLevel={workspacePremium}
+                />
               )}
             </div>
           </div>

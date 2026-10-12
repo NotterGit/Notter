@@ -12,7 +12,6 @@ export type {
   ArchiveRetentionOption,
 }
 
-export const AUDIT_LOG_LIMIT = 3;
 export const FREE_AUDIT_LOG_LIMIT = 20;
 export const EXTENDED_AUDIT_LOG_LIMIT = 200;
 export const FREE_NOTE_AUDIT_LOG_LIMIT = 3;
@@ -31,8 +30,8 @@ export const FREE_LIMITS: PlanLimits = {
     documents: 50,
     publicDocuments: 10,
     uploadMb: 1,
-    aiGenerationsPerWeek: 10,
-    aiGenerationsPerDay: 10,
+    aiGenerationsPerWeek: 15,
+    aiGenerationsPerDay: 15,
     hasExtendedAuditLog: false,
     hasAuditLogExport: false,
 }
@@ -64,8 +63,8 @@ export const DIAMOND_LIMITS: PlanLimits = {
     documents: 1000,
     publicDocuments: 1000,
     uploadMb: 10,
-    aiGenerationsPerWeek: 250,
-    aiGenerationsPerDay: 250,
+    aiGenerationsPerWeek: 150,
+    aiGenerationsPerDay: 150,
     hasExtendedAuditLog: true,
     hasAuditLogExport: true,
 }

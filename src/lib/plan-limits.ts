@@ -5,11 +5,7 @@ import {
   FREE_LIMITS,
   PlanLimits,
   PremiumLevel,
-  hasExtendedAuditLog,
-  isDiamondPlan,
 } from "@/config/const/limits.const"
-
-export { hasExtendedAuditLog, isDiamondPlan }
 
 export const getPlanLimits = (premiumLevel: PremiumLevel = 0, isOrg = false): PlanLimits => {
     if (premiumLevel === 1) {
@@ -37,7 +33,7 @@ export const getPlanLimitsByTier = (isOrg = false) => ({
     diamond: DIAMOND_LIMITS,
 })
 
-export const getMaxArchiveRetentionDays = (premiumLevel: PremiumLevel = 0): number => {
+const getMaxArchiveRetentionDays = (premiumLevel: PremiumLevel = 0): number => {
     if (premiumLevel >= 2) return 90
     if (premiumLevel === 1) return 30
     return 7

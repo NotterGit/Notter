@@ -118,6 +118,3 @@ export async function updateOrg(
   );
   return Boolean(result?.updated);
 }
-
-export const getById = getOrgById;
-export const getByUsername = getOrgByUsername;

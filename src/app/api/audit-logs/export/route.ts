@@ -13,6 +13,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const orgId = searchParams.get("orgId");
+    const fallbackPremium = Number(searchParams.get("fallbackPremiumLevel")) || 0;
 
     const { userId: clerkUserId, orgId: clerkOrgId } = await auth();
 
@@ -27,9 +28,16 @@ export async function GET(request: Request) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 
-    const profile = isOrg ? await getOrgById(orgId).catch(() => null) : await getUserById(orgId).catch(() => null);
+    const [orgProfile, userProfile] = await Promise.all([
+      isOrg ? getOrgById(orgId).catch(() => null) : Promise.resolve(null),
+      isOrg ? Promise.resolve(null) : getUserById(orgId).catch(() => null),
+    ]);
+    const rawPremium = isOrg
+      ? (orgProfile ? orgProfile.premium : fallbackPremium)
+      : (userProfile ? userProfile.premium : fallbackPremium);
+    const premiumLevel = Math.max(0, Number(rawPremium ?? 0));
 
-    if (!isDiamondPlan(profile?.premium)) {
+    if (!isDiamondPlan(premiumLevel)) {
       return new NextResponse(
         "Экспорт журнала аудита доступен только для тарифа Diamond",
         { status: 403 }

@@ -2,7 +2,7 @@
  * Full catalog of Unicode emojis from emoji-picker-react (1898 emojis)
  * Used for true random emoji generation
  */
-export const ALL_EMOJIS: string[] = [
+const ALL_EMOJIS: string[] = [
   "😀",
   "😃",
   "😄",

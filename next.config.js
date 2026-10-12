@@ -40,6 +40,17 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "api.qualsu.ru",
+        port: "8000",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "api.qualsu.ru",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "storage.yandexcloud.net",
         pathname: "/**",
       },

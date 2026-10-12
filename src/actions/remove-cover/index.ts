@@ -40,7 +40,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       entityTitle: document.title,
       entityType: NOTE_ENTITY_TYPE.DOCUMENT,
       action: ACTION.UPDATE,
-      orgId,
+      orgId: existing.userId,
     });
 
     revalidatePath(pages.DASHBOARD(document.id));

@@ -30,8 +30,3 @@ export interface ActivityViewProps {
   tariffName?: string;
   showEntityFilter?: boolean;
 }
-
-export interface AuditModalProps {
-  documentId?: string;
-  documentTitle?: string;
-}

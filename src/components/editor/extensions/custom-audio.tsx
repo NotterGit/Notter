@@ -18,7 +18,7 @@ import { DEFAULT_MEDIA_ALIGNMENT } from "@/config/const/editor.const"
 import type { AudioComponentProps } from "@/config/types/editor.types"
 import { createDragGhost, ensureMediaUrl } from "./media-utils"
 
-export function AudioComponent({
+function AudioComponent({
   node,
   updateAttributes,
   deleteNode,

@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Activity, Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, FileText , Search, Settings2, PlusCircle } from "lucide-react"
+import { Activity, Check, ChevronsLeft, Download, MenuIcon, MonitorSmartphoneIcon, FileText , Search, Settings2, PlusCircle, Rss } from "lucide-react"
 
 import { useParams, useRouter } from "next/navigation"
 import { ElementRef, useEffect, useRef, useState } from "react"
@@ -46,14 +46,21 @@ interface NavigationProps {
 export function Navigation({ children }: NavigationProps) {
     const router = useRouter()
     const settings = useSettings()
+    const auditModal = useAuditModal()
 
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
             const isSettingsKey = e.code === "KeyK" || e.key?.toLowerCase() === "k"
+            const isAuditKey = e.code === "KeyI" || e.key?.toLowerCase() === "i"
 
             if ((e.ctrlKey || e.metaKey) && isSettingsKey) {
                 e.preventDefault()
                 settings.onOpen()
+            }
+
+            if ((e.ctrlKey || e.metaKey) && isAuditKey) {
+                e.preventDefault()
+                auditModal.onOpen()
             }
         }
 
@@ -66,10 +73,9 @@ export function Navigation({ children }: NavigationProps) {
                 window.removeEventListener("keydown", handler)
             }
         }
-    }, [settings])
+    }, [settings, auditModal])
 
     const seacrh = useSearch()
-    const auditModal = useAuditModal()
     const params = useParams()
     const queryClient = useQueryClient()
     const { user } = useUser()
@@ -241,10 +247,11 @@ export function Navigation({ children }: NavigationProps) {
                         <UserItem />
                         <Item label="Поиск" icon={Search} isSearch onClick={seacrh.onOpen} />
                         <Item label="Настройки" icon={Settings2} onClick={settings.onOpen} shortcut="k" />
-                        <Item label="Журнал аудита" icon={Activity} onClick={() => auditModal.onOpen()} />
+                        <Item label="Журнал аудита" icon={Activity} onClick={() => auditModal.onOpen()} shortcut="i" />
                         {!isInstalled ? (
                             <>
                                 <Item label="Перейти в ToDo" icon={Check} onClick={() => {router.push(links.TODO_DASHBOARD)}} hasArrow />
+                                {/* <Item label="Перейти в Media" icon={Rss} onClick={() => {router.push(links.MEDIA)}} hasArrow /> */}
 
                                 <Item label="Скачать приложение" icon={Download} onClick={() => {
                                     if (isMobile) {

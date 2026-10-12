@@ -59,6 +59,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       values.parentDocumentId !== undefined ||
       values.order !== undefined ||
       values.isPublished !== undefined ||
+      values.isPrivate !== undefined ||
       values.shortId !== undefined;
 
     const isSignificantChange =
@@ -73,7 +74,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         entityTitle: document.title,
         entityType: NOTE_ENTITY_TYPE.DOCUMENT,
         action: ACTION.UPDATE,
-        orgId,
+        orgId: existing.userId,
       });
     }
 

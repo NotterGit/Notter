@@ -45,7 +45,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       entityTitle: document.title,
       entityType: NOTE_ENTITY_TYPE.DOCUMENT,
       action: ACTION.DELETE,
-      orgId,
+      orgId: existing.userId,
     });
 
     revalidatePath(pages.DASHBOARD());

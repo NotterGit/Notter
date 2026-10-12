@@ -8,6 +8,7 @@ export const UpdateDocument = z.object({
   coverImage: z.string().optional().nullable(),
   icon: z.string().optional().nullable(),
   isPublished: z.boolean().optional(),
+  isPrivate: z.boolean().optional(),
   isPinned: z.boolean().optional(),
   isShort: z.boolean().optional(),
   shortId: z.string().optional(),

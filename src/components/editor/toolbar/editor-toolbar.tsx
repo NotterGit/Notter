@@ -56,6 +56,7 @@ export function EditorToolbar({
   editor,
   uploadLimitMb = DEFAULT_UPLOAD_LIMIT_MB,
   onUploadFile,
+  documentTitle,
   className,
 }: EditorToolbarProps) {
   const [isTextColorOpen, setIsTextColorOpen] = useState(false)
@@ -645,6 +646,7 @@ export function EditorToolbar({
         <div>
           <AiGeneratePopover
             editor={editor}
+            documentTitle={documentTitle}
             isOpen={isAiOpen}
             setIsOpen={(open) => {
               if (open && editor) {

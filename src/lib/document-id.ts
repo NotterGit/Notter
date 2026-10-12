@@ -6,5 +6,3 @@ export function isValidDocumentId(value: unknown): value is string {
   const trimmed = value.trim();
   return UUID_PATTERN.test(trimmed) || LEGACY_ID_PATTERN.test(trimmed);
 }
-
-export const isValidConvexId = isValidDocumentId;
