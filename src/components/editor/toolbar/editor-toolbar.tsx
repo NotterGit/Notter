@@ -666,21 +666,16 @@ export function EditorToolbar({
           >
             <button
               type="button"
+              aria-label="Сгенерировать с помощью ИИ"
               className={cn(
-                "inline-flex h-8 items-center justify-center rounded-md px-2 text-xs font-medium transition-all cursor-pointer select-none gap-1.5 border shadow-xs",
+                "inline-flex h-8 min-w-8 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-semibold transition-colors cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
                 isAiOpen
-                  ? "bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white border-violet-500/60 shadow-violet-500/25 shadow-md font-semibold"
-                  : "bg-gradient-to-r from-violet-500/15 via-purple-500/10 to-indigo-500/15 hover:from-violet-500/25 hover:via-purple-500/20 hover:to-indigo-500/25 text-violet-600 dark:text-violet-300 border-violet-500/35 hover:border-violet-500/55 hover:shadow-xs"
+                  ? "bg-linear-to-r from-violet-600 via-purple-600 to-indigo-600 text-white"
+                  : "bg-linear-to-r from-violet-500/15 via-purple-500/10 to-indigo-500/15 text-violet-600 hover:from-violet-500/25 hover:via-purple-500/20 hover:to-indigo-500/25 dark:text-violet-300"
               )}
             >
-              <Sparkles
-                size={14}
-                className={cn(
-                  "transition-transform",
-                  isAiOpen ? "text-white scale-105" : "text-violet-500 dark:text-violet-400"
-                )}
-              />
-              <span className="text-xs font-semibold hidden sm:inline">ИИ</span>
+              <Sparkles size={14} aria-hidden="true" />
+              <span className="hidden sm:inline">ИИ</span>
             </button>
           </AiGeneratePopover>
         </div>

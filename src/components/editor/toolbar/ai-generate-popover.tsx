@@ -1,10 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import Image from "next/image";
-import { type Editor } from "@tiptap/react";
-import { Sparkles, Loader2, Cpu, Settings2, FlaskConical, Plus, FileText } from "lucide-react";
+import React, { useState, useEffect, useId, useRef } from "react";
+import { Sparkles, Loader2, Cpu, Settings2, FlaskConical, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Slice } from "@tiptap/pm/model";
@@ -15,7 +13,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAiSettings } from "@/components/hooks/use-ai-settings";
 import { useQualAiLimits } from "@/components/hooks/use-qualai-limits";
 import { useSettings } from "@/components/hooks/use-settings";
-import { AI_PROVIDERS } from "@/config/ai-providers";
 import { AiProviderId } from "@/config/types/ai.types";
 import { isDevEnvironment } from "@/config/const/app.const";
 import type {
@@ -55,6 +52,7 @@ export function AiGeneratePopover({
   const settingsModal = useSettings();
   const { limits: qualAiLimits, refresh: refreshQualAiLimits, workspaceId, isOrg } = useQualAiLimits();
 
+  const titleId = useId();
   const [providerTab, setProviderTab] = useState<"builtin" | "custom">("builtin");
   const [selectedProviderId, setSelectedProviderId] = useState<AiProviderId>(activeProviderId);
   const [selectedModel, setSelectedModel] = useState<string>("");
@@ -274,9 +272,9 @@ export function AiGeneratePopover({
           setReviewSession(null);
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       void refreshQualAiLimits();
-      if (error?.name === "AbortError" || abortController.signal.aborted) {
+      if ((error instanceof Error && error.name === "AbortError") || abortController.signal.aborted) {
         toast("Генерация отменена");
       } else {
         const msg = error instanceof Error ? error.message : "Не удалось сгенерировать текст";
@@ -437,9 +435,9 @@ export function AiGeneratePopover({
           setIsRefining(false);
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       void refreshQualAiLimits();
-      if (error?.name === "AbortError" || abortController.signal.aborted) {
+      if ((error instanceof Error && error.name === "AbortError") || abortController.signal.aborted) {
         toast("Исправление отменено");
       } else {
         const msg = error instanceof Error ? error.message : "Не удалось исправить текст";
@@ -471,18 +469,17 @@ export function AiGeneratePopover({
       <PopoverContent
         align="start"
         sideOffset={6}
+        aria-labelledby={titleId}
         onCloseAutoFocus={(e) => {
           e.preventDefault();
           editor?.commands.focus();
         }}
-        className="w-80 sm:w-96 p-3 shadow-xl rounded-xl border-0 bg-popover text-popover-foreground space-y-2.5"
+        className="custom-scrollbar w-80 max-w-[var(--radix-popover-content-available-width)] max-h-[var(--radix-popover-content-available-height)] space-y-2.5 overflow-y-auto rounded-xl border-0 p-3 shadow-lg sm:w-96"
       >
-        <div className="flex items-center justify-between pb-1 border-b border-border/50">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 text-xs font-semibold">
             <Sparkles className="h-3.5 w-3.5 text-violet-500" />
-            <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent font-bold">
-              ИИ Генерация
-            </span>
+            <h2 id={titleId} className="text-sm font-semibold">Генерация текста</h2>
           </div>
 
           <button
@@ -504,6 +501,7 @@ export function AiGeneratePopover({
           <button
             type="button"
             disabled={isLoading}
+            aria-pressed={providerTab === "builtin"}
             onClick={() => {
               setProviderTab("builtin");
               if (getProviderMeta(selectedProviderId).isCustom) {
@@ -524,6 +522,7 @@ export function AiGeneratePopover({
           <button
             type="button"
             disabled={isLoading}
+            aria-pressed={providerTab === "custom"}
             onClick={() => {
               setProviderTab("custom");
               if (!getProviderMeta(selectedProviderId).isCustom && customProviders.length > 0) {
@@ -539,11 +538,6 @@ export function AiGeneratePopover({
           >
             <Cpu className="h-3 w-3 text-primary" />
             <span>Мои провайдеры</span>
-            {customProviders.length > 0 && (
-              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-primary/10 text-primary font-mono font-bold">
-                {customProviders.length}
-              </span>
-            )}
           </button>
         </div>
 
@@ -561,12 +555,13 @@ export function AiGeneratePopover({
                     key={id}
                     type="button"
                     disabled={isLoading}
+                    aria-pressed={isSelected}
                     onClick={() => handleProviderSelect(id)}
                     className={cn(
-                      "flex shrink-0 basis-16 grow flex-col items-center justify-center p-1.5 rounded-lg border text-center transition-all gap-1 cursor-pointer",
+                      "flex shrink-0 basis-16 grow flex-col items-center justify-center gap-1 rounded-lg p-1.5 text-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring",
                       isSelected
-                        ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30"
-                        : "border-border/60 hover:bg-muted/40 text-muted-foreground hover:text-foreground",
+                        ? "bg-violet-500/15 text-foreground"
+                        : "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground",
                       isLoading && "opacity-60 cursor-not-allowed"
                     )}
                   >
@@ -589,11 +584,6 @@ export function AiGeneratePopover({
                     <span className="text-[10px] font-medium leading-none truncate max-w-full">
                       {meta.name}
                     </span>
-                    {id === "qualai" && qualAiLimits && (
-                      <span className="text-[9px] font-mono text-muted-foreground leading-none">
-                        {qualAiLimits.remaining}/{qualAiLimits.limit}
-                      </span>
-                    )}
                   </button>
                 );
               })}
@@ -610,13 +600,13 @@ export function AiGeneratePopover({
                 </span>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => {
                     setIsOpen(false);
                     settingsModal.onOpen();
                   }}
-                  className="h-6 text-[11px] gap-1 px-2.5 border-border/80 hover:bg-muted cursor-pointer"
+                  className="h-6 text-[11px] gap-1 px-2.5 cursor-pointer"
                 >
                   <Settings2 className="h-3 w-3" />
                   <span>Добавить в настройках</span>
@@ -633,12 +623,13 @@ export function AiGeneratePopover({
                       key={id}
                       type="button"
                       disabled={isLoading}
+                      aria-pressed={isSelected}
                       onClick={() => handleProviderSelect(id)}
                       className={cn(
-                        "flex shrink-0 basis-16 grow flex-col items-center justify-center p-1.5 rounded-lg border text-center transition-all gap-1 cursor-pointer",
+                        "flex shrink-0 basis-16 grow flex-col items-center justify-center gap-1 rounded-lg p-1.5 text-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring",
                         isSelected
-                          ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30"
-                          : "border-border/60 hover:bg-muted/40 text-muted-foreground hover:text-foreground",
+                          ? "bg-violet-500/15 text-foreground"
+                          : "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground",
                         isLoading && "opacity-60 cursor-not-allowed"
                       )}
                     >
@@ -666,7 +657,7 @@ export function AiGeneratePopover({
                     setIsOpen(false);
                     settingsModal.onOpen();
                   }}
-                  className="flex shrink-0 basis-16 grow flex-col items-center justify-center p-1.5 rounded-lg border border-dashed border-border/80 hover:border-primary/80 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all gap-1 cursor-pointer"
+                  className="flex shrink-0 basis-16 grow flex-col items-center justify-center p-1.5 rounded-lg bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors gap-1 cursor-pointer"
                   title="Управление провайдерами"
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -678,7 +669,7 @@ export function AiGeneratePopover({
         )}
 
         {selectedProviderId === "qualai" && (
-          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-muted/40 border border-border/60 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-x-2 px-0.5 text-xs">
             <span className="text-muted-foreground text-[11px]">Недельный лимит Q.AI:</span>
             <span className={cn(
               "font-mono font-medium text-[11px]",
@@ -826,7 +817,7 @@ export function AiGeneratePopover({
             </div>
 
             {isCloudWithoutKey && (
-              <div className="flex items-center justify-between px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px]">
+              <div className="flex items-center justify-between px-2 py-1 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px]">
                 <span>Ключ не указан</span>
                 <button
                   type="button"
@@ -845,6 +836,7 @@ export function AiGeneratePopover({
               <textarea
                 disabled={isLoading}
                 value={prompt}
+                aria-label="Запрос для ИИ"
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Что нужно написать или сгенерировать?..."
@@ -875,10 +867,7 @@ export function AiGeneratePopover({
                   onCheckedChange={(checked) => setIncludeNoteContext(Boolean(checked))}
                   className="h-3.5 w-3.5 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground border-border/80 cursor-pointer"
                 />
-                <span className="flex items-center gap-1.5 font-medium">
-                  <FileText className="h-3 w-3 text-violet-500" />
-                  <span>Добавить заметку в контекст</span>
-                </span>
+                <span className="font-medium">Добавить заметку в контекст</span>
               </label>
 
               <span className="text-[10px] text-muted-foreground/60 font-mono">
@@ -888,7 +877,7 @@ export function AiGeneratePopover({
           </>
         )}
 
-        <div className="flex items-center justify-between gap-1.5 pt-0.5">
+        <div className="flex flex-wrap items-center justify-between gap-1.5 pt-0.5">
           {isLoading ? (
             <span className="flex items-center gap-1.5 text-[11px] text-primary select-none">
               <Loader2 className="size-3 animate-spin" />

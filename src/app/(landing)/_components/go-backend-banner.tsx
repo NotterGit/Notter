@@ -52,7 +52,7 @@ export function GoBackendBanner() {
     <>
       <div className="pointer-events-none fixed left-0 right-0 top-16 z-[60] px-4">
         <div
-          className={`pointer-events-auto relative mx-auto flex w-full max-w-6xl flex-col gap-3 rounded-lg border bg-background/95 px-4 py-3 text-left shadow-lg backdrop-blur transition-all duration-200 ease-out sm:flex-row sm:items-center sm:justify-between ${
+          className={`pointer-events-auto relative mx-auto flex w-full max-w-6xl flex-col gap-3 rounded-lg bg-background/95 px-4 py-3 text-left shadow-lg backdrop-blur transition-all duration-200 ease-out sm:flex-row sm:items-center sm:justify-between ${
             isVisible ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
           }`}
         >
@@ -81,7 +81,7 @@ export function GoBackendBanner() {
             <Button
               type="button"
               size="sm"
-              variant="outline"
+              variant="secondary"
               onClick={() => setIsModalOpen(true)}
               className="w-full"
             >

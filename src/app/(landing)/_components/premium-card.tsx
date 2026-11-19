@@ -4,17 +4,10 @@ import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { pages } from "@/config/routing/pages.route"
 import type { PremiumCardProps } from "@/config/types/landing.types"
-import { cn } from "@/lib/utils"
 
-export default function PremiumCard({ title, price, className, icon, features, btn = true, isPopular }: PremiumCardProps) {
+export default function PremiumCard({ title, price, icon, features, btn = true, isPopular }: PremiumCardProps) {
   return (
-    <div
-      className={cn(
-        "relative flex flex-col rounded-2xl border bg-card/70 dark:bg-zinc-900/60 p-6 backdrop-blur-md transition-all duration-300 hover:scale-[1.02]",
-        isPopular && "border-yellow-300/80 dark:border-yellow-300/60",
-        className
-      )}
-    >
+    <div className="relative flex flex-col rounded-2xl bg-card/70 dark:bg-zinc-900/60 p-6 shadow-sm backdrop-blur-md transition-transform duration-300 hover:scale-[1.02]">
       {isPopular && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-logo-yellow to-logo-light-yellow px-3 py-0.5 text-xs font-semibold text-zinc-950">
           Популярный выбор
@@ -46,7 +39,7 @@ export default function PremiumCard({ title, price, className, icon, features, b
 
       {btn && (
         <Link href={pages.BUY} className="mt-6 w-full">
-          <Button variant="outline" className="w-full">
+          <Button variant="secondary" className="w-full">
             Перейти
           </Button>
         </Link>

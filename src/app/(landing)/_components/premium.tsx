@@ -31,7 +31,7 @@ export function Premium() {
 
         <p className="text-muted-foreground text-sm sm:text-base">Подписка, улучшающая и делающая работу еще приятнее</p>
 
-        <div className="inline-flex items-center justify-center rounded-xl border border-border/60 bg-muted/50 p-1 backdrop-blur-sm">
+        <div className="inline-flex items-center justify-center rounded-xl bg-muted/50 p-1 backdrop-blur-sm">
           <Button
             size="sm"
             onClick={() => toggleAccountType("personal")}
@@ -55,7 +55,6 @@ export function Premium() {
         <PremiumCard
           title="Free"
           price={freePrice}
-          className="border-gray-300 dark:border-zinc-700"
           features={[
             `До ${limits.free.documents} заметок`,
             `До ${limits.free.publicDocuments} публичных заметок`,
@@ -69,7 +68,6 @@ export function Premium() {
           title="Amber"
           price={amberPrice}
           isPopular
-          className="border-yellow-300 dark:border-yellow-300/40"
           icon={images.BADGES.AMBER}
           features={[
             `До ${limits.amber.documents} заметок`,
@@ -85,7 +83,6 @@ export function Premium() {
         <PremiumCard
           title="Diamond"
           price={diamondPrice}
-          className="border-cyan-300 dark:border-cyan-300/40"
           icon={images.BADGES.DIAMOND}
           features={[
             "Все преимущества Amber",
@@ -102,7 +99,7 @@ export function Premium() {
         />
       </div>
 
-      <div className="mt-10 overflow-hidden rounded-2xl border border-border/60 bg-card/60 dark:bg-zinc-900/40 p-4 backdrop-blur-md">
+      <div className="mt-10 overflow-hidden rounded-2xl bg-card/60 dark:bg-zinc-900/40 p-4 shadow-sm backdrop-blur-md">
         <Table>
           <TableCaption>Сравнение лимитов тарифов</TableCaption>
           <TableHeader>
