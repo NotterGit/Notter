@@ -318,7 +318,7 @@ export default function ProfilePage({ kind, slug }: ProfilePageComponentProps) {
                       </span>
                     )}
                     <Link
-                      className="flex flex-row items-center gap-1.5 text-xl transition-all duration-300 hover:text-primary/70"
+                      className="text-link flex flex-row items-center gap-1.5 text-xl"
                       href={pages.VIEW(pinnedDocument._id)}
                     >
                       <span className="font-bold">{pinnedDocument.title}</span>

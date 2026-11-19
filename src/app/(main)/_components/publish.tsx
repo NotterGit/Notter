@@ -1,16 +1,15 @@
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useId, useRef } from "react"
 import { toast } from "react-hot-toast"
 import { Button } from "@/components/ui/button"
-import { Check, Copy, Eye, Globe, SquareArrowOutUpRight } from "lucide-react"
+import { Check, Copy, Eye, Globe, Pencil, SquareArrowOutUpRight } from "lucide-react"
 import { API } from "@/config/routing/api.route"
 import { fetcher } from "@/lib/fetcher"
 import { updateDocument } from "@/actions/update-document"
 import { useAction } from "@/hooks/use-action"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Hint } from "@/components/ui/hint"
-import { useOrigin } from "../../../components/hooks/use-origin"
+import { useOrigin } from "@/components/hooks/use-origin"
 import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
 import { useOrganization, useUser } from "@clerk/nextjs"
 import { getUserById, updateUser } from "@/api/user"
@@ -23,6 +22,8 @@ import { pages } from "@/config/routing/pages.route"
 import { getCurrentEditTime } from "@/lib/last-edit-time"
 
 export function Publish({ initialData }: PublishProps) {
+  const fieldId = useId()
+  const shortIdInput = useRef<HTMLInputElement>(null)
   const origin = useOrigin()
   const queryClient = useQueryClient()
   const { user } = useUser()
@@ -56,6 +57,17 @@ export function Publish({ initialData }: PublishProps) {
   useEffect(() => {
     setIsPrivate(Boolean(initialData.isPrivate))
   }, [initialData.isPrivate])
+
+  useEffect(() => {
+    setPreviousShortId(initialData.shortId || "")
+    setCustomShortId(initialData.shortId || "")
+  }, [initialData._id, initialData.shortId])
+
+  useEffect(() => {
+    if (editingShortId) {
+      shortIdInput.current?.focus()
+    }
+  }, [editingShortId])
 
   const handlePrivateChange = async (checked: boolean | "indeterminate") => {
     if (isOrg && !isAdmin) {
@@ -159,7 +171,6 @@ export function Publish({ initialData }: PublishProps) {
       return
     }
 
-    setPreviousShortId(customShortId)
     try {
       await executeUpdate({
         id: initialData._id,
@@ -170,11 +181,12 @@ export function Publish({ initialData }: PublishProps) {
         shortId: customShortId,
         isShort: true,
       })
+      setPreviousShortId(customShortId)
       toast.success("Ссылка успешно обновлена!")
-    } catch (error: any) {
+    } catch (error) {
+      setCustomShortId(previousShortId)
       if (typeof error === "string" && error.includes("Short ID already exists")) {
         toast.error("Такая ссылка уже существует")
-        setCustomShortId(previousShortId)
       } else {
         toast.error("Не удалось обновить ссылку")
       }
@@ -182,23 +194,12 @@ export function Publish({ initialData }: PublishProps) {
   }
 
   const handleBlur = () => {
-    if (isOrg && !isAdmin) return
     setEditingShortId(false)
-    handleValidateAndSave()
-
-    if (customShortId !== previousShortId) {
-      toast.success("Ссылка успешно обновлена!")
-    }
+    void handleValidateAndSave()
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleValidateAndSave()
-    }
-  }
-
-  const url = pages.DOCUMENT_URL(origin, initialData._id, isShortUrl, customShortId)
-  const iframeUrl = pages.DOCUMENT_IFRAME_URL(origin, initialData._id, isShortUrl, customShortId)
+  const url = pages.DOCUMENT_URL(origin, initialData._id, isShortUrl, previousShortId)
+  const iframeUrl = pages.DOCUMENT_IFRAME_URL(origin, initialData._id, isShortUrl, previousShortId)
 
   const onPublish = async () => {
     if (isOrg && !isAdmin) {
@@ -258,144 +259,150 @@ export function Publish({ initialData }: PublishProps) {
     })
   }
 
-  const onCopy = () => {
-    navigator.clipboard.writeText(url)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1000)
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1000)
+    } catch {
+      toast.error("Не удалось скопировать ссылку")
+    }
   }
 
   const canUseShort = userData?.premium === 1 || userData?.premium === 2
-  const canUseCustomShort = userData?.premium === 2
+  const canEditShortId = isAdmin && isShortUrl && userData?.premium === 2
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button size="sm" variant="ghost" className="h-8 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
-          Опубликовать
-          {initialData.isPublished && <Globe className="h-4 w-4 text-sky-500" />}
+          {initialData.isPublished ? "Публикация" : "Опубликовать"}
+          {initialData.isPublished && <Globe className="h-4 w-4 text-sky-500" aria-hidden="true" />}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 rounded-2xl border-white/60 bg-white/95 p-4 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/95" align="end" alignOffset={8} forceMount>
+      <PopoverContent
+        className="max-h-[var(--radix-popover-content-available-height)] w-80 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-2xl border-0 bg-white/95 p-4 shadow-xl backdrop-blur-xl dark:bg-zinc-950/95"
+        align="end"
+        aria-label="Публикация заметки"
+        onInteractOutside={(event) => {
+          if (event.target instanceof Element && event.target.closest("[data-embed-dialog]")) {
+            event.preventDefault()
+          }
+        }}
+      >
         {initialData.isPublished ? (
-          <div className="space-y-4">
-            <div className="flex items-center gap-x-2">
-              <Globe className="h-4 w-4 text-sky-500" />
-              <p className="text-xs font-medium text-sky-500">
-                Эта заметка находится в открытом доступе
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="flex items-center gap-2 text-sm font-medium text-sky-500">
+                <Globe className="h-4 w-4" aria-hidden="true" /> Опубликовано
               </p>
+              <span className="inline-flex items-center gap-1 text-xs tabular-nums text-sky-700 dark:text-sky-200">
+                <Eye className="h-4 w-4" aria-hidden="true" /> Просмотров: {initialData.views ?? 0}
+              </span>
             </div>
 
-            <div className="flex items-center">
-              <input
-                value={editingShortId ? customShortId : url}
-                className="h-9 flex-1 rounded-l-lg border border-border/60 bg-background/70 px-3 text-xs"
-                onClick={() => {
-                  if (isAdmin && isShortUrl && canUseCustomShort) {
-                    setEditingShortId(true)
-                  }
-                }}
-                onBlur={handleBlur}
-                onChange={handleCustomShortIdChange}
-                onKeyPress={handleKeyPress}
-                autoFocus
-                disabled={!isAdmin || !isShortUrl || !canUseCustomShort}
-              />
-              <Button onClick={onCopy} disabled={copied} className="h-9 rounded-l-none rounded-r-lg px-3">
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            <div className="flex min-w-0 items-center gap-1 rounded-lg bg-muted/40">
+              {editingShortId ? (
+                <input
+                  ref={shortIdInput}
+                  value={customShortId}
+                  onBlur={handleBlur}
+                  onChange={handleCustomShortIdChange}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault()
+                      event.currentTarget.blur()
+                    }
+                  }}
+                  aria-label="Короткий адрес"
+                  className="h-10 min-w-0 flex-1 rounded-lg bg-transparent px-3 text-base focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
+                />
+              ) : (
+                <input
+                  value={url}
+                  readOnly
+                  aria-label="Ссылка на заметку"
+                  className="h-10 min-w-0 flex-1 truncate rounded-lg bg-transparent px-3 text-base focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
+                />
+              )}
+              {canEditShortId && !editingShortId && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                  aria-label="Изменить короткий адрес"
+                  onClick={() => setEditingShortId(true)}
+                >
+                  <Pencil aria-hidden="true" />
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 shrink-0"
+                onClick={onCopy}
+                aria-label={copied ? "Ссылка скопирована" : "Копировать ссылку"}
+              >
+                {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
               </Button>
             </div>
 
-            <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2 py-1 text-xs text-sky-700 dark:text-sky-200">
-              <Eye className="w-4 h-4" /> Просмотров: {initialData.views ?? 0}
-            </span>
-
-            <label className="flex items-center rounded-lg border border-border/60 bg-background/60 px-2.5 py-2">
-              <Checkbox
-                checked={isPrivate}
-                onCheckedChange={handlePrivateChange}
-                disabled={!isAdmin || isSubmitting}
-              />
-              <span className="ml-1 text-xs select-none">Приватная публикация</span>
-            </label>
-            <p className="-mt-3 text-xs text-muted-foreground">
-              Заметка доступна по ссылке, но не отображается в профиле и публикуется без указания автора.
-            </p>
-
-            {!canUseShort ? (
-              <Hint
-                side="bottom"
-                sideOffset={4}
-                description="Доступно с тарифа Amber"
-              >
-                <div className="flex items-center rounded-lg border border-border/60 bg-background/60 px-2.5 py-2 cursor-not-allowed">
-                  <Checkbox
-                    checked={isShortUrl}
-                    onCheckedChange={handleCheckboxChange}
-                    disabled={!isAdmin || !canUseShort}
-                  />
-                  <p className="ml-1 text-xs select-none">
-                    Сократить ссылку
-                  </p>
-                </div>
-              </Hint>
-            ) : (
-              <div className="flex items-center rounded-lg border border-border/60 bg-background/60 px-2.5 py-2">
+            <div className="space-y-1">
+              <label className="flex min-h-9 items-center gap-2 text-sm">
+                <Checkbox
+                  checked={isPrivate}
+                  onCheckedChange={handlePrivateChange}
+                  disabled={!isAdmin || isSubmitting}
+                  aria-describedby={`${fieldId}-privacy`}
+                />
+                Приватная публикация
+              </label>
+              <p id={`${fieldId}-privacy`} className="text-xs text-muted-foreground">
+                Доступна по ссылке. Скрыта из профиля и публикуется без имени автора.
+              </p>
+              <label className="flex min-h-9 items-center gap-2 text-sm">
                 <Checkbox
                   checked={isShortUrl}
                   onCheckedChange={handleCheckboxChange}
-                  disabled={!isAdmin}
+                  disabled={!isAdmin || !canUseShort || isSubmitting}
                 />
-                <p className="ml-1 text-xs select-none">
-                  Сократить ссылку
-                </p>
-              </div>
-            )}
+                Сократить ссылку
+                {!canUseShort && userData && <span className="ml-auto text-xs text-muted-foreground">От Amber</span>}
+              </label>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1 border-t border-border/40 pt-2">
+              <Button asChild variant="ghost" size="sm" className="h-9">
+                <Link href={url} target="_blank" rel="noopener noreferrer">
+                  <SquareArrowOutUpRight aria-hidden="true" /> Открыть
+                </Link>
+              </Button>
+              <IframeModal iframeUrl={iframeUrl} compact />
+            </div>
 
             {isAdmin && (
               <Button
                 size="sm"
-                className="h-9 w-full rounded-xl text-xs"
+                variant="secondary"
+                className="h-9 w-full rounded-xl"
                 disabled={isSubmitting}
                 onClick={onUnpublish}
               >
-                Отменить публикацию
+                Снять с публикации
               </Button>
             )}
-
-            <Link href={url} target="_blank">
-              <Button
-                className="h-9 w-full rounded-xl text-xs"
-                size="sm"
-                variant="outline"
-              >
-                <SquareArrowOutUpRight /> Перейти
-              </Button>
-            </Link>
-
-            <IframeModal iframeUrl={iframeUrl} />
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-background/50 p-4 text-center">
-            <Globe className="mb-2 h-8 w-8 text-muted-foreground" />
-            <p className="font-medium">Поделитесь своей заметкой</p>
-            {isAdmin ? (
-              <>
-                <span className="mb-2 text-xs text-muted-foreground">
-                  Поделитесь своими мыслями с другими
-                </span>
-                <Button
-                  disabled={isSubmitting}
-                  onClick={onPublish}
-                  className="h-9 w-full rounded-xl text-xs"
-                  size="sm"
-                >
-                  Опубликовать
-                </Button>
-              </>
-            ) : (
-              <span className="text-center w-full block text-[0.7rem] text-muted-foreground mt-2">
-                Публиковать могут только администраторы организации
-              </span>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {isAdmin
+                ? "После публикации заметку сможет открыть любой, у кого есть ссылка."
+                : "Публиковать могут только администраторы организации."}
+            </p>
+            {isAdmin && (
+              <Button disabled={isSubmitting} onClick={onPublish} className="h-9 w-full rounded-xl" size="sm">
+                Опубликовать
+              </Button>
             )}
           </div>
         )}
@@ -403,4 +410,3 @@ export function Publish({ initialData }: PublishProps) {
     </Popover>
   )
 }
-

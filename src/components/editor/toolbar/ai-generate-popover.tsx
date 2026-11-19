@@ -475,7 +475,7 @@ export function AiGeneratePopover({
           e.preventDefault();
           editor?.commands.focus();
         }}
-        className="w-80 sm:w-96 p-3 shadow-xl rounded-xl border bg-popover text-popover-foreground space-y-2.5"
+        className="w-80 sm:w-96 p-3 shadow-xl rounded-xl border-0 bg-popover text-popover-foreground space-y-2.5"
       >
         <div className="flex items-center justify-between pb-1 border-b border-border/50">
           <div className="flex items-center gap-1.5 text-xs font-semibold">
@@ -500,7 +500,7 @@ export function AiGeneratePopover({
         </div>
 
         {/* Provider Tabs */}
-        <div className="flex items-center gap-1 p-0.5 bg-muted/60 rounded-lg border border-border/50 text-[11px]">
+        <div className="flex items-center gap-1 p-0.5 bg-muted/60 rounded-lg text-xs">
           <button
             type="button"
             disabled={isLoading}
@@ -604,7 +604,7 @@ export function AiGeneratePopover({
         {providerTab === "custom" && (
           <>
             {customProviders.length === 0 ? (
-              <div className="p-3 rounded-lg border border-dashed border-border/70 text-center flex flex-col items-center justify-center gap-1.5 bg-muted/20">
+              <div className="p-3 rounded-lg text-center flex flex-col items-center justify-center gap-1.5 bg-muted/20">
                 <span className="text-xs text-muted-foreground">
                   У вас пока нет своих провайдеров
                 </span>
@@ -784,7 +784,7 @@ export function AiGeneratePopover({
                   <button
                     type="button"
                     onClick={() => setCustomModelMode(!customModelMode)}
-                    className="text-primary hover:underline cursor-pointer"
+                    className="text-link text-primary cursor-pointer"
                   >
                     {customModelMode ? "Список моделей" : "Ввести вручную"}
                   </button>
@@ -834,7 +834,7 @@ export function AiGeneratePopover({
                     setIsOpen(false);
                     settingsModal.onOpen();
                   }}
-                  className="underline font-medium hover:opacity-80"
+                  className="text-link font-medium"
                 >
                   Настроить
                 </button>

@@ -31,19 +31,19 @@ export function Footer(){
                     </Link>
                     <ul className="flex flex-wrap items-center mb-6 text-sm font-medium sm:mb-0 text-primary/50">
                         <li>
-                            <Link href={links.FEEDBACK} target="_blank" className="me-4 md:me-6 hover:text-primary transition-colors duration-200">Feedback</Link>
+                            <Link href={links.FEEDBACK} target="_blank" className="me-4 md:me-6 text-link">Feedback</Link>
                         </li>
                         <li>
-                            <Link href={links.QUAL_ID} target="_blank" className="me-4 md:me-6 hover:text-primary transition-colors duration-200">Qual ID</Link>
+                            <Link href={links.QUAL_ID} target="_blank" className="me-4 md:me-6 text-link">Qual ID</Link>
                         </li>
                         <li>
-                            <Link href={links.TELEGRAM} target="_blank" className="me-4 md:me-6 hover:text-primary transition-colors duration-200">Telegram</Link>
+                            <Link href={links.TELEGRAM} target="_blank" className="me-4 md:me-6 text-link">Telegram</Link>
                         </li>
                     </ul>
                 </div>
                 <hr className="my-6 border-gray-300 dark:border-gray-200 sm:mx-auto lg:my-8" />
                 <span className="block text-sm text-primary/50 sm:text-center">
-                    © 2024-{currentYear} <Link href={links.QUALSU} className="hover:text-primary transition-colors duration-200">Qualsu</Link>
+                    © 2024-{currentYear} <Link href={links.QUALSU} className="text-link">Qualsu</Link>
                     {isBeta && (
                         <>
                             {" • "}

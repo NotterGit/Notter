@@ -3,6 +3,10 @@
 @import "tw-animate-css";
 @custom-variant dark (&:where(.dark, .dark *));
 
+@utility text-link {
+  @apply no-underline hover:opacity-75 motion-safe:transition-opacity motion-safe:duration-200;
+}
+
 html,
 body,
 :root {
@@ -393,12 +397,7 @@ body.editor-is-dragging .tiptap-prototype-content {
 
 .tiptap-prototype-content a {
   color: #2563eb;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color 0.15s ease;
-}
-.tiptap-prototype-content a:hover {
-  color: #1d4ed8;
+  @apply text-link;
 }
 
 .tiptap-prototype-content mark {

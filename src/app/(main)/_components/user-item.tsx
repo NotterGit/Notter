@@ -211,7 +211,7 @@ export function UserItem() {
     <div className="mr-6">
       <DropdownMenu open={isOpen} onOpenChange={handleOpenChange} modal={false}>
         <DropdownMenuTrigger asChild>
-          <button className="flex w-full items-center gap-2 rounded-xl border border-transparent p-2 transition hover:border-black/10 hover:bg-white/70 dark:hover:border-white/10 dark:hover:bg-zinc-900/70">
+          <button className="flex w-full items-center gap-2 rounded-xl p-2 transition hover:bg-white/70 dark:hover:bg-zinc-900/70">
             <Avatar className="h-6 w-6 ring-1 ring-border/60">
               {currentImage ? (
                 <AvatarImage src={currentImage} alt={displayName} className="object-cover" />
@@ -245,11 +245,11 @@ export function UserItem() {
 
         <DropdownMenuContent
           ref={dropdownContentRef}
-          className="ml-1 flex w-64 flex-col items-start rounded-xl border-white/60 bg-white p-3 shadow-xl dark:border-white/10 dark:bg-zinc-950 overflow-visible"
+          className="ml-1 flex w-64 flex-col items-start rounded-xl border-0 bg-white p-3 shadow-xl dark:bg-zinc-950 overflow-visible"
           align="start"
         >
           <div className="w-full">
-            <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
               Пространства
             </div>
             <div className="flex flex-col gap-0.5">
@@ -351,7 +351,7 @@ export function UserItem() {
 
           <div ref={accountMenuRef} className="relative w-full">
             {isAccountMenuOpen && (
-              <div className="absolute bottom-full left-0 right-0 mb-1.5 z-50 rounded-xl border border-white/60 bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/95 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2">
+              <div className="absolute bottom-full left-0 right-0 mb-1.5 z-50 rounded-xl bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl dark:bg-zinc-900/95 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2">
                 {isOrg ? (
                   <>
                     <Link

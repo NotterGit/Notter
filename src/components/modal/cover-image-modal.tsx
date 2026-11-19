@@ -96,7 +96,7 @@ export function CoverImageModal(){
       <DialogTitle>
         <p className="sr-only">Изменить обложку</p>
       </DialogTitle>
-      <DialogContent>
+      <DialogContent className="border-0">
         <DialogHeader>
           <h2 className="text-center text-lg font-semibold">Загрузить Обложку</h2>
         </DialogHeader>

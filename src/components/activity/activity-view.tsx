@@ -12,8 +12,6 @@ import { INITIAL_ACTIVITY_FILTERS } from "@/config/const/activity.const";
 export function ActivityView({
   initialLogs,
   isExtendedAudit,
-  tariffName,
-  showEntityFilter = true,
 }: ActivityViewProps) {
   const [filters, setFilters] = useState<ActivityFiltersState>(INITIAL_ACTIVITY_FILTERS);
 
@@ -94,22 +92,17 @@ export function ActivityView({
         onReset={handleReset}
         hasActiveFilters={hasActiveFilters}
         isExtendedAudit={isExtendedAudit}
-        tariffName={tariffName}
         totalCount={initialLogs.length}
         filteredCount={filteredLogs.length}
-        showEntityFilter={showEntityFilter}
       />
 
       {filteredLogs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 px-4 text-center rounded-xl border border-dashed border-border/60 bg-muted/10">
+        <div className="flex flex-col items-center justify-center py-10 px-4 text-center rounded-xl bg-muted/10">
           {hasActiveFilters ? (
             <>
               <SearchX className="h-9 w-9 text-muted-foreground mb-2" />
               <p className="font-semibold text-sm text-foreground">
                 Ничего не найдено
-              </p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-                По вашему запросу событий не найдено. Попробуйте изменить параметры фильтрации или поисковый запрос
               </p>
             </>
           ) : (
@@ -118,19 +111,15 @@ export function ActivityView({
               <p className="font-semibold text-sm text-foreground">
                 Здесь пока нет активности
               </p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-                Действия с заметками будут отображаться в этом журнале
-              </p>
             </>
           )}
         </div>
       ) : (
-        <ol className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+        <ol className="divide-y divide-border/40">
           {filteredLogs.map((log) => (
             <ActivityItem
               key={log.id}
               data={log}
-              extended={isExtendedAudit}
             />
           ))}
         </ol>

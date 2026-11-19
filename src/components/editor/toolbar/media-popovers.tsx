@@ -91,7 +91,7 @@ export function ImagePopover({
       <PopoverContent
         align="start"
         sideOffset={6}
-        className="w-80 p-3.5 shadow-xl rounded-xl border bg-popover"
+        className="w-80 p-3.5 shadow-xl rounded-xl border-0 bg-popover"
       >
         <div className="space-y-3">
           <div className="text-xs font-semibold text-foreground">
@@ -217,7 +217,7 @@ export function VideoPopover({
       <PopoverContent
         align="start"
         sideOffset={6}
-        className="w-80 p-3.5 shadow-xl rounded-xl border bg-popover"
+        className="w-80 p-3.5 shadow-xl rounded-xl border-0 bg-popover"
       >
         <div className="space-y-3">
           <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
@@ -349,7 +349,7 @@ export function AudioPopover({
       <PopoverContent
         align="start"
         sideOffset={6}
-        className="w-80 p-3.5 shadow-xl rounded-xl border bg-popover"
+        className="w-80 p-3.5 shadow-xl rounded-xl border-0 bg-popover"
       >
         <div className="space-y-3">
           <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">

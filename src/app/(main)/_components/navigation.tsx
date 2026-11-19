@@ -11,6 +11,7 @@ import { API } from "@/config/routing/api.route"
 import { fetcher } from "@/lib/fetcher"
 import { createDocument } from "@/actions/create-document"
 import { useAction } from "@/hooks/use-action"
+import { PlanNotice } from "@/components/plan-notice"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "react-hot-toast"
@@ -237,7 +238,7 @@ export function Navigation({ children }: NavigationProps) {
             )}>
                 <div className="h-full overflow-y-auto custom-scrollbar">
                     <div onClick={collapse} role="button" className={cn(
-                        "absolute right-0.5 top-3 flex h-7 w-7 items-center justify-center rounded-lg border border-transparent text-muted-foreground opacity-0 transition hover:border-border hover:bg-background/70 group-hover/sidebar:opacity-100",
+                        "absolute right-0.5 top-3 flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground opacity-0 transition hover:bg-background/70 group-hover/sidebar:opacity-100",
                         isMobile && "opacity-100"
                     )}>
                         <ChevronsLeft className="h-4 w-4" />
@@ -271,8 +272,8 @@ export function Navigation({ children }: NavigationProps) {
                         <DocumentList onCreateDocument={handleCreate} />
                     </div>
 
-                    <div className="mx-3 mt-4 rounded-2xl border border-black/5 bg-background/60 p-3 dark:border-white/10 dark:bg-zinc-900/60">
-                        <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                    <div className="mx-3 mt-4 rounded-2xl bg-background/60 p-3 dark:bg-zinc-900/60">
+                        <div className="text-sm font-medium text-muted-foreground">
                             Лимиты пространства
                         </div>
                         {isLimitsLoading ? (
@@ -291,7 +292,7 @@ export function Navigation({ children }: NavigationProps) {
                                     </div>
                                     <Skeleton className="mt-2 h-3 w-full rounded-2xl bg-primary/8" />
                                 </div>
-                                <Link className="text-sm text-primary/50 hover:text-primary transition-colors duration-200" href={pages.BUY}>
+                                <Link className="text-link text-sm text-muted-foreground" href={pages.BUY}>
                                     Увеличить лимиты
                                 </Link>
                             </div>
@@ -308,16 +309,16 @@ export function Navigation({ children }: NavigationProps) {
                                 <Progress value={publicDocumentProgress} max={100} className={`mt-2 h-2 ${getProgressColor(publicDocumentProgress)}`} />
 
                                 {(documentCount >= documentLimit || documentPublicCount >= publicDocumentLimit) ? (
-                                    <div className="mt-3 rounded-xl border border-red-300/50 bg-red-50/70 p-2 text-xs text-red-700 dark:border-red-400/20 dark:bg-red-950/40 dark:text-red-200">
-                                        <span>Достигнут лимит по заметкам. Оформите{" "}</span>
-                                        <Link href={pages.BUY} className="group inline-flex transition-all duration-300">
-                                            <span className="group-hover:text-logo-yellow transition-colors duration-300 mr-0.5">Notter</span>
-                                            <span className="group-hover:text-logo-cyan transition-colors duration-300">Gem</span>
-                                        </Link>
+                                    <div className="mt-3">
+                                        <PlanNotice
+                                            title="Достигнут лимит по заметкам"
+                                            description="Больше заметок с Notter Gem."
+                                            href={pages.BUY}
+                                        />
                                     </div>
                                 ) : (
                                     <div className="mt-2">
-                                        <Link className="text-sm text-primary/50 hover:text-primary transition-colors duration-200" href={pages.BUY}>
+                                        <Link className="text-link text-sm text-muted-foreground" href={pages.BUY}>
                                             Увеличить лимиты
                                         </Link>
                                     </div>

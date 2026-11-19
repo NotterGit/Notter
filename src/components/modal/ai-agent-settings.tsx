@@ -600,7 +600,7 @@ export function AiAgentSettings() {
                           href={activeMeta.keyHelpUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5"
+                          className="text-link text-[11px] text-primary inline-flex items-center gap-0.5"
                         >
                           Получить ключ
                           <ExternalLink className="h-2.5 w-2.5" />

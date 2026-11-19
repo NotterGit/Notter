@@ -196,7 +196,7 @@ export function TrashBox(){
         />
       </div>
 
-      <div className="mx-2 my-2 flex items-center justify-between rounded-lg border border-border/50 bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground">
+      <div className="mx-2 my-2 flex items-center justify-between rounded-lg bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5 truncate">
           <Clock className="h-3.5 w-3.5 text-logo-yellow shrink-0" />
           {documents && documents.length > 0 && nextCleanupMs !== null ? (

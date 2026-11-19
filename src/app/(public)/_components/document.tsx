@@ -33,7 +33,7 @@ function Footer({ name, team, logo, isPrivate = false }: UserInterface & { isPri
         <Separator className="bg-border" />
         <p className="my-4 px-4 text-center text-sm text-muted-foreground">
           <span>Заметка создана в</span>
-          <Link className="group ml-1 font-bold opacity-60 transition-opacity duration-200 hover:opacity-100" href={pages.ROOT}>
+          <Link className="ml-1 font-bold opacity-60 hover:opacity-45 motion-safe:transition-opacity motion-safe:duration-200" href={pages.ROOT}>
             <span className="bg-gradient-to-r from-logo-yellow to-logo-light-yellow bg-clip-text text-transparent">Notter</span>
           </Link>
         </p>
@@ -49,7 +49,7 @@ function Footer({ name, team, logo, isPrivate = false }: UserInterface & { isPri
       <p className="my-4 px-4 text-center text-sm text-muted-foreground">
         <span>Заметка создана {team ? "командой" : ""}{" "}</span>
         {hasName ? (
-          <Link href={pages.PROFILE(team, name)} className="font-semibold transition-colors duration-200 hover:text-foreground">
+          <Link href={pages.PROFILE(team, name)} className="text-link font-semibold">
             {name}
           </Link>
         ) : (
@@ -58,7 +58,7 @@ function Footer({ name, team, logo, isPrivate = false }: UserInterface & { isPri
         {logo && (
           <>
             <span> в</span>
-            <Link className="group ml-1 font-bold opacity-60 transition-opacity duration-200 hover:opacity-100" href={pages.ROOT}>
+            <Link className="ml-1 font-bold opacity-60 hover:opacity-45 motion-safe:transition-opacity motion-safe:duration-200" href={pages.ROOT}>
               <span className="bg-gradient-to-r from-logo-yellow to-logo-light-yellow bg-clip-text text-transparent">Notter</span>
             </Link>
           </>

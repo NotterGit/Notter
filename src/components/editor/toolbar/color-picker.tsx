@@ -55,7 +55,7 @@ export function ColorPickerMenu({
       <PopoverContent
         align="start"
         sideOffset={6}
-        className="w-64 p-3 shadow-xl rounded-xl border bg-popover"
+        className="w-64 p-3 shadow-xl rounded-xl border-0 bg-popover"
       >
         <div className="flex items-center justify-between pb-2 mb-2 border-b">
           <span className="text-xs font-semibold text-foreground">{title}</span>

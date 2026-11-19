@@ -1,6 +1,13 @@
 import type { DropzoneOptions } from "react-dropzone"
 import type * as React from "react"
 
+export interface PlanNoticeProps {
+  title: string
+  description: string
+  href: string
+  openInNewTab?: boolean
+}
+
 export interface CoverImageProps {
   url?: string
   preview?: boolean

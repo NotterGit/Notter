@@ -30,16 +30,14 @@ export const InstallModal = ({
 }: InstallModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl gap-6 overflow-hidden p-0">
+      <DialogContent className="max-w-3xl gap-6 overflow-hidden border-0 p-0">
         <DialogHeader className="px-6 pt-6">
           <DialogTitle>Установить Notter</DialogTitle>
-          <DialogDescription>
-            Выберите удобный способ установки приложения на компьютер.
-          </DialogDescription>
+          <DialogDescription className="sr-only">Способы установки Notter на компьютер</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 px-6 pb-6 md:grid-cols-[1.05fr_0.95fr]">
-          <section className="flex min-h-[320px] flex-col overflow-hidden rounded-lg border bg-muted/30">
+          <section className="flex min-h-[320px] flex-col overflow-hidden rounded-lg bg-muted/30">
             <div className="relative flex min-h-44 w-full items-center justify-center overflow-hidden border-b bg-background p-2">
               <Image
                 src={images.ILLUSTRATIONS.INSTALL_PWA}
@@ -76,7 +74,7 @@ export const InstallModal = ({
             </div>
           </section>
 
-          <section className="flex min-h-[320px] flex-col overflow-hidden rounded-lg border bg-muted/30">
+          <section className="flex min-h-[320px] flex-col overflow-hidden rounded-lg bg-muted/30">
             <div className="relative flex min-h-44 w-full flex-col items-center justify-center overflow-hidden border-b bg-background p-4 text-center">
               <div className="rounded-full bg-primary/10 p-3 text-primary">
                 <Laptop className="h-8 w-8" />
@@ -89,9 +87,6 @@ export const InstallModal = ({
                   <MonitorDown className="h-4 w-4" />
                   Десктопная версия
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Скачайте сборку для вашей операционной системы
-                </p>
               </div>
 
               <div className="mt-auto flex flex-col gap-2">
@@ -107,7 +102,7 @@ export const InstallModal = ({
                       <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[260px]">
+                  <DropdownMenuContent align="end" className="w-[260px] border-0">
                     <DropdownMenuItem asChild>
                       <Link
                         href={links.DOWNLOAD.WINDOWS}
@@ -148,7 +143,7 @@ export const InstallModal = ({
                       <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[260px]">
+                  <DropdownMenuContent align="end" className="w-[260px] border-0">
                     <DropdownMenuItem asChild>
                       <Link
                         href={links.DOWNLOAD.LINUX.APPIMAGE}
@@ -177,7 +172,7 @@ export const InstallModal = ({
                   href={links.DOWNLOAD.GITHUB}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors duration-200 hover:text-primary underline underline-offset-2"
+                  className="text-link font-medium text-primary"
                 >
                   GitHub
                 </Link>

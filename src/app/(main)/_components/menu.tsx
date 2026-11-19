@@ -311,7 +311,7 @@ export function Menu({ documentId }: MenuProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          className="w-72 rounded-2xl border-white/60 bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/95"
+          className="w-72 rounded-2xl border-0 bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl dark:bg-zinc-950/95"
           align="end"
           alignOffset={8}
           forceMount
@@ -333,7 +333,6 @@ export function Menu({ documentId }: MenuProps) {
             )}
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator className="my-1" />
 
           <DropdownMenuItem
             onClick={onMove}
@@ -343,7 +342,6 @@ export function Menu({ documentId }: MenuProps) {
             Переместить
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator className="my-1" />
 
           <DropdownMenuItem
             onClick={() => auditModal.onOpen(documentId, doc?.title)}
@@ -416,7 +414,7 @@ export function Menu({ documentId }: MenuProps) {
             </>
           )}
 
-          <div className="rounded-xl border border-black/5 bg-black/[0.03] p-2.5 dark:border-white/5 dark:bg-white/[0.04] space-y-2.5">
+          <div className="rounded-xl bg-black/[0.03] p-2.5 dark:bg-white/[0.04] space-y-2.5">
             <div className="flex items-start gap-2.5">
               <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                 <Calendar className="h-3.5 w-3.5" />
@@ -462,7 +460,7 @@ export function Menu({ documentId }: MenuProps) {
           if (!open) setUploadModalType(null);
         }}
       >
-        <DialogContent className="sm:max-w-md rounded-2xl border border-black/10 bg-background/95 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/95">
+        <DialogContent className="sm:max-w-md rounded-2xl border-0 bg-background/95 p-6 shadow-2xl backdrop-blur-xl dark:bg-zinc-950/95">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">
               {uploadModalType === "md" ? "Загрузить Markdown файл" : "Загрузить JSON файл"}

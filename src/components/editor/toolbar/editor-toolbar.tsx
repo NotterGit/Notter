@@ -138,7 +138,7 @@ export function EditorToolbar({
             <ChevronDown size={12} className="opacity-60" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-48 p-1">
+        <DropdownMenuContent align="start" className="w-48 border-0 p-1">
           <DropdownMenuItem
             onClick={() => editor.chain().focus().setParagraph().run()}
             className={cn(

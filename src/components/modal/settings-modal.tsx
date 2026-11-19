@@ -239,7 +239,7 @@ export function SettingsModal() {
 
   return (
     <Dialog open={settings.isOpen} onOpenChange={settings.onClose}>
-      <DialogContent className="max-h-[85dvh] gap-3 overflow-y-auto p-4 sm:p-6" aria-describedby={undefined}>
+      <DialogContent className="max-h-[85dvh] gap-3 overflow-y-auto border-0 p-4 sm:p-6" aria-describedby={undefined}>
         <DialogHeader className="text-left">
           <DialogTitle>Настройки</DialogTitle>
         </DialogHeader>
@@ -303,7 +303,7 @@ export function SettingsModal() {
                     <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden="true" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-56 border-0">
                   {ARCHIVE_RETENTION_OPTIONS.map((option) => {
                     const isAllowed = isArchiveRetentionAllowed(option.days, userData?.premium ?? 0)
                     const isSelected = retentionDays === option.days
