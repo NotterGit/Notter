@@ -183,10 +183,11 @@ export function Item({
             {...(draggableProps ?? {})}
             {...(dragHandleProps ?? {})}
             onClick={onClick} 
-            role="button" 
+            role="button"
+            aria-current={active ? "page" : undefined}
             style={{paddingLeft: level ? `${(level * 12) + 12}px` : "12px"}} 
             className={cn(`group mb-0.5 flex min-h-[34px] w-full items-center rounded-xl py-1.5 pr-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10 select-none`,
-            active && "bg-gradient-to-r from-logo-yellow/20 to-logo-cyan/20 text-foreground shadow-sm",
+            active && "bg-black/[0.07] text-foreground hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/[0.14]",
             isSelected && "bg-logo-yellow/15 text-foreground",
             isOtherSelectedDragging && "opacity-40",
             isDragging && "bg-white/95 dark:bg-zinc-900/95 shadow-xl text-foreground",

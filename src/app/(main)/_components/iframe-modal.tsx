@@ -86,7 +86,7 @@ export function IframeModal({ iframeUrl, compact = false }: IframeModalProps) {
               </Button>
             </div>
 
-            <div className="overflow-x-auto bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.12),_transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,244,245,1))] px-4 py-4 dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.12),_transparent_38%),linear-gradient(180deg,rgba(24,24,27,0.96),rgba(9,9,11,1))]">
+            <div className="overflow-x-auto custom-scrollbar bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.12),_transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,244,245,1))] px-4 py-4 dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.12),_transparent_38%),linear-gradient(180deg,rgba(24,24,27,0.96),rgba(9,9,11,1))]">
               <pre className="font-mono text-xs tracking-[0.01em]">
                 <code className="table min-w-full">
                   <span className="flex">

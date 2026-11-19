@@ -429,7 +429,7 @@ export function AiAgentSettings() {
           {activeTab === "standard" && (
             <div className="space-y-3">
               {/* Providers carousel */}
-              <div className="flex flex-nowrap gap-1.5 overflow-x-auto pb-1.5 scrollbar-minimal">
+              <div className="flex flex-nowrap gap-1.5 overflow-x-auto pb-1.5 custom-scrollbar">
                 {allProviders.map((meta) => {
                   const id = meta.id;
                   const isActive = activeProviderId === id;
@@ -1123,7 +1123,7 @@ export function AiAgentSettings() {
                     onChange={(e) => setSystemPrompt(e.target.value)}
                     rows={4}
                     placeholder="Введите системный промпт..."
-                    className="w-full p-2.5 text-xs leading-relaxed rounded-md border border-input bg-background resize-y min-h-[90px] max-h-[260px] focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                    className="custom-scrollbar w-full p-2.5 text-xs leading-relaxed rounded-md border border-input bg-background resize-y min-h-[90px] max-h-[260px] focus:outline-none focus:ring-1 focus:ring-primary font-mono"
                   />
                 </div>
 

@@ -7,6 +7,12 @@
   @apply no-underline hover:opacity-75 motion-safe:transition-opacity motion-safe:duration-200;
 }
 
+@utility page-glow {
+  background-image:
+    radial-gradient(ellipse 35rem 28rem at 5% 10%, color-mix(in srgb, #ffe57f 11%, transparent), transparent 100%),
+    radial-gradient(ellipse 38rem 30rem at 98% 35%, color-mix(in srgb, #2bd8fd 8%, transparent), transparent 100%);
+}
+
 html,
 body,
 :root {
@@ -131,70 +137,49 @@ body,
   }
 }
 
+:root {
+  --scrollbar-thumb: rgb(0 0 0 / 0.18);
+  --scrollbar-thumb-hover: rgb(0 0 0 / 0.32);
+}
+
+.dark {
+  --scrollbar-thumb: rgb(255 255 255 / 0.16);
+  --scrollbar-thumb-hover: rgb(255 255 255 / 0.28);
+}
+
+/* The viewport and library-owned scroll containers have no local utility class. */
+:where(html, body, .epr-body, .cl-rootBox, .cl-rootBox *, .tiptap-prototype-content pre),
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0,0,0,0.25) transparent;
-}
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+  @supports selector(::-webkit-scrollbar) {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
+    &::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(0,0,0,0.18);
-  border-radius: 9999px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
+    &::-webkit-scrollbar-track,
+    &::-webkit-scrollbar-corner {
+      background: transparent;
+    }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0,0,0,0.32);
-}
+    &::-webkit-scrollbar-button {
+      display: none;
+    }
 
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(255,255,255,0.06);
-}
-.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255,255,255,0.12);
-}
+    &::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      border-radius: 9999px;
+    }
 
-.scrollbar-minimal {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0,0,0,0.15) transparent;
-}
-
-.scrollbar-minimal::-webkit-scrollbar {
-  height: 3px;
-}
-
-.scrollbar-minimal::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollbar-minimal::-webkit-scrollbar-thumb {
-  background-color: rgba(0,0,0,0.15);
-  border-radius: 9999px;
-}
-
-.scrollbar-minimal::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0,0,0,0.3);
-}
-
-.dark .scrollbar-minimal {
-  scrollbar-color: rgba(255,255,255,0.14) transparent;
-}
-
-.dark .scrollbar-minimal::-webkit-scrollbar-thumb {
-  background-color: rgba(255,255,255,0.14);
-}
-
-.dark .scrollbar-minimal::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255,255,255,0.28);
+    &::-webkit-scrollbar-thumb:hover {
+      background: var(--scrollbar-thumb-hover);
+    }
+  }
 }
 
 .resize-handle {
@@ -398,6 +383,10 @@ body.editor-is-dragging .tiptap-prototype-content {
 .tiptap-prototype-content a {
   color: #2563eb;
   @apply text-link;
+}
+
+.dark .tiptap-prototype-content a {
+  color: #93c5fd;
 }
 
 .tiptap-prototype-content mark {
@@ -661,19 +650,6 @@ body.editor-is-dragging .tiptap-prototype-content {
   100% {
     transform: translateX(100%);
   }
-}
-
-.ai-generate-button-loading {
-  background: linear-gradient(
-    90deg,
-    #7c3aed 0%,
-    #a855f7 25%,
-    #6366f1 50%,
-    #a855f7 75%,
-    #7c3aed 100%
-  ) !important;
-  background-size: 200% 100% !important;
-  animation: tiptap-ai-bar-flow 2s linear infinite !important;
 }
 
 /* Custom code block styling & syntax highlighting */

@@ -281,7 +281,7 @@ export function Publish({ initialData }: PublishProps) {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="max-h-[var(--radix-popover-content-available-height)] w-80 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-2xl border-0 bg-white/95 p-4 shadow-xl backdrop-blur-xl dark:bg-zinc-950/95"
+        className="max-h-[var(--radix-popover-content-available-height)] w-80 max-w-[calc(100vw-1.5rem)] overflow-y-auto custom-scrollbar rounded-2xl border-0 bg-white/95 p-4 shadow-xl backdrop-blur-xl dark:bg-zinc-950/95"
         align="end"
         aria-label="Публикация заметки"
         onInteractOutside={(event) => {
@@ -394,11 +394,17 @@ export function Publish({ initialData }: PublishProps) {
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              {isAdmin
-                ? "После публикации заметку сможет открыть любой, у кого есть ссылка."
-                : "Публиковать могут только администраторы организации."}
-            </p>
+            <div className="flex items-center gap-2">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                <Globe className="size-4" aria-hidden="true" />
+              </span>
+              <p className="text-sm font-medium">Публичный доступ</p>
+            </div>
+            {!isAdmin && (
+              <p className="text-sm text-muted-foreground">
+                Публиковать могут только администраторы организации.
+              </p>
+            )}
             {isAdmin && (
               <Button disabled={isSubmitting} onClick={onPublish} className="h-9 w-full rounded-xl" size="sm">
                 Опубликовать

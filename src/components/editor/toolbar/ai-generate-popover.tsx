@@ -549,7 +549,7 @@ export function AiGeneratePopover({
 
         {/* Builtin Providers Carousel */}
         {providerTab === "builtin" && (
-          <div className="flex flex-nowrap gap-1 overflow-x-auto pb-1.5 scrollbar-minimal">
+          <div className="flex flex-nowrap gap-1 overflow-x-auto pb-1.5 custom-scrollbar">
             {builtinProviders
               .filter((p) => !p.isDevOnly || isDevEnvironment())
               .map((meta) => {
@@ -623,7 +623,7 @@ export function AiGeneratePopover({
                 </Button>
               </div>
             ) : (
-              <div className="flex flex-nowrap gap-1 overflow-x-auto pb-1.5 scrollbar-minimal">
+              <div className="flex flex-nowrap gap-1 overflow-x-auto pb-1.5 custom-scrollbar">
                 {customProviders.map((cp) => {
                   const id = cp.id;
                   const isSelected = selectedProviderId === id;
@@ -851,7 +851,7 @@ export function AiGeneratePopover({
                 rows={3}
                 autoFocus
                 className={cn(
-                  "w-full p-2 text-xs rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-1 focus:ring-primary",
+                  "custom-scrollbar w-full p-2 text-xs rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-1 focus:ring-primary",
                   isLoading && "opacity-60 cursor-not-allowed"
                 )}
               />

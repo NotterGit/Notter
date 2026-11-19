@@ -103,7 +103,7 @@ function CodeBlockComponent({ node, updateAttributes, editor }: NodeViewProps) {
                   autoFocus
                 />
               </div>
-              <div className="max-h-56 overflow-y-auto overflow-x-hidden scrollbar-minimal py-0.5 space-y-0.5">
+              <div className="max-h-56 overflow-y-auto overflow-x-hidden custom-scrollbar py-0.5 space-y-0.5">
                 {filteredLanguages.length === 0 ? (
                   <div className="px-2 py-3 text-center text-xs text-white/40 font-mono">
                     Не найдено
@@ -163,7 +163,7 @@ function CodeBlockComponent({ node, updateAttributes, editor }: NodeViewProps) {
         </button>
       </div>
 
-      <pre className="overflow-x-auto p-4 text-[13px] sm:text-sm font-mono leading-relaxed text-zinc-100 scrollbar-minimal">
+      <pre className="overflow-x-auto p-4 text-[13px] sm:text-sm font-mono leading-relaxed text-zinc-100 custom-scrollbar">
         <NodeViewContent as="code" className={currentLang ? `hljs language-${currentLang}` : "hljs"} />
       </pre>
     </NodeViewWrapper>

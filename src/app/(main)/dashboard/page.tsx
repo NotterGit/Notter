@@ -84,7 +84,7 @@ export default function Dashboard() {
                     width={360}
                     height={360}
                     alt="Empty"
-                    className="mx-auto w-full max-w-[320px] sm:max-w-[360px] drop-shadow-[0_0_10px_rgba(0,0,0,0.5)] dark:drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] p-8"
+                    className="mx-auto w-full max-w-[320px] sm:max-w-[360px] p-8"
                 />
                 <h2 className="mt-4 text-2xl font-semibold sm:text-3xl">
                     Пока что тут ничего нет

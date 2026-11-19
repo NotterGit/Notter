@@ -290,7 +290,7 @@ export function MoveNoteModal() {
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto min-h-[220px] max-h-[380px] rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] p-2 space-y-1">
+        <div className="flex-1 overflow-y-auto custom-scrollbar min-h-[220px] max-h-[380px] rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] p-2 space-y-1">
           {documents === undefined ? (
             <div className="flex h-44 items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

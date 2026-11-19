@@ -80,6 +80,7 @@ function ImageComponent({
   const dragPreviewRef = useRef<HTMLDivElement>(null)
   const cleanupRef = useRef<(() => void) | null>(null)
   const [localCaption, setLocalCaption] = useState(node.attrs.caption || "")
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const captionInputRef = useRef<HTMLInputElement>(null)
@@ -98,6 +99,8 @@ function ImageComponent({
 
   const currentWidth = node.attrs.width || "100%"
   const alignment = node.attrs.alignment || "center"
+  const src = node.attrs.src
+  const imageAvailable = src && src !== failedSrc
 
   const commitCaption = () => {
     if (localCaption !== (node.attrs.caption || "")) {
@@ -351,18 +354,28 @@ function ImageComponent({
             selected && "ring-2 ring-primary ring-offset-2 ring-offset-background"
           )}
         >
-          <img
-            ref={imgRef}
-            src={node.attrs.src}
-            alt={node.attrs.alt || "Изображение"}
-            draggable={isEditable ? "true" : "false"}
-            onMouseDown={handleMouseDown}
-            onDragStart={handleImageDragStart}
-            className={cn(
-              "block w-full h-auto object-cover transition-all select-none",
-              isEditable && "cursor-grab active:cursor-grabbing"
-            )}
-          />
+          {imageAvailable ? (
+            <img
+              ref={imgRef}
+              src={src}
+              alt={node.attrs.alt || "Изображение"}
+              draggable={isEditable}
+              onError={() => setFailedSrc(src)}
+              onMouseDown={isEditable ? handleMouseDown : undefined}
+              onDragStart={isEditable ? handleImageDragStart : undefined}
+              className={cn(
+                "block w-full h-auto object-cover transition-all select-none",
+                isEditable && "cursor-grab active:cursor-grabbing"
+              )}
+            />
+          ) : (
+            <div className="flex items-center gap-2 bg-muted/45 px-3 py-3 text-sm text-muted-foreground">
+              <ImageIcon className="size-4 shrink-0" aria-hidden="true" />
+              <span className="wrap-anywhere">
+                {node.attrs.alt ? `Изображение недоступно · ${node.attrs.alt}` : "Изображение недоступно"}
+              </span>
+            </div>
+          )}
 
           {isEditable && (
             <div

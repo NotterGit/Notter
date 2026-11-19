@@ -239,7 +239,7 @@ export function SettingsModal() {
 
   return (
     <Dialog open={settings.isOpen} onOpenChange={settings.onClose}>
-      <DialogContent className="max-h-[85dvh] gap-3 overflow-y-auto border-0 p-4 sm:p-6" aria-describedby={undefined}>
+      <DialogContent className="custom-scrollbar max-h-[85dvh] gap-3 overflow-y-auto border-0 p-4 sm:p-6" aria-describedby={undefined}>
         <DialogHeader className="text-left">
           <DialogTitle>Настройки</DialogTitle>
         </DialogHeader>

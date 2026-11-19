@@ -152,7 +152,7 @@ export function AiReviewBar({
         </div>
 
         {/* Quick Suggestion Chips */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-minimal text-[10px]">
+        <div className="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar text-[10px]">
           <span className="text-muted-foreground/60 shrink-0 select-none mr-0.5 font-medium">
             Быстро:
           </span>

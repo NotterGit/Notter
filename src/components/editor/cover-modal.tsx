@@ -283,7 +283,7 @@ export function CoverModal({
           </div>
         </DialogHeader>
 
-        <div className="p-6 max-h-[440px] overflow-y-auto">
+        <div className="p-6 max-h-[440px] overflow-y-auto custom-scrollbar">
           {activeTab === "gallery" && (
             <div className="space-y-4">
               {isLoadingCollections ? (
@@ -305,7 +305,7 @@ export function CoverModal({
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-0.5 px-0.5 scrollbar-none">
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-0.5 px-0.5 custom-scrollbar">
                     {collections.map((col) => {
                       const isActive = activeCollection?.folder === col.folder
                       return (

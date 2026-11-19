@@ -311,8 +311,8 @@ export function Navigation({ children }: NavigationProps) {
                                 {(documentCount >= documentLimit || documentPublicCount >= publicDocumentLimit) ? (
                                     <div className="mt-3">
                                         <PlanNotice
-                                            title="Достигнут лимит по заметкам"
-                                            description="Больше заметок с Notter Gem."
+                                            title={documentCount >= documentLimit ? "Лимит заметок" : "Лимит публикаций"}
+                                            description="Больше места с Notter Gem."
                                             href={pages.BUY}
                                         />
                                     </div>
@@ -352,7 +352,7 @@ export function Navigation({ children }: NavigationProps) {
                     )}
                 </div>
 
-                <main className="relative z-10 flex-1 overflow-y-auto">
+                <main className="relative z-10 flex-1 overflow-y-auto custom-scrollbar">
                     {children}
                 </main>
             </div>

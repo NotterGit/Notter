@@ -209,7 +209,7 @@ export function TrashBox(){
       </div>
 
       <div
-        className="mt-1 px-1 pb-1 flex-1 overflow-y-auto"
+        className="mt-1 px-1 pb-1 flex-1 overflow-y-auto custom-scrollbar"
         style={{ maxHeight: "calc(100vh - 160px)" }}
       >
         {filteredDocuments?.length === 0 && (

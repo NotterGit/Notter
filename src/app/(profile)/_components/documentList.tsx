@@ -1,223 +1,151 @@
-import { cn } from "@/lib/utils";
-import { FileText , Pin } from "lucide-react";
-import Image from "next/image";
-import { normalizeImageUrl } from "@/lib/image-url";
-import { useQuery } from "@tanstack/react-query";
-import { API } from "@/config/routing/api.route";
-import { fetcher } from "@/lib/fetcher";
-import type { DocumentTreeItem } from "@/config/types/main.types";
 import { useMemo, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import Twemoji from "react-twemoji";
-import toast from "react-hot-toast";
-import { updateUser } from "@/api/user";
 import { useUser } from "@clerk/nextjs";
-import VerifedBadge from "./verifed";
-import { updateOrg } from "@/api/org";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronRight, FileText, Pin } from "lucide-react";
 import Link from "next/link";
+import toast from "react-hot-toast";
+import Twemoji from "react-twemoji";
+
+import { updateOrg } from "@/api/org";
+import { updateUser } from "@/api/user";
+import { Skeleton } from "@/components/ui/skeleton";
+import { API } from "@/config/routing/api.route";
 import { pages } from "@/config/routing/pages.route";
+import type { DocumentTreeItem } from "@/config/types/main.types";
 import type { DocumentListProps } from "@/config/types/profile.types";
+import { buildChildrenMap, flattenTree } from "@/lib/document-tree";
+import { cn } from "@/lib/utils";
+import { ProfileImage } from "./profile-image";
+import VerifedBadge from "./verifed";
 
-export function DocumentList({
-  user,
-  profile,
-  setProfile,
-  parentDocumentId,
-  level = 0,
-  publicSorted = true,
-}: DocumentListProps) {
+export function DocumentList({ user, setProfile }: DocumentListProps) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [pinPending, setPinPending] = useState(false);
   const { user: clerkUser } = useUser();
-  const isOrg = user._id.startsWith("org_")
+  const isOrg = user._id.startsWith("org_");
+  const canPin = Boolean(clerkUser && (clerkUser.id === user._id || clerkUser.id === user.owner));
 
-  const { data: documents } = useQuery<DocumentTreeItem[]>({
-    queryKey: ["documents", "sidebar", user?._id, parentDocumentId ?? "root", publicSorted],
-    queryFn: () =>
-      fetcher(
-        API.DOCUMENTS.SIDEBAR({
-          userId: user?._id,
-          parentDocument: parentDocumentId ?? null,
-          publicSorted,
-        })
-      ),
-    enabled: Boolean(user?._id),
+  const { data: documents, isPending, isError, refetch } = useQuery<DocumentTreeItem[]>({
+    queryKey: ["documents", "sidebar", user._id, "profile"],
+    queryFn: async ({ signal }) => {
+      const response = await fetch(API.DOCUMENTS.SIDEBAR({ userId: user._id, publicSorted: true }), { signal });
+      if (!response.ok) throw new Error("Не удалось загрузить заметки");
+      return response.json();
+    },
   });
 
-  const onToggleExpand = (documentId: string) => {
-    setExpanded((prev) => ({
-      ...prev,
-      [documentId]: !prev[documentId],
+  const children = useMemo(() => {
+    const published = (documents ?? []).filter((doc) => doc.isPublished && !doc.isPrivate);
+    const visibleIds = new Set(published.map((doc) => doc._id));
+    return buildChildrenMap(published.map((doc) => {
+      const parent = doc.parentDocumentId ?? doc.parentDocument;
+      return parent && visibleIds.has(parent)
+        ? doc
+        : { ...doc, parentDocumentId: null, parentDocument: null };
     }));
-  };
+  }, [documents]);
+
+  const visibleNotes = flattenTree("root", 0, children, expanded, null);
 
   const handlePinClick = async (docId: string) => {
+    if (pinPending) return;
+    const nextPin = docId === user.pined ? "" : docId;
+    setPinPending(true);
     try {
-      let updatedUser;
-      
-      if (docId === user?.pined) {
-        updatedUser = isOrg
-          ? await updateOrg(user._id, { pined: "" })
-          : await updateUser(user._id, { pined: "" });
-        if (updatedUser) {
-          toast.success("Note unpinned successfully!");
-          setProfile((prevProfile) => {
-            if (prevProfile) {
-              return { ...prevProfile, pined: null };
-            }
-            return prevProfile;
-          });
-        }
-      } else {
-        updatedUser = isOrg
-          ? await updateOrg(user._id, { pined: docId })
-          : await updateUser(user._id, { pined: docId });
-        if (updatedUser) {
-          toast.success("Note pinned successfully!");
-          setProfile((prevProfile) => {
-            if (prevProfile) {
-              return { ...prevProfile, pined: docId };
-            }
-            return prevProfile;
-          });
-        }
-      }
-    } catch (error) {
-      toast.error("Failed to pin/unpin the note");
+      const updated = isOrg
+        ? await updateOrg(user._id, { pined: nextPin })
+        : await updateUser(user._id, { pined: nextPin });
+      if (!updated) throw new Error("Не удалось изменить закрепление");
+      setProfile((profile) => profile?._id === user._id ? { ...profile, pined: nextPin || null } : profile);
+      toast.success(nextPin ? "Заметка закреплена" : "Заметка откреплена");
+    } catch {
+      toast.error("Не удалось изменить закрепление");
+    } finally {
+      setPinPending(false);
     }
   };
 
-  const sortedDocuments = useMemo(() => {
-    if (!documents) return [];
-    return [...documents].sort((a, b) => {
-      const aPinned = Boolean(a.isPinned);
-      const bPinned = Boolean(b.isPinned);
-      if (aPinned !== bPinned) return aPinned ? -1 : 1;
-      const orderDiff = (a.order ?? 0) - (b.order ?? 0);
-      if (orderDiff !== 0) return orderDiff;
-      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return aTime - bTime;
-    });
-  }, [documents]);
-
-  if (documents === undefined) {
+  if (isPending) {
     return (
-      <>
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-center gap-2 p-1">
-            <Skeleton className="h-16 w-full rounded-lg" />
-          </div>
-        ))}
-      </>
+      <div className="space-y-2" aria-label="Загрузка заметок" aria-busy="true">
+        {[1, 2, 3].map((item) => <Skeleton key={item} className="h-14 w-full rounded-xl" />)}
+      </div>
     );
   }
 
-  if (sortedDocuments.length === 0 && level === 0) {
-    return <p className="ml-2 rounded-xl border border-black/5 bg-background/60 px-3 py-2 text-sm text-muted-foreground dark:border-white/10">Пусто</p>;
+  if (isError) {
+    return (
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+        <p>Не удалось загрузить заметки.</p>
+        <button type="button" className="text-link text-foreground focus-visible:ring-2 focus-visible:ring-ring" onClick={() => void refetch()}>
+          Повторить
+        </button>
+      </div>
+    );
+  }
+
+  if (visibleNotes.length === 0) {
+    return <p className="rounded-xl bg-muted/40 px-4 py-3 text-sm text-muted-foreground">Опубликованных заметок пока нет</p>;
   }
 
   return (
-    <div className="space-y-2">
-      <Twemoji>
-        {sortedDocuments.map((doc) => {
-          const isExpanded = expanded[doc._id];
+    <ul className="space-y-2">
+      {visibleNotes.map(({ doc, level, hasChildren, isExpanded }) => {
+        const isPinned = doc._id === user.pined;
+        const title = doc.title || "Без названия";
 
-          if (doc.isPublished || !publicSorted) {
-            return (
-              <div key={doc._id} style={{ paddingLeft: level * 20 }}>
-                <div className="m-2 flex items-center gap-2">
-                  <div
-                    onClick={() => onToggleExpand(doc._id)}
-                    className={cn(
-                      "group flex flex-1 cursor-pointer items-center justify-between overflow-hidden rounded-2xl border border-black/10 bg-background/70 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-white/10"
-                    )}
-                  >
-                    <div className={`flex items-center gap-2 px-4 py-3 ${!doc.coverImage ? "" : ""}`}>
-                      {doc.icon ? (
-                        <span
-                          className={`inline-block h-6 w-6 ${doc.coverImage && "ml-1"}`}
-                          style={{ lineHeight: 0 }}
-                        >
-                          {doc.icon}
-                        </span>
-                      ) : (
-                        <FileText 
-                          className={`h-5 w-5 text-muted-foreground ${doc.coverImage && "ml-1"}`}
-                        />
-                      )}
-
-                      <Link
-                        href={pages.VIEW(doc._id)}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-lg text-primary/80 transition-all duration-300 hover:text-primary"
-                      >
-                        {doc.title}
-                      </Link>
-
-                      {doc.verifed && (
-                        <VerifedBadge text="Заметка верефицирована командой Qualsu" size={6}/>
-                      )}
-                    </div>
-
-                    {doc.coverImage && (
-                      <div className="relative ml-auto h-16 w-56 overflow-hidden border-l border-black/10 dark:border-white/10 md:w-64">
-                        <Image
-                          src={normalizeImageUrl(doc.coverImage) ?? doc.coverImage}
-                          alt={doc.title}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {(clerkUser?.id === user._id || (user.owner === clerkUser?.id && clerkUser?.id)) && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePinClick(doc._id);
-                      }}
-                      className="rounded-md border border-black/10 bg-background/80 p-1.5 transition hover:bg-background dark:border-white/10"
-                    >
-                      {doc._id === user?.pined  ? (
-                        <Pin className="h-5 w-5 text-yellow-500 transition-all duration-200 hover:text-yellow-600" />
-                      ) : (
-                        <Pin className="h-5 w-5 rotate-45 text-yellow-500 opacity-60 transition-all duration-200 hover:opacity-100" />
-                      )}
-                    </button>
-                  )}
-                </div>
-
-                {isExpanded && (
-                  <div className="ml-8 border-l border-black/10 pl-3 dark:border-white/10">
-                    <DocumentList
-                      user={user}
-                      profile={profile}
-                      setProfile={setProfile}
-                      parentDocumentId={doc._id}
-                      level={level + 1}
-                      publicSorted={publicSorted}
-                    />
-                  </div>
+        return (
+          <li key={doc._id} className="flex items-center gap-1.5 sm:gap-2" style={{ marginInlineStart: `min(${level}rem, 15%)` }}>
+            <div className="flex min-w-0 flex-1 items-center overflow-hidden rounded-xl bg-muted/45 transition-colors hover:bg-muted/80">
+              {hasChildren && (
+                <button
+                  type="button"
+                  className="ml-1.5 grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-background/70 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                  aria-label={isExpanded ? `Свернуть вложенные заметки «${title}»` : `Развернуть вложенные заметки «${title}»`}
+                  aria-expanded={isExpanded}
+                  onClick={() => setExpanded((current) => ({ ...current, [doc._id]: !isExpanded }))}
+                >
+                  <ChevronRight className={cn("size-4 motion-safe:transition-transform", isExpanded && "rotate-90")} />
+                </button>
+              )}
+              <Link
+                href={pages.VIEW(doc._id)}
+                className="flex min-h-14 min-w-0 flex-1 items-center gap-2 px-3 py-2 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-4"
+              >
+                {doc.icon ? (
+                  <span className="grid size-6 shrink-0 place-items-center" aria-hidden="true">
+                    <Twemoji>{doc.icon}</Twemoji>
+                  </span>
+                ) : (
+                  <FileText className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
                 )}
-              </div>
-            );
-          }
-
-          return (
-            <div key={doc._id}>
-              <DocumentList
-                user={user}
-                parentDocumentId={doc._id}
-                profile={profile}
-                setProfile={setProfile}
-                level={0}
-                publicSorted={publicSorted}
-              />
+                <span className="wrap-anywhere text-sm font-medium sm:text-base">{title}</span>
+                {(doc.verified || doc.verifed) && <VerifedBadge text="Верифицированная заметка" size={5} />}
+              </Link>
+              {doc.coverImage && (
+                <ProfileImage
+                  key={doc.coverImage}
+                  url={doc.coverImage}
+                  sizes="(min-width: 640px) 192px, 64px"
+                  className="relative h-14 w-16 shrink-0 self-center sm:w-36 lg:w-48"
+                />
+              )}
             </div>
-          );
-        })}
-      </Twemoji>
-    </div>
+            {canPin && (
+              <button
+                type="button"
+                aria-label={isPinned ? `Открепить «${title}»` : `Закрепить «${title}»`}
+                aria-pressed={isPinned}
+                disabled={pinPending}
+                onClick={() => void handlePinClick(doc._id)}
+                className="grid size-9 shrink-0 place-items-center rounded-lg text-amber-700 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 dark:text-amber-300"
+              >
+                <Pin className={cn("size-4", !isPinned && "rotate-45 text-muted-foreground")} />
+              </button>
+            )}
+          </li>
+        );
+      })}
+    </ul>
   );
 }
