@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast"
 import "./globals.css"
 import { ClerkThemeProvider } from "@/components/providers/clerk-theme-provider"
 import { QueryProvider } from "@/components/providers/query-provider"
+import { RequestProvider } from "@/components/providers/request-provider"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { ThemeIcons } from "@/components/theme-icons"
 import { Loader2 } from "lucide-react"
@@ -64,6 +65,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ClerkThemeProvider>
+            <RequestProvider />
             <QueryProvider>
               <Toaster
                 position="bottom-center"

@@ -103,7 +103,7 @@ function ImageComponent({
   const imageAvailable = src && src !== failedSrc
 
   const commitCaption = () => {
-    if (localCaption !== (node.attrs.caption || "")) {
+    if (editor?.isEditable && localCaption !== (node.attrs.caption || "")) {
       updateAttributes({ caption: localCaption })
     }
   }
@@ -422,38 +422,44 @@ function ImageComponent({
           )}
         </div>
 
-        <div
-          contentEditable={false}
-          className="image-caption-container mt-2 w-full text-center"
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <input
-            ref={captionInputRef}
-            type="text"
-            value={localCaption}
-            onChange={(e) => setLocalCaption(e.target.value)}
-            onBlur={commitCaption}
+        {isEditable ? (
+          <div
+            contentEditable={false}
+            className="image-caption-container mt-2 w-full text-center"
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
-            onFocus={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
-            onKeyDown={(e) => {
-              e.stopPropagation()
-              if (e.key === "Enter") {
-                commitCaption()
-                captionInputRef.current?.blur()
-              }
-            }}
-            placeholder="Добавить подпись к изображению…"
-            className={cn(
-              "w-full max-w-lg mx-auto text-center text-xs text-muted-foreground placeholder:text-muted-foreground/45 bg-transparent border-0 border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-0.5 transition-all cursor-text",
-              !localCaption &&
-                "opacity-0 group-hover/image:opacity-100 focus:opacity-100"
-            )}
-          />
-        </div>
+          >
+            <input
+              ref={captionInputRef}
+              type="text"
+              value={localCaption}
+              onChange={(e) => setLocalCaption(e.target.value)}
+              onBlur={commitCaption}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              onFocus={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                e.stopPropagation()
+                if (e.key === "Enter") {
+                  commitCaption()
+                  captionInputRef.current?.blur()
+                }
+              }}
+              placeholder="Добавить подпись к изображению…"
+              className={cn(
+                "w-full max-w-lg mx-auto text-center text-xs text-muted-foreground placeholder:text-muted-foreground/45 bg-transparent border-0 border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-0.5 transition-all cursor-text",
+                !localCaption &&
+                  "opacity-0 group-hover/image:opacity-100 focus:opacity-100"
+              )}
+            />
+          </div>
+        ) : node.attrs.caption?.trim() ? (
+          <div className="mt-2 text-center text-xs text-muted-foreground wrap-anywhere">
+            {node.attrs.caption}
+          </div>
+        ) : null}
       </div>
 
       {isDragging && typeof window !== "undefined" && createPortal(

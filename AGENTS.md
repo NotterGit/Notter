@@ -43,7 +43,7 @@
 - `src/lib/` — Utilities (`db.ts` with MariaDB driver adapter, `create-safe-action.ts`, `audit-log.ts`, `generate-log.ts`, `audit-log-csv.ts`, `fetcher.ts`, `gen-id.ts`, `document-tree.ts`, `document-id.ts`, `image-url.ts`, `plan-limits.ts`).
 
 ## Tech Stack & Core Features
-- **Authentication:** Clerk (`@clerk/nextjs`) with multi-session support and middleware session synchronization.
+- **Authentication:** Clerk (`@clerk/nextjs`) with multi-session support and middleware session synchronization. The root `RequestProvider` supplies Clerk bearer tokens to browser API clients across routes. User and organization data synchronization runs in the workspace layout.
 - **Database & ORM:** Prisma ORM with MariaDB via `@prisma/adapter-mariadb` driver adapter (connection pool limit 15, protocol compression enabled). Database is shared with `notter-todo` on `casaos` (`mysql`), maintaining PascalCase tables (`Documents`, `NoteAuditLogs`, `Board`, `List`, `Card`, `AuditLog`) with composite indexes for user document filters. User archive settings are managed on the primary NotterAPI backend (`users` collection).
 - **Date Handling & Localization:** `date-fns` for Russian locale formatting and interval queries.
 - **Data Fetching & Mutations:**

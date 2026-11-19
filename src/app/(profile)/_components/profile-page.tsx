@@ -289,7 +289,7 @@ export default function ProfilePage({ kind, slug }: ProfilePageComponentProps) {
               </div>
             </div>
 
-            <div className="flex max-w-full flex-wrap items-center gap-2 rounded-xl bg-muted/60 px-3 py-2 md:shrink-0">
+            <div className="flex max-w-full flex-wrap items-center gap-2 rounded-lg bg-muted/30 px-2 py-1.5 md:shrink-0">
               <Badges profile={profile} />
             </div>
           </header>
@@ -309,8 +309,8 @@ export default function ProfilePage({ kind, slug }: ProfilePageComponentProps) {
               <>
                 {pinnedLoading && <Skeleton className="h-20 rounded-xl" aria-label="Загрузка закреплённой заметки" />}
                 {pinnedDocument && (
-                  <article className="rounded-2xl bg-muted/35">
-                    <div className="flex items-center gap-2 rounded-t-2xl bg-muted/45 px-3 py-2.5 sm:px-4">
+                  <article className="rounded-2xl bg-muted/35 dark:bg-muted/10">
+                    <div className="flex items-center gap-2 rounded-t-2xl bg-muted/45 px-3 py-2.5 sm:px-4 dark:bg-muted/10">
                       <Pin className="size-4 shrink-0 -rotate-45 text-muted-foreground" aria-label="Закреплённая заметка" />
                       <h2 className="min-w-0">
                         <Link

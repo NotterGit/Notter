@@ -7,7 +7,8 @@ import { useEffect } from "react"
 
 import { LoadingBulb } from "@/components/ui/loading-bulb"
 import { Navigation } from "@/app/(main)/_components/navigation"
-import { RequestProvider } from "@/components/providers/request-provider"
+import { useRequestOrg } from "@/components/hooks/use-request-org"
+import { useRequestUser } from "@/components/hooks/use-request-user"
 import { pages } from "@/config/routing/pages.route"
 
 const ModalProvider = dynamic(
@@ -31,6 +32,9 @@ export function MainLayoutClient({
   const params = useParams()
   const router = useRouter()
   const isDocumentPage = Boolean(params.documentId)
+
+  useRequestUser()
+  useRequestOrg()
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -68,7 +72,7 @@ export function MainLayoutClient({
   }
 
   return (
-    <RequestProvider>
+    <>
       <ModalProvider />
       <div className="relative flex h-full overflow-hidden bg-gradient-to-br from-background via-background to-logo-yellow/10 dark:to-logo-cyan/10">
         {!isDocumentPage && (
@@ -82,6 +86,6 @@ export function MainLayoutClient({
           {children}
         </Navigation>
       </div>
-    </RequestProvider>
+    </>
   )
 }

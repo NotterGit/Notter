@@ -96,7 +96,7 @@ export function DocumentList({ user, setProfile }: DocumentListProps) {
 
         return (
           <li key={doc._id} className="flex items-center gap-1.5 sm:gap-2" style={{ marginInlineStart: `min(${level}rem, 15%)` }}>
-            <div className="flex min-w-0 flex-1 items-center overflow-hidden rounded-xl bg-muted/45 transition-colors hover:bg-muted/80">
+            <div className="flex min-w-0 flex-1 items-center overflow-hidden rounded-xl bg-muted/45 transition-colors hover:bg-muted/80 dark:bg-muted/15 dark:hover:bg-muted/30">
               {hasChildren && (
                 <button
                   type="button"
