@@ -349,31 +349,25 @@ export function AiAgentSettings() {
   }
 
   return (
-    <div className="rounded-lg border border-border/70 overflow-hidden bg-card/40 transition-all">
+    <div className="min-w-0">
       {/* Header bar */}
       <button
         type="button"
+        aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-3 text-left hover:bg-muted/40 transition-colors cursor-pointer"
+        className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg bg-muted/60 px-3 py-2 text-left transition-colors hover:bg-muted cursor-pointer"
       >
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">ИИ Агент</span>
-            <span className="text-xs text-muted-foreground">
-              Провайдер и модель для работы с текстом
-            </span>
-          </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Sparkles className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          <span className="text-sm font-medium">ИИ-агент</span>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted border border-border/80 text-xs font-medium">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
             {activeMeta.iconSrc ? (
               <img
                 src={activeMeta.iconSrc}
-                alt={activeMeta.name}
+                alt=""
                 width={14}
                 height={14}
                 className={cn(
@@ -387,18 +381,19 @@ export function AiAgentSettings() {
             <span className="truncate max-w-[120px]">{activeMeta.name}</span>
           </div>
 
-          <div className="text-muted-foreground/80">
+          <div className="shrink-0 text-muted-foreground" aria-hidden="true">
             {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </div>
         </div>
       </button>
 
       {isOpen && (
-        <div className="p-3 border-t border-border/60 space-y-3 bg-background/50">
+        <div className="space-y-3 pt-3">
           {/* Tabs bar */}
-          <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-lg border border-border/50 text-xs">
+          <div className="flex items-center gap-1 rounded-lg bg-muted p-1 text-xs">
             <button
               type="button"
+              aria-pressed={activeTab === "standard"}
               onClick={() => {
                 setActiveTab("standard");
                 setEditingCustomId(null);
@@ -416,6 +411,7 @@ export function AiAgentSettings() {
 
             <button
               type="button"
+              aria-pressed={activeTab === "custom"}
               onClick={() => setActiveTab("custom")}
               className={cn(
                 "flex-1 py-1.5 px-3 rounded-md font-medium transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer",
@@ -426,11 +422,6 @@ export function AiAgentSettings() {
             >
               <PlusCircle className="h-3.5 w-3.5 text-primary" />
               <span>Мои провайдеры</span>
-              {customProviders.length > 0 && (
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-primary/10 text-primary font-mono font-bold">
-                  {customProviders.length}
-                </span>
-              )}
             </button>
           </div>
 
@@ -447,21 +438,23 @@ export function AiAgentSettings() {
                     <button
                       key={id}
                       type="button"
+                      aria-pressed={isActive}
                       onClick={() => {
                         setActiveProvider(id);
                         setModelInput("");
                       }}
                       className={cn(
-                        "flex shrink-0 basis-20 grow flex-col items-center justify-center p-2 rounded-lg border text-center transition-all gap-1.5 cursor-pointer",
+                        "relative flex shrink-0 basis-20 grow flex-col items-center justify-center gap-1.5 rounded-lg p-2 text-center transition-colors cursor-pointer focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-ring",
                         isActive
-                          ? "border-primary bg-primary/10 ring-1 ring-primary/40 text-foreground shadow-xs"
-                          : "border-border/60 hover:border-border hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+                          ? "bg-primary/15 text-foreground"
+                          : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
                       )}
                     >
+                      {isActive && <Check className="absolute right-1 top-1 h-3 w-3" aria-hidden="true" />}
                       {meta.iconSrc ? (
                         <img
                           src={meta.iconSrc}
-                          alt={meta.name}
+                          alt=""
                           width={22}
                           height={22}
                           className={cn(
@@ -489,7 +482,7 @@ export function AiAgentSettings() {
                 <button
                   type="button"
                   onClick={handleOpenAddCustom}
-                  className="flex shrink-0 basis-20 grow flex-col items-center justify-center p-2 rounded-lg border border-dashed border-border/80 hover:border-primary/80 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all gap-1.5 cursor-pointer"
+                  className="flex shrink-0 basis-20 grow flex-col items-center justify-center gap-1.5 rounded-lg bg-muted/60 p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-ring"
                   title="Добавить своего провайдера"
                 >
                   <Plus className="h-5 w-5" />
@@ -501,7 +494,7 @@ export function AiAgentSettings() {
               <div className="space-y-2.5 pt-1">
                 {/* QualAI details */}
                 {activeProviderId === "qualai" && (
-                  <div className="rounded-lg border border-border/70 bg-muted/40 p-2.5 space-y-2 text-xs">
+                  <div className="rounded-lg bg-muted/60 p-2.5 space-y-2 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-foreground">
                         Недельный лимит Q.AI {isOrg ? "(Организация)" : "(Личный)"}
@@ -542,7 +535,7 @@ export function AiAgentSettings() {
 
                 {/* Custom Provider Info banner in standard tab */}
                 {activeMeta.isCustom && (
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-primary/5 border border-primary/20 text-xs">
+                  <div className="flex items-center justify-between rounded-lg bg-muted/60 p-2 text-xs">
                     <div className="flex items-center gap-2 truncate">
                       {activeMeta.iconSrc ? (
                         <img
@@ -636,14 +629,12 @@ export function AiAgentSettings() {
 
                 {/* Models List */}
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs">Модели</Label>
-                    {activeModelName && (
-                      <span className="text-[11px] text-muted-foreground font-mono">
-                        Выбрана: <strong className="text-foreground">{activeModelName}</strong>
-                      </span>
-                    )}
-                  </div>
+                  <Label className="text-xs">Модели</Label>
+                  {activeModelName && !currentModels.includes(activeModelName) && (
+                    <p className="break-all text-xs text-muted-foreground">
+                      Выбрана модель {activeModelName}
+                    </p>
+                  )}
 
                   {currentModels.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 pb-1">
@@ -654,12 +645,18 @@ export function AiAgentSettings() {
                             key={model}
                             onClick={() => setProviderModel(activeProviderId, model)}
                             className={cn(
-                              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono border cursor-pointer select-none transition-all",
+                              "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-mono cursor-pointer select-none transition-colors",
                               isSelected
-                                ? "bg-primary text-primary-foreground border-primary font-medium shadow-xs"
-                                : "bg-background border-border/80 hover:bg-muted text-foreground"
+                                ? "bg-primary text-primary-foreground font-medium"
+                                : "bg-muted/60 text-foreground hover:bg-muted"
                             )}
                           >
+                            {isSelected && (
+                              <>
+                                <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
+                                <span className="sr-only">Выбрана модель</span>
+                              </>
+                            )}
                             <span>{model}</span>
                             {activeProviderId !== "qualai" && (
                               <button
@@ -703,8 +700,8 @@ export function AiAgentSettings() {
             <div className="space-y-3">
               {/* Form to add or edit custom provider */}
               {editingCustomId !== null ? (
-                <div className="p-3 rounded-lg border border-primary/30 bg-card/60 space-y-3">
-                  <div className="flex items-center justify-between pb-1 border-b border-border/50">
+                <div className="space-y-3 rounded-lg bg-muted/40 p-3">
+                  <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                       <Cpu className="h-3.5 w-3.5 text-primary" />
                       <span>
@@ -739,7 +736,7 @@ export function AiAgentSettings() {
                     <Label className="text-xs">Картинка / Логотип</Label>
                     <div className="flex items-center gap-3">
                       {/* Image preview */}
-                      <div className="relative h-11 w-11 shrink-0 rounded-lg border border-border/80 bg-muted/40 flex items-center justify-center overflow-hidden">
+                      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
                         {customIcon ? (
                           <img
                             src={customIcon}
@@ -755,11 +752,11 @@ export function AiAgentSettings() {
                         <div className="flex items-center gap-2">
                           <Button
                             type="button"
-                            variant="outline"
+                            variant="secondary"
                             size="sm"
                             disabled={isUploadingIcon}
                             onClick={() => iconUploadRef.current?.click()}
-                            className="h-7 text-xs gap-1.5 border-border/70 hover:bg-muted cursor-pointer"
+                            className="h-7 gap-1.5 text-xs cursor-pointer"
                           >
                             <Upload className="h-3 w-3" />
                             <span>{isUploadingIcon ? "Обработка..." : "Загрузить файл"}</span>
@@ -798,9 +795,6 @@ export function AiAgentSettings() {
                       placeholder="http://localhost:11434/v1"
                       className="h-8 text-xs font-mono bg-background"
                     />
-                    <p className="text-[10px] text-muted-foreground">
-                      Для локального Ollama: <code>http://localhost:11434/v1</code>. Endpoint должен поддерживать <code>/chat/completions</code>.
-                    </p>
                   </div>
 
                   {/* API Key */}
@@ -826,14 +820,12 @@ export function AiAgentSettings() {
 
                   {/* Models list & input */}
                   <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs">Модели</Label>
-                      {customSelectedModel && (
-                        <span className="text-[10px] text-muted-foreground font-mono">
-                          По умолчанию: <strong className="text-foreground">{customSelectedModel}</strong>
-                        </span>
-                      )}
-                    </div>
+                    <Label className="text-xs">Модели</Label>
+                    {customSelectedModel && !customModels.includes(customSelectedModel) && (
+                      <p className="break-all text-xs text-muted-foreground">
+                        По умолчанию используется {customSelectedModel}
+                      </p>
+                    )}
 
                     {customModels.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 pb-1">
@@ -844,12 +836,18 @@ export function AiAgentSettings() {
                               key={m}
                               onClick={() => setCustomSelectedModel(m)}
                               className={cn(
-                                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono border cursor-pointer select-none transition-all",
+                                "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-mono cursor-pointer select-none transition-colors",
                                 isSel
-                                  ? "bg-primary text-primary-foreground border-primary font-medium shadow-xs"
-                                  : "bg-background border-border/80 hover:bg-muted text-foreground"
+                                  ? "bg-primary text-primary-foreground font-medium"
+                                  : "bg-background text-foreground hover:bg-muted"
                               )}
                             >
+                              {isSel && (
+                                <>
+                                  <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
+                                  <span className="sr-only">Модель по умолчанию</span>
+                                </>
+                              )}
                               <span>{m}</span>
                               <button
                                 type="button"
@@ -898,7 +896,7 @@ export function AiAgentSettings() {
                   </div>
 
                   {/* Form actions */}
-                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/50">
+                  <div className="flex items-center justify-end gap-2 pt-2">
                     <Button
                       type="button"
                       variant="ghost"
@@ -922,37 +920,24 @@ export function AiAgentSettings() {
               ) : (
                 /* Custom Providers Listing */
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-foreground">
-                        Пользовательские провайдеры
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
-                        Локальные или сторонние OpenAI-совместимые серверы
-                      </span>
+                  {customProviders.length > 0 && (
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleOpenAddCustom}
+                        className="h-7 text-xs gap-1 cursor-pointer"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        <span>Добавить</span>
+                      </Button>
                     </div>
-
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={handleOpenAddCustom}
-                      className="h-7 text-xs gap-1 cursor-pointer"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      <span>Добавить</span>
-                    </Button>
-                  </div>
+                  )}
 
                   {customProviders.length === 0 ? (
-                    <div className="p-6 rounded-lg border border-dashed border-border/70 text-center flex flex-col items-center justify-center space-y-2 bg-muted/20">
-                      <div className="p-3 rounded-full bg-primary/10 text-primary">
-                        <Cpu className="h-6 w-6" />
-                      </div>
-                      <div className="text-xs font-medium text-foreground">
-                        Нет добавленных провайдеров
-                      </div>
-                      <p className="text-[11px] text-muted-foreground max-w-xs">
-                        Вы можете добавить любой OpenAI-совместимый сервер (Ollama, LM Studio, vLLM, Groq и др.), указав его адрес и модели.
+                    <div className="flex flex-col items-center justify-center space-y-2 rounded-lg bg-muted/60 p-6 text-center">
+                      <p className="text-sm text-muted-foreground text-pretty">
+                        Добавьте OpenAI-совместимый сервер, например Ollama или LM Studio.
                       </p>
                       <Button
                         type="button"
@@ -961,7 +946,7 @@ export function AiAgentSettings() {
                         className="mt-2 h-7 text-xs gap-1 cursor-pointer"
                       >
                         <Plus className="h-3.5 w-3.5" />
-                        <span>Добавить первый провайдер</span>
+                        <span>Добавить провайдера</span>
                       </Button>
                     </div>
                   ) : (
@@ -974,15 +959,15 @@ export function AiAgentSettings() {
                           <div
                             key={p.id}
                             className={cn(
-                              "p-2.5 rounded-lg border transition-all space-y-2",
+                              "space-y-2 rounded-lg p-2.5",
                               isActive
-                                ? "border-primary/60 bg-primary/5 ring-1 ring-primary/20"
-                                : "border-border/60 bg-card/40 hover:border-border"
+                                ? "bg-primary/10"
+                                : "bg-muted/60"
                             )}
                           >
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex items-center gap-2.5 min-w-0">
-                                <div className="h-8 w-8 shrink-0 rounded-md border border-border/80 bg-background flex items-center justify-center overflow-hidden">
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-background">
                                   {p.iconSrc ? (
                                     <img
                                       src={p.iconSrc}
@@ -1000,7 +985,7 @@ export function AiAgentSettings() {
                                       {p.name}
                                     </span>
                                     {isActive && (
-                                      <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                      <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
                                         Активен
                                       </span>
                                     )}
@@ -1015,13 +1000,13 @@ export function AiAgentSettings() {
                                 {!isActive && (
                                   <Button
                                     type="button"
-                                    variant="outline"
+                                    variant="secondary"
                                     size="sm"
                                     onClick={() => {
                                       setActiveProvider(p.id);
                                       toast.success(`Провайдер ${p.name} выбран`);
                                     }}
-                                    className="h-7 text-xs px-2.5 cursor-pointer border-border/70 hover:bg-muted font-medium"
+                                    className="h-7 bg-background px-2.5 text-xs font-medium cursor-pointer"
                                   >
                                     Выбрать
                                   </Button>
@@ -1037,8 +1022,6 @@ export function AiAgentSettings() {
                                 >
                                   <Pencil className="h-3.5 w-3.5" />
                                 </Button>
-
-                                <div className="h-3.5 w-px bg-border/60" />
 
                                 <Button
                                   type="button"
@@ -1057,7 +1040,7 @@ export function AiAgentSettings() {
                             </div>
 
                             {/* Models info */}
-                            <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
+                            <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground">
                               <span>
                                 Моделей: <strong className="text-foreground">{modelsCount}</strong>
                               </span>
@@ -1078,32 +1061,20 @@ export function AiAgentSettings() {
           )}
 
           {/* Universal System Prompt Section */}
-          <div className="rounded-lg border border-border/70 bg-card/60 overflow-hidden transition-all">
+          <div>
             {/* Header */}
             <button
               type="button"
+              aria-expanded={isPromptOpen}
               onClick={() => setIsPromptOpen(!isPromptOpen)}
-              className="w-full flex items-center justify-between p-2.5 text-left hover:bg-muted/40 transition-colors cursor-pointer"
+              className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg bg-muted/60 px-3 py-2 text-left transition-colors hover:bg-muted cursor-pointer"
             >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">
-                  <SlidersHorizontal className="h-3.5 w-3.5" />
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-foreground">
-                      Системный промпт
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground truncate">
-                    {isPromptOpen
-                      ? "Инструкция для всех провайдеров и моделей"
-                      : systemPrompt}
-                  </span>
-                </div>
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                <span className="text-sm font-medium">Общий системный промпт</span>
               </div>
 
-              <div className="text-muted-foreground/80 shrink-0 ml-2">
+              <div className="shrink-0 text-muted-foreground" aria-hidden="true">
                 {isPromptOpen ? (
                   <ChevronUp className="h-3.5 w-3.5" />
                 ) : (
@@ -1113,16 +1084,12 @@ export function AiAgentSettings() {
             </button>
 
             {isPromptOpen && (
-              <div className="p-3 pt-1 border-t border-border/50 space-y-2.5 bg-background/40">
-                {/* Description */}
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Единая системная инструкция задает роль, стиль и правила форматирования для всех провайдеров (ChatGPT, Claude, Gemini, DeepSeek, Qwen, Ollama и др.). Сохраняется локально в вашем браузере.
-                </p>
+              <div className="space-y-2.5 pt-3">
 
                 {/* Preset pills */}
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[10px] text-muted-foreground font-medium shrink-0">
-                    Шаблоны:
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    Шаблоны
                   </span>
                   {AI_SYSTEM_PROMPT_PRESETS.map((preset) => {
                     const isSelected = systemPrompt.trim() === preset.prompt.trim();
@@ -1130,15 +1097,16 @@ export function AiAgentSettings() {
                       <button
                         key={preset.id}
                         type="button"
+                        aria-pressed={isSelected}
                         onClick={() => {
                           setSystemPrompt(preset.prompt);
                           toast.success(`Применен шаблон: ${preset.name}`);
                         }}
                         className={cn(
-                          "px-2 py-0.5 rounded-md text-[10px] font-medium border transition-colors cursor-pointer",
+                          "rounded-md px-2 py-1 text-xs font-medium transition-colors cursor-pointer",
                           isSelected
-                            ? "bg-violet-500/15 text-violet-600 dark:text-violet-400 border-violet-500/30 font-semibold"
-                            : "bg-background border-border/70 hover:bg-muted text-muted-foreground hover:text-foreground"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
                         )}
                       >
                         {preset.name}
@@ -1150,6 +1118,7 @@ export function AiAgentSettings() {
                 {/* Textarea */}
                 <div className="space-y-1">
                   <textarea
+                    aria-label="Общий системный промпт"
                     value={systemPrompt}
                     onChange={(e) => setSystemPrompt(e.target.value)}
                     rows={4}
@@ -1158,43 +1127,37 @@ export function AiAgentSettings() {
                   />
                 </div>
 
-                {/* Action / Stats bar */}
-                <div className="flex items-center justify-between pt-0.5 text-[11px]">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        resetSystemPrompt();
-                        toast.success("Системный промпт сброшен до стандартного");
-                      }}
-                      className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground gap-1 cursor-pointer"
-                    >
-                      <RotateCcw className="h-3 w-3" />
-                      <span>Сбросить</span>
-                    </Button>
+                {/* Prompt actions */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      resetSystemPrompt();
+                      toast.success("Системный промпт сброшен до стандартного");
+                    }}
+                    className="px-2 text-muted-foreground hover:text-foreground gap-1 cursor-pointer"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    <span>Сбросить</span>
+                  </Button>
 
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        if (navigator?.clipboard) {
-                          navigator.clipboard.writeText(systemPrompt);
-                          toast.success("Промпт скопирован");
-                        }
-                      }}
-                      className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground gap-1 cursor-pointer"
-                    >
-                      <Copy className="h-3 w-3" />
-                      <span>Копировать</span>
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-muted-foreground font-mono text-[10px]">
-                    <span>{systemPrompt.length} симв.</span>
-                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (navigator?.clipboard) {
+                        navigator.clipboard.writeText(systemPrompt);
+                        toast.success("Промпт скопирован");
+                      }
+                    }}
+                    className="px-2 text-muted-foreground hover:text-foreground gap-1 cursor-pointer"
+                  >
+                    <Copy className="h-3 w-3" />
+                    <span>Копировать</span>
+                  </Button>
                 </div>
               </div>
             )}
@@ -1202,34 +1165,34 @@ export function AiAgentSettings() {
 
           {/* Footer: Export / Import & Privacy */}
           <div className="pt-2 border-t border-border/60 space-y-2.5">
-            <div className="flex items-start gap-2 p-2.5 rounded-lg bg-muted/40 border border-border/50 text-[11px] text-muted-foreground leading-relaxed">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 text-xs text-muted-foreground text-pretty">
+              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               <span>
-                Все данные о провайдерах, системный промпт и API-ключи хранятся локально в вашем браузере
+                Настройки хранятся в браузере. Файл экспорта включает API-ключи.
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={handleExport}
-                className="h-8 text-xs gap-1.5 flex-1 border-border/70 hover:bg-muted cursor-pointer"
+                className="h-8 flex-1 gap-1.5 text-xs cursor-pointer"
               >
                 <Download className="h-3.5 w-3.5" />
-                <span>Экспорт данных</span>
+                <span>Экспорт</span>
               </Button>
 
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={handleImportClick}
-                className="h-8 text-xs gap-1.5 flex-1 border-border/70 hover:bg-muted cursor-pointer"
+                className="h-8 flex-1 gap-1.5 text-xs cursor-pointer"
               >
                 <Upload className="h-3.5 w-3.5" />
-                <span>Импорт данных</span>
+                <span>Импорт</span>
               </Button>
 
               <input

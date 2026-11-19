@@ -1,21 +1,19 @@
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ModeToggle } from "../mode-toggle"
 import { useSettings } from "../hooks/use-settings"
 import { Label } from "../ui/label"
-import { Separator } from "@radix-ui/react-dropdown-menu"
 import { SignOutButton, useOrganization, useClerk, useUser } from "@clerk/nextjs"
 import { useWorkspaceAdmin } from "@/components/hooks/use-workspace-admin"
 import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useId } from "react"
 import { Switch } from "@/components/ui/switch"
 import { getUserById, updateUser } from "@/api/user"
 import { getOrgById, updateOrg } from "@/api/org"
 import { pages } from "@/config/routing/pages.route"
 import { Button } from "../ui/button"
 import { useRef } from "react"
-import { Check, ChevronDown, LogOut, Settings, User } from "lucide-react"
+import { Check, ChevronDown, LogOut, Settings } from "lucide-react"
 import { isDesktopApp } from "@/lib/desktop-app"
-import { VersionBadge } from "../version-badge"
 import { cn } from "@/lib/utils"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { API } from "@/config/routing/api.route"
@@ -54,6 +52,7 @@ const readRedirectPreference = () => {
 }
 
 export function SettingsModal() {
+  const fieldId = useId()
   const settings = useSettings()
   const router = useRouter()
   const { user } = useUser()
@@ -240,175 +239,158 @@ export function SettingsModal() {
 
   return (
     <Dialog open={settings.isOpen} onOpenChange={settings.onClose}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto max-w-lg">
-        <DialogHeader className="border-b pb-3">
-          <h2 className="text-lg font-medium">Настройки</h2>
+      <DialogContent className="max-h-[85dvh] gap-3 overflow-y-auto p-4 sm:p-6" aria-describedby={undefined}>
+        <DialogHeader className="text-left">
+          <DialogTitle>Настройки</DialogTitle>
         </DialogHeader>
 
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-y-1">
-            <Label>Тема</Label>
-            <span className="text-[0.8rem] text-muted-foreground">
-              Настройте Notter для комфортной работы
-            </span>
+        <div>
+          <div className="flex min-h-11 items-center justify-between gap-3 py-1">
+            <span className="text-sm font-medium">Тема</span>
+            <ModeToggle variant="secondary" />
           </div>
-          <ModeToggle />
-        </div>
 
-        <div className={isDesktop ? "hidden" : "flex items-center justify-between"}>
-          <div className="flex flex-col gap-y-1">
-            <Label>Редирект</Label>
-            <span className="text-[0.8rem] text-muted-foreground w-full max-w-[350px]">
-              При переходе на главную страницу &apos;/&apos; перенаправлять на дашборд
-            </span>
-          </div>
-          <Switch
-            checked={redirect}
-            onCheckedChange={handleRedirectToggle}
-          />
-        </div>
-
-        {((userData?.owner === user?.id || isAdmin) || !isOrg) && (
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-y-1">
-              <Label>Приватный профиль</Label>
-              <span className="text-[0.8rem] text-muted-foreground">
-                Скройте свои заметки от лишних глаз
-              </span>
-            </div>
-            
+          {!isDesktop && (
+            <div className="flex min-h-11 items-center gap-3">
+              <Label htmlFor={`${fieldId}-redirect`} className="flex min-h-11 flex-1 cursor-pointer items-center text-pretty">
+                Открывать дашборд вместо главной
+              </Label>
               <Switch
+                id={`${fieldId}-redirect`}
+                checked={redirect}
+                onCheckedChange={handleRedirectToggle}
+              />
+            </div>
+          )}
+
+          {canEdit && (
+            <div className="flex min-h-11 items-center gap-3">
+              <Label htmlFor={`${fieldId}-privacy`} className="flex min-h-11 flex-1 cursor-pointer items-center">
+                Приватный профиль
+              </Label>
+              <Switch
+                id={`${fieldId}-privacy`}
                 checked={isPrivated}
                 onCheckedChange={handlePrivacyToggle}
               />
-          </div>
-        )}
-
-        {userData?.premium === 2 && ((userData?.owner === user?.id || isAdmin) || !isOrg) && (
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-y-1">
-              <Label>Логотип Notter</Label>
-              <span className="text-[0.8rem] text-muted-foreground">
-                Показывать логотип на публичных заметках
-              </span>
             </div>
-            <Switch
-              checked={watermark}
-              onCheckedChange={handleWatermarkToggle}
-            />
-          </div>
-        )}
+          )}
 
-        {canEdit && (
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex flex-col gap-y-1">
-              <Label>Очистка архива</Label>
-              <span className="text-[0.8rem] text-muted-foreground max-w-[320px]">
-                Автоматически удалять заметки из архива через выбранный срок
-              </span>
+          {canEdit && userData?.premium === 2 && (
+            <div className="flex min-h-11 items-center gap-3">
+              <Label htmlFor={`${fieldId}-watermark`} className="flex min-h-11 flex-1 cursor-pointer items-center text-pretty">
+                Логотип Notter на публичных заметках
+              </Label>
+              <Switch
+                id={`${fieldId}-watermark`}
+                checked={watermark}
+                onCheckedChange={handleWatermarkToggle}
+              />
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 gap-1.5 px-3 text-xs font-normal shrink-0 border-border/70 hover:bg-black/5 dark:hover:bg-white/10"
-                >
-                  <span>{retentionDays} {pluralize(retentionDays, "день", "дня", "дней")}</span>
-                  <ChevronDown className="h-3.5 w-3.5 opacity-60" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                {ARCHIVE_RETENTION_OPTIONS.map((option) => {
-                  const isAllowed = isArchiveRetentionAllowed(option.days, userData?.premium ?? 0)
-                  const isSelected = retentionDays === option.days
+          )}
 
-                  return (
-                    <DropdownMenuItem
-                      key={option.days}
-                      disabled={!isAllowed}
-                      onClick={() => {
-                        if (isAllowed) {
-                          handleRetentionChange(option.days)
-                        }
-                      }}
-                      className={cn(
-                        "flex items-center justify-between gap-2 text-xs py-2",
-                        !isAllowed ? "opacity-40 cursor-not-allowed select-none" : "cursor-pointer"
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>{option.days} {pluralize(option.days, "день", "дня", "дней")}</span>
-                        {option.gemName === "Amber" && (
-                          <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-500 border border-amber-500/20">
-                            <Image
-                              src={images.BADGES.AMBER}
-                              alt="Amber"
-                              width={12}
-                              height={12}
-                              className="shrink-0"
-                            />
-                            Amber
-                          </span>
+          {canEdit && (
+            <div className="flex min-h-11 items-center justify-between gap-3 py-1">
+              <span id={`${fieldId}-retention`} className="text-sm font-medium text-pretty">Автоудаление из архива</span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    aria-labelledby={`${fieldId}-retention ${fieldId}-retention-value`}
+                    className="shrink-0 gap-1.5 font-normal"
+                  >
+                    <span id={`${fieldId}-retention-value`}>{retentionDays} {pluralize(retentionDays, "день", "дня", "дней")}</span>
+                    <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {ARCHIVE_RETENTION_OPTIONS.map((option) => {
+                    const isAllowed = isArchiveRetentionAllowed(option.days, userData?.premium ?? 0)
+                    const isSelected = retentionDays === option.days
+
+                    return (
+                      <DropdownMenuItem
+                        key={option.days}
+                        disabled={!isAllowed}
+                        onClick={() => {
+                          if (isAllowed) {
+                            handleRetentionChange(option.days)
+                          }
+                        }}
+                        className={cn(
+                          "flex items-center justify-between gap-2 py-2",
+                          !isAllowed ? "opacity-40 cursor-not-allowed select-none" : "cursor-pointer"
                         )}
-                        {option.gemName === "Diamond" && (
-                          <span className="inline-flex items-center gap-1 rounded-md bg-cyan-500/10 px-1.5 py-0.5 text-[10px] font-medium text-cyan-500 border border-cyan-500/20">
-                            <Image
-                              src={images.BADGES.DIAMOND}
-                              alt="Diamond"
-                              width={12}
-                              height={12}
-                              className="shrink-0"
-                            />
-                            Diamond
-                          </span>
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{option.days} {pluralize(option.days, "день", "дня", "дней")}</span>
+                          {option.gemName === "Amber" && (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
+                              <Image
+                                src={images.BADGES.AMBER}
+                                alt=""
+                                width={12}
+                                height={12}
+                                className="shrink-0"
+                              />
+                              Amber
+                            </span>
+                          )}
+                          {option.gemName === "Diamond" && (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-cyan-500/10 px-1.5 py-0.5 text-[10px] font-medium text-cyan-700 dark:text-cyan-400">
+                              <Image
+                                src={images.BADGES.DIAMOND}
+                                alt=""
+                                width={12}
+                                height={12}
+                                className="shrink-0"
+                              />
+                              Diamond
+                            </span>
+                          )}
+                        </div>
+                        {isSelected && (
+                          <Check className="h-3.5 w-3.5 text-primary ml-auto" />
                         )}
-                      </div>
-                      {isSelected && (
-                        <Check className="h-3.5 w-3.5 text-primary ml-auto" />
-                      )}
-                    </DropdownMenuItem>
-                  )
-                })}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
+                      </DropdownMenuItem>
+                    )
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+        </div>
 
         <AiAgentSettings />
 
-        <Separator />
-
-        <section className="flex flex-col md:flex-row justify-center items-center gap-3">
-          <div className="w-full flex justify-center md:w-auto">
-            <Button
-              onClick={() => {
-                addBackdrop()
-                watchForClerkModal()
-                clerk?.openUserProfile?.()
-                settings.onClose()
-              }}
-              variant={"outline"}
-            >
-              <Settings/> Настройки аккаунта 
-            </Button>
-          </div>
+        <DialogFooter className="flex-col gap-2 border-t pt-3 sm:flex-row sm:items-center sm:justify-between sm:space-x-0">
+          <Button
+            onClick={() => {
+              addBackdrop()
+              watchForClerkModal()
+              clerk?.openUserProfile?.()
+              settings.onClose()
+            }}
+            variant="secondary"
+          >
+            <Settings /> Настройки аккаунта
+          </Button>
           <div
             onClick={() => {
               router.push(pages.ROOT)
               settings.onClose()
             }}
-            className="w-full flex justify-center md:w-auto hover:text-primary/80"
           >
             <SignOutButton>
-              <Button variant={"destructive"}>
-                <LogOut/> Выйти из аккаунта
+              <Button
+                variant="secondary"
+                className="w-full bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950/60 dark:text-red-300 dark:hover:bg-red-950"
+              >
+                <LogOut /> Выйти
               </Button>
             </SignOutButton>
           </div>
-        </section>
-
-        <VersionBadge className="block text-center text-[0.7rem] text-muted-foreground select-none" />
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
