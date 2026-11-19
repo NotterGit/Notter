@@ -1,18 +1,33 @@
-export type AiProviderId =
+export type BuiltinAiProviderId =
   | "openai"
   | "claude"
   | "gemini"
   | "deepseek"
   | "qwen"
   | "openrouter"
+  | "opencode"
+  | "yandex"
   | "qualai"
-  | "custom"
   | "mock";
+
+export type AiProviderId = BuiltinAiProviderId | "custom" | string;
+
+export interface CustomAiProvider {
+  id: string;
+  name: string;
+  iconSrc?: string;
+  baseUrl: string;
+  apiKey: string;
+  models: string[];
+  selectedModel: string;
+  createdAt?: number;
+}
 
 export interface StandardProviderConfig {
   apiKey: string;
   selectedModel: string;
   models: string[];
+  baseUrl?: string;
 }
 
 export interface CustomProviderConfig extends StandardProviderConfig {
@@ -29,10 +44,14 @@ export interface AiSettingsData {
     deepseek: StandardProviderConfig;
     qwen: StandardProviderConfig;
     openrouter: StandardProviderConfig;
+    opencode: StandardProviderConfig;
+    yandex: StandardProviderConfig;
     qualai: StandardProviderConfig;
-    custom: CustomProviderConfig;
+    custom?: CustomProviderConfig;
     mock: StandardProviderConfig;
+    [key: string]: (StandardProviderConfig & { baseUrl?: string }) | undefined;
   };
+  customProviders: CustomAiProvider[];
 }
 
 export interface AiSettingsStore extends AiSettingsData {
@@ -42,9 +61,19 @@ export interface AiSettingsStore extends AiSettingsData {
   addProviderModel: (id: AiProviderId, model: string) => void;
   removeProviderModel: (id: AiProviderId, model: string) => void;
   setCustomProviderConfig: (config: Partial<CustomProviderConfig>) => void;
+  addCustomProvider: (provider: Omit<CustomAiProvider, "id"> & { id?: string }) => string;
+  updateCustomProvider: (id: string, updates: Partial<CustomAiProvider>) => void;
+  deleteCustomProvider: (id: string) => void;
   setSystemPrompt: (prompt: string) => void;
+  resetSystemPrompt: () => void;
   resetToDefaults: () => void;
   importSettings: (data: any) => void;
+}
+
+export interface SystemPromptPreset {
+  id: string;
+  name: string;
+  prompt: string;
 }
 
 export interface ProviderMeta {
@@ -78,11 +107,14 @@ export interface GenerateTextOptions {
   model: string;
   prompt: string;
   systemPrompt?: string;
+  noteContext?: string;
+  documentTitle?: string;
   apiKey?: string;
   baseUrl?: string;
   workspaceId?: string;
   isOrg?: boolean;
   signal?: AbortSignal;
 }
+
 
 

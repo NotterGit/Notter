@@ -1,10 +1,23 @@
 import { AiProviderId, GenerateTextOptions } from "@/config/types/ai.types";
 import { generateLoremIpsum } from "./lorem";
+import { buildPromptWithContext } from "./context";
 
 export type { GenerateTextOptions };
 
 export async function generateAiText(options: GenerateTextOptions): Promise<string> {
-  const { provider, model, prompt, systemPrompt, apiKey = "", baseUrl, workspaceId, isOrg, signal } = options;
+  const {
+    provider,
+    model,
+    prompt,
+    systemPrompt,
+    noteContext,
+    documentTitle,
+    apiKey = "",
+    baseUrl,
+    workspaceId,
+    isOrg,
+    signal,
+  } = options;
 
   if (provider === "mock") {
     await new Promise((resolve) => setTimeout(resolve, 150));
@@ -13,13 +26,29 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
       err.name = "AbortError";
       throw err;
     }
-    const words = parseInt(prompt.trim(), 10) || 100;
+    let words = parseInt(prompt.trim(), 10);
+    if (!words || isNaN(words)) {
+      const lower = prompt.toLowerCase();
+      if (lower.includes("короче") || lower.includes("кратк")) {
+        words = 40;
+      } else if (lower.includes("подробн") || lower.includes("длинн") || lower.includes("больше")) {
+        words = 200;
+      } else {
+        words = 85;
+      }
+    }
     const withMarkdown = model !== "lorem-plain";
     return generateLoremIpsum(words, withMarkdown);
   }
 
+  const effectivePrompt = noteContext
+    ? buildPromptWithContext({ prompt, noteContext, documentTitle })
+    : prompt;
+
+  const effectiveSystemPrompt = systemPrompt?.trim() || undefined;
+
   const isLocalCustom =
-    provider === "custom" &&
+    (provider === "custom" || provider.startsWith("custom") || Boolean(baseUrl)) &&
     baseUrl &&
     (baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1"));
 
@@ -41,8 +70,8 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
       body: JSON.stringify({
         model,
         messages: [
-          ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
-          { role: "user", content: prompt },
+          ...(effectiveSystemPrompt ? [{ role: "system", content: effectiveSystemPrompt }] : []),
+          { role: "user", content: effectivePrompt },
         ],
       }),
     });
@@ -65,8 +94,8 @@ export async function generateAiText(options: GenerateTextOptions): Promise<stri
     body: JSON.stringify({
       provider,
       model,
-      prompt,
-      systemPrompt,
+      prompt: effectivePrompt,
+      systemPrompt: effectiveSystemPrompt,
       apiKey,
       baseUrl,
       workspaceId,

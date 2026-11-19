@@ -18,11 +18,14 @@ export interface UserProps {
 
 export interface DocumentListProps {
   user: User | Org;
-  profile: string;
   setProfile: React.Dispatch<React.SetStateAction<User | Org | null>>;
-  parentDocumentId?: string;
-  level?: number;
-  publicSorted?: boolean;
+}
+
+export interface ProfileImageProps {
+  url?: string | null;
+  fallback?: string;
+  className: string;
+  sizes: string;
 }
 
 export interface OrgProps {

@@ -3,10 +3,8 @@
 import { useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { setClerkTokenGetter } from "@/api/client";
-import { useRequestOrg } from "@/components/hooks/use-request-org";
-import { useRequestUser } from "@/components/hooks/use-request-user";
 
-export function RequestProvider({ children }: { children: React.ReactNode }) {
+export function RequestProvider() {
   const { getToken } = useAuth();
 
   useEffect(() => {
@@ -16,8 +14,5 @@ export function RequestProvider({ children }: { children: React.ReactNode }) {
     };
   }, [getToken]);
 
-  useRequestUser();
-  useRequestOrg();
-
-  return <>{children}</>;
+  return null;
 }

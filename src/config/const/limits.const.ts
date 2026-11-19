@@ -12,7 +12,6 @@ export type {
   ArchiveRetentionOption,
 }
 
-export const AUDIT_LOG_LIMIT = 3;
 export const FREE_AUDIT_LOG_LIMIT = 20;
 export const EXTENDED_AUDIT_LOG_LIMIT = 200;
 export const FREE_NOTE_AUDIT_LOG_LIMIT = 3;

@@ -71,7 +71,7 @@ export function LinkPopover({
       <PopoverContent
         align="start"
         sideOffset={6}
-        className="w-80 p-3 shadow-xl rounded-xl border bg-popover"
+        className="w-80 p-3 shadow-xl rounded-xl border-0 bg-popover"
       >
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
@@ -82,7 +82,7 @@ export function LinkPopover({
               <button
                 type="button"
                 onClick={handleRemove}
-                className="flex items-center gap-1 text-[11px] text-destructive hover:underline cursor-pointer"
+                className="flex items-center gap-1 text-[11px] text-link text-destructive cursor-pointer"
               >
                 <Unlink size={11} />
                 <span>Удалить ссылку</span>

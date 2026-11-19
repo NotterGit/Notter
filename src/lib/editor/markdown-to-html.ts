@@ -22,7 +22,7 @@ export function cleanAiMarkdown(text: string): string {
  * particularly for converting GFM task lists (- [ ] / - [x]) into Tiptap's
  * TaskList (<ul data-type="taskList">) and TaskItem (<li data-type="taskItem">).
  */
-export function createEditorMarkdownParser(): MarkdownIt {
+function createEditorMarkdownParser(): MarkdownIt {
   const md = new MarkdownIt({
     html: true,
     linkify: true,

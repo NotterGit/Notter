@@ -13,7 +13,7 @@ import Highlight from "@tiptap/extension-highlight"
 import TextStyle from "@tiptap/extension-text-style"
 import { useOrganization, useUser } from "@clerk/nextjs"
 import toast from "react-hot-toast"
-import { CheckCircle2 } from "lucide-react"
+import { CheckCircle2, Loader2 } from "lucide-react"
 
 import { getUserById } from "@/api/user"
 import { getOrgById } from "@/api/org"
@@ -44,6 +44,7 @@ export default function Editor({
   className,
   showFooter,
   saveStatus = "idle",
+  documentTitle,
   onEditorReady,
 }: EditorProps) {
   const { user } = useUser()
@@ -276,7 +277,8 @@ export default function Editor({
 
   if (!editor) {
     return (
-      <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
+      <div className="flex h-48 items-center justify-center gap-2 text-sm text-muted-foreground" role="status">
+        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
         Загрузка редактора…
       </div>
     )
@@ -294,6 +296,7 @@ export default function Editor({
           editor={editor}
           uploadLimitMb={uploadLimitMb}
           onUploadFile={handleUpload}
+          documentTitle={documentTitle}
           className="sticky top-0 z-30 border-y bg-card/95 backdrop-blur-md px-4 sm:px-6 md:px-10"
         />
       )}
@@ -330,7 +333,8 @@ export default function Editor({
               </span>
             )}
             {saveStatus === "saving" && (
-              <span className="flex items-center gap-1 text-muted-foreground animate-pulse">
+              <span className="flex items-center gap-1 text-muted-foreground">
+                <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
                 <span>Сохранение…</span>
               </span>
             )}

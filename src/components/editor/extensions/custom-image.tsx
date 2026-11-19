@@ -25,7 +25,7 @@ import type {
   ImageComponentProps,
 } from "@/config/types/editor.types"
 
-export function ImageDragPreview({
+function ImageDragPreview({
   src,
   alt,
   width,
@@ -65,7 +65,7 @@ export function ImageDragPreview({
   )
 }
 
-export function ImageComponent({
+function ImageComponent({
   node,
   updateAttributes,
   deleteNode,
@@ -80,6 +80,7 @@ export function ImageComponent({
   const dragPreviewRef = useRef<HTMLDivElement>(null)
   const cleanupRef = useRef<(() => void) | null>(null)
   const [localCaption, setLocalCaption] = useState(node.attrs.caption || "")
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const captionInputRef = useRef<HTMLInputElement>(null)
@@ -98,9 +99,11 @@ export function ImageComponent({
 
   const currentWidth = node.attrs.width || "100%"
   const alignment = node.attrs.alignment || "center"
+  const src = node.attrs.src
+  const imageAvailable = src && src !== failedSrc
 
   const commitCaption = () => {
-    if (localCaption !== (node.attrs.caption || "")) {
+    if (editor?.isEditable && localCaption !== (node.attrs.caption || "")) {
       updateAttributes({ caption: localCaption })
     }
   }
@@ -351,18 +354,28 @@ export function ImageComponent({
             selected && "ring-2 ring-primary ring-offset-2 ring-offset-background"
           )}
         >
-          <img
-            ref={imgRef}
-            src={node.attrs.src}
-            alt={node.attrs.alt || "Изображение"}
-            draggable={isEditable ? "true" : "false"}
-            onMouseDown={handleMouseDown}
-            onDragStart={handleImageDragStart}
-            className={cn(
-              "block w-full h-auto object-cover transition-all select-none",
-              isEditable && "cursor-grab active:cursor-grabbing"
-            )}
-          />
+          {imageAvailable ? (
+            <img
+              ref={imgRef}
+              src={src}
+              alt={node.attrs.alt || "Изображение"}
+              draggable={isEditable}
+              onError={() => setFailedSrc(src)}
+              onMouseDown={isEditable ? handleMouseDown : undefined}
+              onDragStart={isEditable ? handleImageDragStart : undefined}
+              className={cn(
+                "block w-full h-auto object-cover transition-all select-none",
+                isEditable && "cursor-grab active:cursor-grabbing"
+              )}
+            />
+          ) : (
+            <div className="flex items-center gap-2 bg-muted/45 px-3 py-3 text-sm text-muted-foreground">
+              <ImageIcon className="size-4 shrink-0" aria-hidden="true" />
+              <span className="wrap-anywhere">
+                {node.attrs.alt ? `Изображение недоступно · ${node.attrs.alt}` : "Изображение недоступно"}
+              </span>
+            </div>
+          )}
 
           {isEditable && (
             <div
@@ -409,38 +422,44 @@ export function ImageComponent({
           )}
         </div>
 
-        <div
-          contentEditable={false}
-          className="image-caption-container mt-2 w-full text-center"
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <input
-            ref={captionInputRef}
-            type="text"
-            value={localCaption}
-            onChange={(e) => setLocalCaption(e.target.value)}
-            onBlur={commitCaption}
+        {isEditable ? (
+          <div
+            contentEditable={false}
+            className="image-caption-container mt-2 w-full text-center"
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
-            onFocus={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
-            onKeyDown={(e) => {
-              e.stopPropagation()
-              if (e.key === "Enter") {
-                commitCaption()
-                captionInputRef.current?.blur()
-              }
-            }}
-            placeholder="Добавить подпись к изображению…"
-            className={cn(
-              "w-full max-w-lg mx-auto text-center text-xs text-muted-foreground placeholder:text-muted-foreground/45 bg-transparent border-0 border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-0.5 transition-all cursor-text",
-              !localCaption &&
-                "opacity-0 group-hover/image:opacity-100 focus:opacity-100"
-            )}
-          />
-        </div>
+          >
+            <input
+              ref={captionInputRef}
+              type="text"
+              value={localCaption}
+              onChange={(e) => setLocalCaption(e.target.value)}
+              onBlur={commitCaption}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              onFocus={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                e.stopPropagation()
+                if (e.key === "Enter") {
+                  commitCaption()
+                  captionInputRef.current?.blur()
+                }
+              }}
+              placeholder="Добавить подпись к изображению…"
+              className={cn(
+                "w-full max-w-lg mx-auto text-center text-xs text-muted-foreground placeholder:text-muted-foreground/45 bg-transparent border-0 border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-0.5 transition-all cursor-text",
+                !localCaption &&
+                  "opacity-0 group-hover/image:opacity-100 focus:opacity-100"
+              )}
+            />
+          </div>
+        ) : node.attrs.caption?.trim() ? (
+          <div className="mt-2 text-center text-xs text-muted-foreground wrap-anywhere">
+            {node.attrs.caption}
+          </div>
+        ) : null}
       </div>
 
       {isDragging && typeof window !== "undefined" && createPortal(

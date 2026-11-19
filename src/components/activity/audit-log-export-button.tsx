@@ -66,13 +66,13 @@ export function AuditLogExportButton({
 
   const button = (
     <Button
-      variant="outline"
+      variant="secondary"
       size="sm"
       onClick={handleExport}
       disabled={isDisabled}
-      className="h-8 rounded-xl text-xs border-border/60 hover:bg-muted/60 transition-all font-medium disabled:opacity-50"
+      className="h-9 rounded-xl"
     >
-      <Download className="h-3.5 w-3.5 mr-1.5" />
+      <Download className="h-3.5 w-3.5" />
       {isLoading ? "Экспорт..." : "Экспорт в CSV"}
     </Button>
   );

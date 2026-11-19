@@ -1,4 +1,4 @@
-export const APP_VERSION = "0.8.0";
+export const APP_VERSION = "0.8.1";
 export const BETA_HOSTS = ["dev.notter.su", "localhost:3001"];
 
 export const DESKTOP_QUERY_PARAM = "desktop";

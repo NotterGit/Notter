@@ -15,7 +15,6 @@ export interface CardProps {
 export interface PremiumCardProps {
   title: string;
   price: number;
-  className?: string;
   icon?: string;
   features: string[];
   btn?: boolean;

@@ -2,7 +2,7 @@ import { S3Client } from "@/api/client";
 import type { S3DeleteResponse, S3UploadResponse } from "@/config/types/api.types";
 import toast from "react-hot-toast";
 
-export function extractS3Key(url: string): string | null {
+function extractS3Key(url: string): string | null {
   if (!url) return null;
   try {
     const parsed = new URL(url);

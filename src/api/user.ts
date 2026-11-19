@@ -128,6 +128,3 @@ export const checkModerator = async (_id: string): Promise<boolean> => {
   }
   return data?.moderator ?? false;
 };
-
-export const getById = getUserById;
-export const getByUsername = getUserByUsername;

@@ -59,6 +59,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       values.parentDocumentId !== undefined ||
       values.order !== undefined ||
       values.isPublished !== undefined ||
+      values.isPrivate !== undefined ||
       values.shortId !== undefined;
 
     const isSignificantChange =

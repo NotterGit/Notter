@@ -5,12 +5,30 @@ import { getUserById } from "@/api/user";
 import { getOrgById } from "@/api/org";
 import type { GenerateTextOptions as GeneratePayload } from "@/config/types/ai.types";
 import { generateLoremIpsum } from "@/lib/ai/lorem";
+import { buildPromptWithContext } from "@/lib/ai/context";
 
 export async function POST(req: NextRequest) {
   try {
     const { userId, orgId } = await auth();
     const body: GeneratePayload = await req.json();
-    const { provider, model, prompt, systemPrompt, apiKey = "", baseUrl, workspaceId, isOrg: payloadIsOrg } = body;
+    const {
+      provider,
+      model,
+      prompt,
+      systemPrompt,
+      noteContext,
+      documentTitle,
+      apiKey = "",
+      baseUrl,
+      workspaceId,
+      isOrg: payloadIsOrg,
+    } = body;
+
+    const effectivePrompt = noteContext
+      ? buildPromptWithContext({ prompt, noteContext, documentTitle })
+      : prompt;
+
+    const effectiveSystemPrompt = systemPrompt?.trim() || undefined;
 
     const accountId = workspaceId || orgId || userId || "guest";
     const isOrg = Boolean(
@@ -19,7 +37,7 @@ export async function POST(req: NextRequest) {
       payloadIsOrg
     );
 
-    if (!prompt || !prompt.trim()) {
+    if (!effectivePrompt || !effectivePrompt.trim()) {
       return NextResponse.json({ error: "Промпт не может быть пустым" }, { status: 400 });
     }
 
@@ -33,7 +51,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ text: generateLoremIpsum(words, withMarkdown) });
     }
 
-    if (provider !== "custom" && provider !== "qualai" && !apiKey.trim()) {
+    const isCustomProvider =
+      provider === "custom" ||
+      provider.startsWith("custom") ||
+      Boolean(baseUrl);
+
+    if (!isCustomProvider && provider !== "qualai" && !apiKey.trim()) {
       return NextResponse.json({ error: `Отсутствует API ключ для ${provider}` }, { status: 400 });
     }
 
@@ -41,19 +64,28 @@ export async function POST(req: NextRequest) {
       provider === "openai" ||
       provider === "deepseek" ||
       provider === "qwen" ||
-      provider === "openrouter"
+      provider === "openrouter" ||
+      provider === "opencode" ||
+      provider === "yandex"
     ) {
       const endpoints: Record<string, string> = {
         openai: "https://api.openai.com/v1/chat/completions",
         deepseek: "https://api.deepseek.com/chat/completions",
         qwen: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
         openrouter: "https://openrouter.ai/api/v1/chat/completions",
+        opencode: "https://opencode.ai/zen/v1/chat/completions",
+        yandex: "https://ai.api.cloud.yandex.net/v1/chat/completions",
       };
       const endpoint = endpoints[provider];
 
+      const authHeader =
+        apiKey.startsWith("Bearer ") || apiKey.startsWith("Api-Key ")
+          ? apiKey
+          : `Bearer ${apiKey}`;
+
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: authHeader,
       };
       if (provider === "openrouter") {
         headers["HTTP-Referer"] = "https://notter.app";
@@ -66,8 +98,8 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model,
           messages: [
-            ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
-            { role: "user", content: prompt },
+            ...(effectiveSystemPrompt ? [{ role: "system", content: effectiveSystemPrompt }] : []),
+            { role: "user", content: effectivePrompt },
           ],
         }),
       });
@@ -97,8 +129,8 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model,
           max_tokens: 4096,
-          ...(systemPrompt ? { system: systemPrompt } : {}),
-          messages: [{ role: "user", content: prompt }],
+          ...(effectiveSystemPrompt ? { system: effectiveSystemPrompt } : {}),
+          messages: [{ role: "user", content: effectivePrompt }],
         }),
       });
 
@@ -121,16 +153,16 @@ export async function POST(req: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...(systemPrompt
+          ...(effectiveSystemPrompt
             ? {
                 systemInstruction: {
-                  parts: [{ text: systemPrompt }],
+                  parts: [{ text: effectiveSystemPrompt }],
                 },
               }
             : {}),
           contents: [
             {
-              parts: [{ text: prompt }],
+              parts: [{ text: effectivePrompt }],
             },
           ],
         }),
@@ -171,7 +203,7 @@ export async function POST(req: NextRequest) {
           premium: userPremium,
           session_id: crypto.randomUUID(),
           model_id: model,
-          message: prompt,
+          message: effectivePrompt,
         }),
       });
 
@@ -185,7 +217,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ text: data.response ?? "" });
     }
 
-    if (provider === "custom") {
+    if (isCustomProvider) {
       const targetBase = baseUrl?.trim() || "http://localhost:11434/v1";
       const endpoint = `${targetBase.replace(/\/+$/, "")}/chat/completions`;
 
@@ -202,8 +234,8 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model,
           messages: [
-            ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
-            { role: "user", content: prompt },
+            ...(effectiveSystemPrompt ? [{ role: "system", content: effectiveSystemPrompt }] : []),
+            { role: "user", content: effectivePrompt },
           ],
         }),
       });

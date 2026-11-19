@@ -9,7 +9,6 @@ export interface ActivityFiltersState {
 
 export interface ActivityItemProps {
   data: NoteAuditLog;
-  extended?: boolean;
 }
 
 export interface ActivityFiltersProps {
@@ -18,20 +17,15 @@ export interface ActivityFiltersProps {
   onReset: () => void;
   hasActiveFilters: boolean;
   isExtendedAudit: boolean;
-  tariffName?: string;
   totalCount: number;
   filteredCount: number;
-  showEntityFilter?: boolean;
 }
 
 export interface ActivityViewProps {
   initialLogs: NoteAuditLog[];
   isExtendedAudit: boolean;
-  tariffName?: string;
-  showEntityFilter?: boolean;
 }
 
-export interface AuditModalProps {
-  documentId?: string;
-  documentTitle?: string;
+export interface AuditPlanNoticeProps {
+  scope: "note" | "workspace";
 }

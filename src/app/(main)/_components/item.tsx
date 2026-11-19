@@ -183,15 +183,16 @@ export function Item({
             {...(draggableProps ?? {})}
             {...(dragHandleProps ?? {})}
             onClick={onClick} 
-            role="button" 
+            role="button"
+            aria-current={active ? "page" : undefined}
             style={{paddingLeft: level ? `${(level * 12) + 12}px` : "12px"}} 
             className={cn(`group mb-0.5 flex min-h-[34px] w-full items-center rounded-xl py-1.5 pr-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10 select-none`,
-            active && "bg-gradient-to-r from-logo-yellow/20 to-logo-cyan/20 text-foreground shadow-sm",
-            isSelected && "bg-logo-yellow/15 text-foreground ring-1 ring-logo-yellow/40",
-            isOtherSelectedDragging && "opacity-40 ring-1 ring-dashed ring-logo-yellow/40",
-            isDragging && "bg-white/95 dark:bg-zinc-900/95 shadow-xl ring-2 ring-logo-yellow/40 text-foreground",
-            isCombineTarget && "bg-logo-yellow/20 dark:bg-logo-yellow/25 ring-2 ring-logo-yellow shadow-lg text-foreground border-logo-yellow/50",
-            isArchiveTarget && "bg-red-500/15 dark:bg-red-500/25 ring-2 ring-red-500 text-red-600 dark:text-red-400 font-semibold shadow-lg",
+            active && "bg-black/[0.07] text-foreground hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/[0.14]",
+            isSelected && "bg-logo-yellow/15 text-foreground",
+            isOtherSelectedDragging && "opacity-40",
+            isDragging && "bg-white/95 dark:bg-zinc-900/95 shadow-xl text-foreground",
+            isCombineTarget && "bg-logo-yellow/20 dark:bg-logo-yellow/25 shadow-lg text-foreground",
+            isArchiveTarget && "bg-red-500/15 dark:bg-red-500/25 text-red-600 dark:text-red-400 font-semibold shadow-lg",
             className
             )}
         >
@@ -268,7 +269,7 @@ export function Item({
                 </span>
             )}
             {isDragging && selectedCount && selectedCount > 1 && (
-                <div className="absolute -top-1.5 -right-1.5 z-50 flex h-5 min-w-5 items-center justify-center rounded-full bg-logo-yellow px-1.5 text-[10px] font-bold text-zinc-950 shadow-md ring-2 ring-white dark:ring-zinc-950">
+                <div className="absolute -top-1.5 -right-1.5 z-50 flex h-5 min-w-5 items-center justify-center rounded-full bg-logo-yellow px-1.5 text-[10px] font-bold text-zinc-950 shadow-md">
                     {selectedCount}
                 </div>
             )}
@@ -301,7 +302,7 @@ export function Item({
                                 <MoreHorizontal className="h-4 w-4 text-muted-foreground"/>
                             </div>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-64 rounded-2xl border-white/60 bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/95" align="start" side="right" forceMount>
+                        <DropdownMenuContent className="w-64 rounded-2xl border-0 bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl dark:bg-zinc-950/95" align="start" side="right" forceMount>
                             <DropdownMenuItem onClick={onTogglePin} className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10">
                                 {isPinned ? (
                                     <>
@@ -315,12 +316,10 @@ export function Item({
                                     </>
                                 )}
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator className="my-1"/>
                             <DropdownMenuItem onClick={onMove} className="cursor-pointer rounded-xl px-2.5 py-2 text-xs font-medium gap-2.5 transition hover:bg-black/5 dark:hover:bg-white/10">
                                 <FolderInput className="h-4 w-4 text-muted-foreground"/>
                                 Переместить
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator className="my-1"/>
                             <DropdownMenuItem
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -331,7 +330,6 @@ export function Item({
                                 <Activity className="h-4 w-4 text-muted-foreground"/>
                                 Журнал аудита
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator className="my-1"/>
 
                             {isAdmin && (
                                 <>
@@ -342,7 +340,7 @@ export function Item({
                                     <DropdownMenuSeparator className="my-1"/>
                                 </>
                             )}
-                            <div className="rounded-xl border border-black/5 bg-black/[0.03] p-2.5 dark:border-white/5 dark:bg-white/[0.04] space-y-2.5">
+                            <div className="rounded-xl bg-black/[0.03] p-2.5 dark:bg-white/[0.04] space-y-2.5">
                                 {(createdAt || creatorName) && (
                                     <>
                                         <div className="flex items-start gap-2.5">

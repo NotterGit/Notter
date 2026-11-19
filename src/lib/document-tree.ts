@@ -8,6 +8,7 @@ export interface DocumentTreeItem {
   isArchived?: boolean;
   isAcrhived?: boolean;
   isPublished?: boolean;
+  isPrivate?: boolean;
   isPinned?: boolean;
   order?: number;
   parentDocument?: string | null;

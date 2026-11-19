@@ -21,25 +21,3 @@ export const getCreateDocumentErrorMessage = (error: unknown) => {
 
   return message || "Не удалось создать заметку";
 };
-
-export type CreateDocumentArgs = {
-  title: string;
-  userId: string;
-  lastEditor: string;
-  creatorName: string;
-  lastEditTime?: string;
-  parentDocument?: string | null;
-  premiumLevel?: number;
-  isOrg?: boolean;
-};
-
-export type CreateDocumentMutation = (
-  args: CreateDocumentArgs
-) => Promise<string>;
-
-export const createDocumentWithFallback = async (
-  create: CreateDocumentMutation,
-  args: CreateDocumentArgs
-) => {
-  return create(args);
-};

@@ -518,7 +518,7 @@ export function DocumentList({
     return (
       <>
         {isSelectionMode && (
-          <div className="mb-2 flex items-center justify-between gap-1.5 rounded-xl border border-logo-yellow/30 bg-logo-yellow/10 px-2 py-1.5 text-xs backdrop-blur-md dark:border-logo-yellow/20 dark:bg-logo-yellow/15 animate-in fade-in slide-in-from-top-1 duration-150">
+          <div className="mb-2 flex items-center justify-between gap-1.5 rounded-xl bg-logo-yellow/10 px-2 py-1.5 text-xs backdrop-blur-md dark:bg-logo-yellow/15 animate-in fade-in slide-in-from-top-1 duration-150">
             <div className="flex items-center gap-1.5 font-medium text-foreground">
               <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-logo-yellow px-1 text-[10px] font-bold text-zinc-950">
                 {selectedDocIds.size}
@@ -574,7 +574,7 @@ export function DocumentList({
             <Item label="Архив" icon={Archive} />
           </PopoverTrigger>
           <PopoverContent
-            className="z-[99999] w-80 rounded-2xl border-white/60 bg-white/90 p-0 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90"
+            className="z-[99999] w-80 rounded-2xl border-0 bg-white/90 p-0 shadow-2xl backdrop-blur-xl dark:bg-zinc-950/90"
             side={isMobile ? "bottom" : "right"}
           >
             <TrashBox />
@@ -587,7 +587,7 @@ export function DocumentList({
   return (
     <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
       {isSelectionMode && (
-        <div className="mb-2 flex items-center justify-between gap-1.5 rounded-xl border border-logo-yellow/30 bg-logo-yellow/10 px-2 py-1.5 text-xs backdrop-blur-md dark:border-logo-yellow/20 dark:bg-logo-yellow/15 animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="mb-2 flex items-center justify-between gap-1.5 rounded-xl bg-logo-yellow/10 px-2 py-1.5 text-xs backdrop-blur-md dark:bg-logo-yellow/15 animate-in fade-in slide-in-from-top-1 duration-150">
           <div className="flex items-center gap-1.5 font-medium text-foreground">
             <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-logo-yellow px-1 text-[10px] font-bold text-zinc-950">
               {selectedDocIds.size}
@@ -620,7 +620,7 @@ export function DocumentList({
             {...provided.droppableProps}
             className={cn(
               "min-h-[4px] rounded-xl transition-colors duration-150 py-0.5",
-              snapshot.isDraggingOver && "bg-logo-yellow/10 dark:bg-logo-yellow/15 ring-2 ring-logo-yellow/30"
+              snapshot.isDraggingOver && "bg-logo-yellow/10 dark:bg-logo-yellow/15"
             )}
           >
             {visibleItems.map((item, index) => (
@@ -721,7 +721,7 @@ export function DocumentList({
                 </div>
               </PopoverTrigger>
               <PopoverContent
-                className="z-[99999] w-80 rounded-2xl border-white/60 bg-white/90 p-0 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90"
+                className="z-[99999] w-80 rounded-2xl border-0 bg-white/90 p-0 shadow-2xl backdrop-blur-xl dark:bg-zinc-950/90"
                 side={isMobile ? "bottom" : "right"}
               >
                 <TrashBox />

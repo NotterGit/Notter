@@ -4,15 +4,13 @@ import {
   type ArchiveRetentionDays,
   type ArchiveRetentionOption,
 } from "@/config/const/limits.const"
-import { getMaxArchiveRetentionDays, isArchiveRetentionAllowed } from "./plan-limits"
+import { isArchiveRetentionAllowed } from "./plan-limits"
 
 export {
   ARCHIVE_RETENTION_OPTIONS,
   DEFAULT_RETENTION_DAYS,
-  getMaxArchiveRetentionDays,
   isArchiveRetentionAllowed,
 }
-export type { ArchiveRetentionDays, ArchiveRetentionOption }
 
 export interface ArchivableDoc {
   _creationTime: number
@@ -36,7 +34,7 @@ export function pluralize(n: number, one: string, two: string, five: string): st
  * Resolves the timestamp (in ms) when the document was archived.
  * Falls back to lastEditTime or _creationTime if archivedTime is missing.
  */
-export function getDocArchiveTimestamp(doc: ArchivableDoc): number {
+function getDocArchiveTimestamp(doc: ArchivableDoc): number {
   if (doc.archivedTime) {
     const time = new Date(doc.archivedTime).getTime()
     if (!Number.isNaN(time)) return time

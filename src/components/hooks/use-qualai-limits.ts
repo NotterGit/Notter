@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useOrganization, useUser } from "@clerk/nextjs";
 
 import type { QualAiLimitsData } from "@/config/types/ai.types";
@@ -11,48 +11,54 @@ export type { QualAiLimitsData };
 export function useQualAiLimits(customWorkspaceId?: string) {
   const { organization, isLoaded: isOrgLoaded } = useOrganization();
   const { user, isLoaded: isUserLoaded } = useUser();
-  const [limits, setLimits] = useState<QualAiLimitsData | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const activeWorkspaceId = customWorkspaceId ?? (organization?.id || user?.id);
-  const isOrg = Boolean(customWorkspaceId ? customWorkspaceId.startsWith("org_") : organization?.id);
+  const isOrg = Boolean(
+    customWorkspaceId
+      ? customWorkspaceId.startsWith("org_")
+      : organization?.id
+  );
   const { data: profile } = useAccountProfile(activeWorkspaceId, isOrg);
 
-  const fetchLimits = useCallback(async () => {
-    try {
-      setIsLoading(true);
+  const {
+    data: limits = null,
+    isLoading,
+    refetch,
+  } = useQuery<QualAiLimitsData | null>({
+    queryKey: [
+      "qualai-limits",
+      activeWorkspaceId,
+      isOrg,
+      profile?.premium,
+    ],
+    queryFn: async () => {
+      if (!activeWorkspaceId) return null;
       const params = new URLSearchParams();
-      if (activeWorkspaceId) {
-        params.set("workspaceId", activeWorkspaceId);
-      }
+      params.set("workspaceId", activeWorkspaceId);
       if (isOrg) {
         params.set("isOrg", "true");
       }
       if (profile?.premium !== undefined) {
         params.set("fallbackPremium", String(profile.premium));
       }
-      const url = params.toString() ? `/api/ai/limits?${params.toString()}` : "/api/ai/limits";
+      const url = `/api/ai/limits?${params.toString()}`;
       const res = await fetch(url);
-      if (res.ok) {
-        const data: QualAiLimitsData = await res.json();
-        setLimits(data);
+      if (!res.ok) {
+        return null;
       }
-    } catch (e) {
-      console.error("Failed to fetch Q.AI limits:", e);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activeWorkspaceId, isOrg, profile?.premium]);
-
-  useEffect(() => {
-    if (!isOrgLoaded || !isUserLoaded) return;
-    void fetchLimits();
-  }, [fetchLimits, isOrgLoaded, isUserLoaded]);
+      return res.json();
+    },
+    enabled: Boolean(isOrgLoaded && isUserLoaded && activeWorkspaceId),
+    staleTime: 1000 * 60, // Cache for 60 seconds
+    gcTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
 
   return {
     limits,
     isLoading,
-    refresh: fetchLimits,
+    refresh: refetch,
     workspaceId: activeWorkspaceId,
     isOrg,
   };

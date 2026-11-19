@@ -73,7 +73,7 @@ export function SearchCommand() {
   })
 
   return (
-    <CommandDialog open={isOpen} onOpenChange={onClose}>
+    <CommandDialog open={isOpen} onOpenChange={onClose} contentClassName="border-0">
       <CommandInput
         placeholder="Поиск по заметкам"
         value={searchValue}
@@ -82,7 +82,7 @@ export function SearchCommand() {
       <CommandList>
         <CommandEmpty>Ничего не найдено</CommandEmpty>
         {filteredDocuments && filteredDocuments.length > 0 && (
-          <CommandGroup heading="Заметки">
+          <CommandGroup>
             {filteredDocuments.map((document) => (
               <CommandItem
                 key={document._id}

@@ -1,6 +1,17 @@
 import type { DropzoneOptions } from "react-dropzone"
 import type * as React from "react"
-import type { DocumentTreeItem } from "@/lib/document-tree"
+
+export interface LoadingBulbProps {
+  alt: string
+  size: number
+}
+
+export interface PlanNoticeProps {
+  title: string
+  description: string
+  href: string
+  openInNewTab?: boolean
+}
 
 export interface CoverImageProps {
   url?: string
@@ -17,16 +28,6 @@ export interface BgCollection {
   folder: string
   images: string[]
 }
-
-export type {
-  EditorProps,
-  EditorSaveStatus,
-  DocumentMeta,
-  CoverBannerProps,
-  CoverModalProps,
-  EditorHeaderProps,
-  EditorToolbarProps,
-} from "./editor.types"
 
 export type InstallModalProps = {
   open: boolean
@@ -49,11 +50,6 @@ export interface IconPickerPorps {
   onChange: (icon: string) => void
   children: React.ReactNode
   asChild?: boolean
-}
-
-export interface ToolbarProps {
-  initialData: DocumentTreeItem
-  preview?: boolean
 }
 
 export interface ConfirmmModalProps {

@@ -267,7 +267,7 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
         <div className="pointer-events-none absolute -right-12 bottom-12 h-72 w-72 rounded-full bg-logo-cyan/15 blur-3xl" />
 
         <main className="mx-auto w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1536px] px-4 py-6 sm:px-8 sm:py-10 transition-all">
-          <section className="relative overflow-visible rounded-2xl border bg-card shadow-sm">
+          <section className="relative overflow-visible rounded-2xl bg-card shadow-sm">
             <Skeleton className="h-48 sm:h-60 md:h-72 w-full rounded-t-2xl bg-muted/40" />
             <div className="px-4 sm:px-6 md:px-10 pb-4 pt-6">
               <Skeleton className="h-16 w-16 -mt-12 sm:-mt-14 mb-3 rounded-2xl bg-primary/10" />
@@ -302,7 +302,7 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
       </div>
 
       <main className="mx-auto w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1536px] px-4 py-6 sm:px-8 sm:py-10 transition-all">
-        <section className="relative overflow-visible rounded-2xl border bg-card shadow-sm transition-all focus-within:ring-2 focus-within:ring-primary/20">
+        <section className="relative overflow-visible rounded-2xl bg-card shadow-sm transition-all focus-within:ring-2 focus-within:ring-primary/20">
           <CoverBanner
             coverUrl={document.coverImage ?? null}
             preview={isArchived}
@@ -331,6 +331,7 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
             onChange={onChange}
             editable={!isArchived}
             documentId={document.id || document._id}
+            documentTitle={localTitle || document.title || ""}
             saveStatus={saveStatus}
             onEditorReady={(editor) => {
               editorRef.current = editor

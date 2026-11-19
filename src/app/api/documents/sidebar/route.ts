@@ -23,6 +23,7 @@ export async function GET(req: Request) {
       userId: string;
       isArchived: boolean;
       isPublished?: boolean;
+      isPrivate?: boolean;
       parentDocumentId?: string | null;
     } = {
       userId: targetUserId,
@@ -36,8 +37,11 @@ export async function GET(req: Request) {
           : parentDocument;
     }
 
-    if (!isOwner && publicSorted) {
-      whereClause.isPublished = true;
+    if (publicSorted) {
+      whereClause.isPrivate = false;
+      if (!isOwner) {
+        whereClause.isPublished = true;
+      }
     }
 
     const documents = await db.document.findMany({
@@ -57,6 +61,7 @@ export async function GET(req: Request) {
         icon: true,
         coverImage: true,
         isPublished: true,
+        isPrivate: true,
         lastEditor: true,
         lastEditTime: true,
         verified: true,

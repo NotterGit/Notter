@@ -3,7 +3,7 @@ import type { CardProps } from "@/config/types/landing.types"
 
 export function Card({ name, description, img, icon: Icon }: CardProps) {
     return (
-        <div className="group relative w-full max-w-[1200px] mx-auto overflow-hidden rounded-2xl border border-border/60 bg-card/70 dark:bg-zinc-900/60 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-yellow-400/40 dark:border-white/10 dark:hover:border-yellow-400/30">
+        <div className="group relative w-full max-w-[1200px] mx-auto overflow-hidden rounded-2xl bg-card/70 dark:bg-zinc-900/60 p-6 shadow-sm backdrop-blur-md transition-transform duration-300 hover:-translate-y-0.5">
             <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-gradient-to-br from-logo-yellow/20 to-logo-light-yellow/10 opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
 
             <section className="flex items-center md:flex-row flex-col gap-6">

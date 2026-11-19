@@ -85,7 +85,7 @@ const InstallPWA = () => {
         aria-label="Установить приложение"
         title="Установить приложение"
         onClick={onClick}
-        variant="outline"
+        variant="secondary"
       >
         Установить <Download className="ml-2 h-4 w-4" />
       </Button>

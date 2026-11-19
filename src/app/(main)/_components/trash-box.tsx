@@ -1,10 +1,11 @@
 "use client" 
 
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { Clock, Loader2, Search, Trash, Undo } from "lucide-react" 
+import { Clock, Search, Trash, Undo } from "lucide-react"
 import { useParams, useRouter } from "next/navigation" 
 import { useEffect, useRef, useState } from "react" 
 import { toast } from "react-hot-toast"
+import { LoadingBulb } from "@/components/ui/loading-bulb"
 import { API } from "@/config/routing/api.route"
 import { fetcher } from "@/lib/fetcher"
 import { restoreDocument } from "@/actions/restore-document"
@@ -173,12 +174,8 @@ export function TrashBox(){
 
   if (documents === undefined) {
     return (
-      <div
-        className="flex h-full items-center justify-center p-4"
-        aria-busy="true"
-        aria-label="Загрузка..."
-      >
-        <Loader2 className="w-8 h-8 animate-spin"/>
+      <div className="flex h-full items-center justify-center p-4" aria-busy="true">
+        <LoadingBulb size={32} alt="Загрузка корзины" />
       </div>
     ) 
   }
@@ -196,7 +193,7 @@ export function TrashBox(){
         />
       </div>
 
-      <div className="mx-2 my-2 flex items-center justify-between rounded-lg border border-border/50 bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground">
+      <div className="mx-2 my-2 flex items-center justify-between rounded-lg bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5 truncate">
           <Clock className="h-3.5 w-3.5 text-logo-yellow shrink-0" />
           {documents && documents.length > 0 && nextCleanupMs !== null ? (
@@ -212,7 +209,7 @@ export function TrashBox(){
       </div>
 
       <div
-        className="mt-1 px-1 pb-1 flex-1 overflow-y-auto"
+        className="mt-1 px-1 pb-1 flex-1 overflow-y-auto custom-scrollbar"
         style={{ maxHeight: "calc(100vh - 160px)" }}
       >
         {filteredDocuments?.length === 0 && (
@@ -281,4 +278,4 @@ export function TrashBox(){
       </div>
     </section>
   ) 
-} 
+}

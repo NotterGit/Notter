@@ -15,19 +15,20 @@ export const AiIndicatorExtension = Extension.create({
         key: aiIndicatorPluginKey,
         state: {
           init() {
-            return { isGenerating: false, isTyping: false, from: 0, to: 0 };
+            return { isGenerating: false, isTyping: false, isReviewing: false, from: 0, to: 0 };
           },
           apply(tr, prevState) {
             const meta = tr.getMeta(aiIndicatorPluginKey);
             if (meta) {
               return meta;
             }
-            if (!prevState.isGenerating && !prevState.isTyping) {
+            if (!prevState.isGenerating && !prevState.isTyping && !prevState.isReviewing) {
               return prevState;
             }
             return {
               isGenerating: prevState.isGenerating,
               isTyping: prevState.isTyping,
+              isReviewing: prevState.isReviewing,
               typingPos:
                 typeof prevState.typingPos === "number"
                   ? tr.mapping.map(prevState.typingPos)
@@ -40,7 +41,10 @@ export const AiIndicatorExtension = Extension.create({
         props: {
           decorations(state) {
             const pluginState = aiIndicatorPluginKey.getState(state);
-            if (!pluginState || (!pluginState.isGenerating && !pluginState.isTyping)) {
+            if (
+              !pluginState ||
+              (!pluginState.isGenerating && !pluginState.isTyping && !pluginState.isReviewing)
+            ) {
               return DecorationSet.empty;
             }
 
@@ -122,6 +126,26 @@ export const AiIndicatorExtension = Extension.create({
               );
             }
 
+            if (pluginState.isReviewing && pluginState.from < pluginState.to) {
+              const safeFrom = Math.min(Math.max(0, pluginState.from), doc.content.size);
+              const safeTo = Math.min(Math.max(0, pluginState.to), doc.content.size);
+              if (safeFrom < safeTo) {
+                try {
+                  doc.nodesBetween(safeFrom, safeTo, (node, pos) => {
+                    if (node.isBlock) {
+                      decorations.push(
+                        Decoration.node(pos, pos + node.nodeSize, {
+                          class: "tiptap-ai-reviewing-node",
+                        })
+                      );
+                    }
+                  });
+                } catch (err) {
+                  console.error("AI Review decoration error:", err);
+                }
+              }
+            }
+
             return DecorationSet.create(doc, decorations);
           },
         },
@@ -143,38 +167,11 @@ export function setAiGenerating(
   const tr = editor.state.tr.setMeta(aiIndicatorPluginKey, {
     isGenerating,
     isTyping: false,
+    isReviewing: false,
     from: currentPos.from,
     to: currentPos.to,
   });
   editor.view.dispatch(tr);
-}
-
-export function setAiTyping(
-  editor: Editor | null,
-  isTyping: boolean,
-  typingPos?: number,
-  range?: { from: number; to: number }
-) {
-  if (!editor || editor.isDestroyed) return;
-  const currentPos = range || {
-    from: editor.state.selection.from,
-    to: editor.state.selection.to,
-  };
-  const tr = editor.state.tr.setMeta(aiIndicatorPluginKey, {
-    isGenerating: false,
-    isTyping,
-    typingPos: typingPos ?? currentPos.to,
-    from: currentPos.from,
-    to: currentPos.to,
-  });
-  tr.setMeta("addToHistory", false);
-  editor.view.dispatch(tr);
-}
-
-export function isAiTyping(editor: Editor | null): boolean {
-  if (!editor || editor.isDestroyed) return false;
-  const pluginState = aiIndicatorPluginKey.getState(editor.state);
-  return Boolean(pluginState?.isTyping);
 }
 
 export function getAiGeneratingPos(
@@ -183,5 +180,34 @@ export function getAiGeneratingPos(
   if (!editor || editor.isDestroyed) return null;
   const pluginState = aiIndicatorPluginKey.getState(editor.state);
   if (!pluginState || (!pluginState.isGenerating && !pluginState.isTyping)) return null;
+  return { from: pluginState.from, to: pluginState.to };
+}
+
+export function setAiReviewing(
+  editor: Editor | null,
+  isReviewing: boolean,
+  pos?: { from: number; to: number }
+) {
+  if (!editor || editor.isDestroyed) return;
+  const currentPos = pos || {
+    from: editor.state.selection.from,
+    to: editor.state.selection.to,
+  };
+  const tr = editor.state.tr.setMeta(aiIndicatorPluginKey, {
+    isGenerating: false,
+    isTyping: false,
+    isReviewing,
+    from: currentPos.from,
+    to: currentPos.to,
+  });
+  editor.view.dispatch(tr);
+}
+
+export function getAiReviewingRange(
+  editor: Editor | null
+): { from: number; to: number } | null {
+  if (!editor || editor.isDestroyed) return null;
+  const pluginState = aiIndicatorPluginKey.getState(editor.state);
+  if (!pluginState || !pluginState.isReviewing) return null;
   return { from: pluginState.from, to: pluginState.to };
 }

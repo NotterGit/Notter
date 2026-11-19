@@ -216,7 +216,7 @@ export function CoverModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden sm:rounded-2xl">
+      <DialogContent className="max-w-2xl border-0 p-0 overflow-hidden sm:rounded-2xl">
         <DialogHeader className="px-6 pt-5 pb-3 border-b">
           <div className="flex items-center justify-between">
             <div>
@@ -283,7 +283,7 @@ export function CoverModal({
           </div>
         </DialogHeader>
 
-        <div className="p-6 max-h-[440px] overflow-y-auto">
+        <div className="p-6 max-h-[440px] overflow-y-auto custom-scrollbar">
           {activeTab === "gallery" && (
             <div className="space-y-4">
               {isLoadingCollections ? (
@@ -305,7 +305,7 @@ export function CoverModal({
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-0.5 px-0.5 scrollbar-none">
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-0.5 px-0.5 custom-scrollbar">
                     {collections.map((col) => {
                       const isActive = activeCollection?.folder === col.folder
                       return (
@@ -442,7 +442,7 @@ export function CoverModal({
               </div>
 
               {customUrl.trim() && (
-                <div className="mt-4 overflow-hidden rounded-xl border bg-muted/30 p-2">
+                <div className="mt-4 overflow-hidden rounded-xl bg-muted/30 p-2">
                   <p className="text-[11px] font-medium text-muted-foreground mb-1.5 px-1">
                     Предпросмотр:
                   </p>

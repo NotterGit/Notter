@@ -184,7 +184,7 @@ export function MoveNoteModal() {
                 : "cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground",
               isSelected &&
                 !isDisabled &&
-                "bg-logo-yellow/20 dark:bg-logo-yellow/25 text-foreground ring-1 ring-logo-yellow/50 font-semibold shadow-sm"
+                "bg-logo-yellow/20 dark:bg-logo-yellow/25 text-foreground font-semibold shadow-sm"
             )}
           >
             <div
@@ -255,7 +255,7 @@ export function MoveNoteModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col p-6 overflow-hidden">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col border-0 p-6 overflow-hidden">
         <DialogHeader className="pb-2">
           <DialogTitle className="text-lg font-semibold">
             Переместить заметку
@@ -263,7 +263,7 @@ export function MoveNoteModal() {
           <DialogDescription className="text-xs text-muted-foreground truncate">
             {currentDoc ? (
               <span className="inline-flex items-center gap-1.5">
-                Перемещение «{currentDoc.title || "Без названия"}»
+                «{currentDoc.title || "Без названия"}»
               </span>
             ) : (
               "Выберите целевое расположение для заметки"
@@ -271,7 +271,7 @@ export function MoveNoteModal() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center gap-2 rounded-xl border border-input bg-background/50 px-3 py-1.5 shadow-sm transition-colors focus-within:ring-1 focus-within:ring-ring">
+        <div className="flex items-center gap-2 rounded-xl bg-muted/40 px-3 py-1.5 shadow-sm transition-colors focus-within:ring-1 focus-within:ring-ring">
           <Search className="h-4 w-4 shrink-0 text-muted-foreground/70" />
           <Input
             value={searchQuery}
@@ -290,7 +290,7 @@ export function MoveNoteModal() {
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto min-h-[220px] max-h-[380px] rounded-2xl border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] p-2 space-y-1">
+        <div className="flex-1 overflow-y-auto custom-scrollbar min-h-[220px] max-h-[380px] rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] p-2 space-y-1">
           {documents === undefined ? (
             <div className="flex h-44 items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -306,7 +306,7 @@ export function MoveNoteModal() {
                   className={cn(
                     "flex min-h-[38px] w-full items-center rounded-xl px-3 py-1.5 text-sm font-medium transition-colors select-none cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground",
                     isRootSelected &&
-                      "bg-logo-yellow/20 dark:bg-logo-yellow/25 text-foreground ring-1 ring-logo-yellow/50 font-semibold shadow-sm"
+                      "bg-logo-yellow/20 dark:bg-logo-yellow/25 text-foreground font-semibold shadow-sm"
                   )}
                 >
                   <SlashSquare className="mr-2 h-4 w-4 text-logo-yellow shrink-0" />
