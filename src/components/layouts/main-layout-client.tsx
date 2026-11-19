@@ -1,11 +1,11 @@
 "use client"
 
 import { useAuth, useOrganization, useUser } from "@clerk/nextjs"
-import { Loader2 } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect } from "react"
 
+import { LoadingBulb } from "@/components/ui/loading-bulb"
 import { Navigation } from "@/app/(main)/_components/navigation"
 import { RequestProvider } from "@/components/providers/request-provider"
 import { pages } from "@/config/routing/pages.route"
@@ -62,7 +62,7 @@ export function MainLayoutClient({
   if (!isLoaded || !isSignedIn) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="animate-spin" />
+        <LoadingBulb size={80} alt="Загрузка рабочего пространства" />
       </div>
     )
   }

@@ -890,8 +890,8 @@ export function AiGeneratePopover({
 
         <div className="flex items-center justify-between gap-1.5 pt-0.5">
           {isLoading ? (
-            <span className="flex items-center gap-1.5 text-[11px] text-primary animate-pulse select-none">
-              <Loader2 className="h-3 w-3 animate-spin" />
+            <span className="flex items-center gap-1.5 text-[11px] text-primary select-none">
+              <Loader2 className="size-3 animate-spin" />
               <span>Генерация текста...</span>
             </span>
           ) : (
@@ -922,12 +922,12 @@ export function AiGeneratePopover({
               }
               className={cn(
                 "h-7 px-3 text-xs gap-1.5 cursor-pointer bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 shadow-xs disabled:opacity-50 transition-all",
-                isLoading && "ai-generate-button-loading disabled:opacity-90 cursor-wait"
+                isLoading && "disabled:opacity-90 cursor-wait"
               )}
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <Loader2 className="size-3 animate-spin" />
                   <span>Генерация...</span>
                 </>
               ) : selectedProviderId === "qualai" && qualAiLimits?.remaining === 0 ? (

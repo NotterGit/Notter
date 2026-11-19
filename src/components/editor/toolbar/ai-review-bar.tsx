@@ -83,8 +83,8 @@ export function AiReviewBar({
               )}
             </div>
             {isLoading && (
-              <span className="flex items-center gap-1.5 text-[11px] text-violet-600 dark:text-violet-400 font-medium animate-pulse">
-                <Loader2 className="h-3 w-3 animate-spin shrink-0" />
+              <span className="flex items-center gap-1.5 text-[11px] text-violet-600 dark:text-violet-400 font-medium">
+                <Loader2 className="size-3 shrink-0 animate-spin" />
                 <span>Исправление…</span>
               </span>
             )}
@@ -144,7 +144,7 @@ export function AiReviewBar({
             className="h-6 w-6 shrink-0 rounded-lg bg-violet-600 hover:bg-violet-700 text-white cursor-pointer disabled:opacity-30 transition-all"
           >
             {isLoading ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <Loader2 className="size-3 shrink-0 animate-spin" />
             ) : (
               <ArrowUp className="h-3.5 w-3.5" />
             )}

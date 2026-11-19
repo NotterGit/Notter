@@ -1,10 +1,11 @@
 "use client" 
 
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { Clock, Loader2, Search, Trash, Undo } from "lucide-react" 
+import { Clock, Search, Trash, Undo } from "lucide-react"
 import { useParams, useRouter } from "next/navigation" 
 import { useEffect, useRef, useState } from "react" 
 import { toast } from "react-hot-toast"
+import { LoadingBulb } from "@/components/ui/loading-bulb"
 import { API } from "@/config/routing/api.route"
 import { fetcher } from "@/lib/fetcher"
 import { restoreDocument } from "@/actions/restore-document"
@@ -173,12 +174,8 @@ export function TrashBox(){
 
   if (documents === undefined) {
     return (
-      <div
-        className="flex h-full items-center justify-center p-4"
-        aria-busy="true"
-        aria-label="Загрузка..."
-      >
-        <Loader2 className="w-8 h-8 animate-spin"/>
+      <div className="flex h-full items-center justify-center p-4" aria-busy="true">
+        <LoadingBulb size={32} alt="Загрузка корзины" />
       </div>
     ) 
   }
@@ -281,4 +278,4 @@ export function TrashBox(){
       </div>
     </section>
   ) 
-} 
+}

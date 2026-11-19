@@ -66,7 +66,7 @@ export function ModeratorPanel({
     onCheckedChange: (value: boolean) => void,
   ) => {
     if (pendingSwitch === field) {
-      return <Loader2 className="h-4 w-4 animate-spin" />;
+      return <Loader2 className="size-4 animate-spin" role="img" aria-label="Обновление настройки" />;
     }
 
     return <Switch checked={checked} onCheckedChange={onCheckedChange} />;

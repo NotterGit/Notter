@@ -1,6 +1,11 @@
 import type { DropzoneOptions } from "react-dropzone"
 import type * as React from "react"
 
+export interface LoadingBulbProps {
+  alt: string
+  size: number
+}
+
 export interface PlanNoticeProps {
   title: string
   description: string

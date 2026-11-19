@@ -7,6 +7,7 @@ import { ClerkThemeProvider } from "@/components/providers/clerk-theme-provider"
 import { QueryProvider } from "@/components/providers/query-provider"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { ThemeIcons } from "@/components/theme-icons"
+import { Loader2 } from "lucide-react"
 import { images } from "@/config/routing/image.route"
 import { PwaProvider } from "@/components/providers/pwa-provider"
 
@@ -70,6 +71,9 @@ export default function RootLayout({
                   zIndex: 100000,
                 }}
                 toastOptions={{
+                  loading: {
+                    icon: <Loader2 className="size-[18px] animate-spin" aria-hidden="true" />,
+                  },
                   style: {
                     color: "black",
                     background: "white",

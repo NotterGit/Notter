@@ -68,7 +68,7 @@ export function ModeratorPanel({ user }: UserProps) {
     disabled = false,
   ) => {
     if (pendingToggle === toggleName) {
-      return <Loader2 className="h-4 w-4 animate-spin" />;
+      return <Loader2 className="size-4 animate-spin" role="img" aria-label="Обновление настройки" />;
     }
 
     return <Switch checked={checked} disabled={disabled} onCheckedChange={onCheckedChange} />;
@@ -269,7 +269,7 @@ export function ModeratorPanel({ user }: UserProps) {
                   disabled={pendingToggle === "premium"}
                 >
                   {pendingToggle === "premium" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="size-4 animate-spin" />
                   ) : (
                     "Обновить"
                   )}

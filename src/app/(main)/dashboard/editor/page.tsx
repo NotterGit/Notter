@@ -13,7 +13,7 @@ import Color from "@tiptap/extension-color"
 import Highlight from "@tiptap/extension-highlight"
 import TextStyle from "@tiptap/extension-text-style"
 import toast from "react-hot-toast"
-import { Sparkles, Copy, RotateCcw, CheckCircle2 } from "lucide-react"
+import { Sparkles, Copy, RotateCcw, CheckCircle2, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -184,7 +184,8 @@ export default function EditorPrototypePage() {
 
   if (!editor) {
     return (
-      <div className="flex h-96 items-center justify-center text-sm text-muted-foreground">
+      <div className="flex h-96 items-center justify-center gap-2 text-sm text-muted-foreground" role="status">
+        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
         Загрузка редактора…
       </div>
     )
